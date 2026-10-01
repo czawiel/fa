@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FabrykaAplikacji — Narzędzia dla entuzjastów</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' stop-color='%2306B6D4'/><stop offset='100%25' stop-color='%238B5CF6'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><text x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' fill='%23ffffff' font-family='monospace' font-weight='700' font-size='13'>FA</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #F8FAFC;
+      --surface:    #FFFFFF;
+      --border:     #E2E8F0;
+      --muted:      #94A3B8;
+      --ink:        #0F172A;
+      --ink-soft:   #334155;
+      --accent:     #06B6D4;
+      --accent-dim: #CFFAFE;
+      --font-display: 'Inter', sans-serif;
+      --font-sans:    'Inter', sans-serif;
+      --font-mono:    'JetBrains Mono', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.6;
+    }
+
+    a { text-decoration: none; color: inherit; }
+    img { display: block; width: 100%; }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* NAV */
+    header {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(248,250,252,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      max-width: 1100px; margin: 0 auto; padding: 0 24px;
+      height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 24px;
+    }
+    .logo { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-size: 17px; font-weight: 600; color: var(--ink); }
+    .logo-mark {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: linear-gradient(135deg, #06B6D4, #8B5CF6);
+      color: #fff; font-size: 12px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; font-family: var(--font-mono);
+    }
+    .logo span { color: var(--accent); }
+    nav { display: flex; gap: 32px; }
+    nav a { font-size: 14px; color: var(--muted); transition: color .15s; }
+    nav a:hover { color: var(--ink); }
+    .btn-nav { font-size: 13px; font-weight: 600; padding: 8px 18px; border-radius: 10px; background: var(--ink); color: #fff; transition: background .15s; }
+    .btn-nav:hover { background: #1E293B; }
+
+    /* HERO */
+    .hero {
+      max-width: 1100px; margin: 0 auto; padding: 80px 24px 64px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center;
+    }
+    .badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 5px 12px; border-radius: 99px;
+      background: var(--accent-dim); color: var(--accent);
+      font-family: var(--font-mono); font-size: 12px; font-weight: 500; margin-bottom: 24px;
+    }
+    .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    h1 { font-family: var(--font-display); font-size: clamp(40px,5vw,58px); font-weight: 600; line-height: 1.12; margin-bottom: 20px; }
+    h1 em { font-style: normal; color: var(--accent); }
+    .hero-sub { font-size: 17px; color: var(--ink-soft); line-height: 1.7; margin-bottom: 32px; }
+    .btn-group { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn-primary {
+      display: inline-block; padding: 12px 24px; border-radius: 12px;
+      background: linear-gradient(135deg, #06B6D4, #8B5CF6); color: #fff;
+      font-size: 14px; font-weight: 600; box-shadow: 0 4px 16px rgba(6,182,212,.3); transition: opacity .15s;
+    }
+    .btn-primary:hover { opacity: .88; }
+    .btn-ghost {
+      display: inline-block; padding: 12px 24px; border-radius: 12px;
+      border: 1px solid var(--border); background: var(--surface);
+      color: var(--ink-soft); font-size: 14px; font-weight: 600; transition: border-color .15s;
+    }
+    .btn-ghost:hover { border-color: var(--muted); }
+
+    /* TERMINAL */
+    .terminal { border-radius: 18px; overflow: hidden; border: 1px solid var(--border); background: #0F172A; box-shadow: 0 12px 48px rgba(0,0,0,.12); }
+    .terminal-bar { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: #1E293B; border-bottom: 1px solid #334155; }
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .dot-red { background: #EF4444; } .dot-amber { background: #F59E0B; } .dot-green { background: #10B981; }
+    .terminal-title { margin-left: 12px; font-family: var(--font-mono); font-size: 12px; color: #64748B; }
+    .terminal-body { padding: 24px; font-family: var(--font-mono); font-size: 13px; line-height: 2; }
+    .t-cmd { color: #06B6D4; } .t-arrow { color: #06B6D4; } .t-name { color: #E2E8F0; }
+    .t-ver { color: #8B5CF6; } .t-ok { color: #10B981; } .t-dim { color: #475569; }
+    .cursor { display: inline-block; width: 8px; height: 16px; background: #06B6D4; vertical-align: middle; animation: blink 1.1s step-end infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* STATS */
+    .stats { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--surface); }
+    .stats-inner { max-width: 1100px; margin: 0 auto; padding: 20px 24px; display: flex; flex-wrap: wrap; gap: 24px; justify-content: space-around; }
+    .stat-item { text-align: center; }
+    .stat-value { font-family: var(--font-display); font-size: 26px; font-weight: 600; color: var(--ink); display: block; }
+    .stat-label { font-family: var(--font-mono); font-size: 11px; color: var(--muted); display: block; margin-top: 2px; }
+
+    /* APPS */
+    .apps-section { max-width: 1100px; margin: 0 auto; padding: 80px 24px; }
+    .section-eyebrow { font-family: var(--font-mono); font-size: 11px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: .12em; margin-bottom: 8px; }
+    h2 { font-family: var(--font-display); font-size: clamp(28px,4vw,40px); font-weight: 600; color: var(--ink); margin-bottom: 40px; }
+    .grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; }
+    .apps-more { margin-top: 32px; text-align: center; color: var(--ink-soft); font-size: 15px; }
+    .apps-more strong { color: var(--ink); font-weight: 600; }
+    .apps-more a { color: var(--accent); font-weight: 600; }
+    .apps-more a:hover { text-decoration: underline; }
+
+    /* CARD */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; transition: transform .2s, box-shadow .2s, border-color .2s; }
+    .card:hover { transform: translateY(-4px); box-shadow: 0 12px 36px rgba(0,0,0,.09); }
+    .card-img { position: relative; height: 176px; overflow: hidden; }
+    .card-img img { height: 100%; object-fit: cover; transition: transform .5s; }
+    .card:hover .card-img img { transform: scale(1.05); }
+    .card-img-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,.4)); }
+    .card-version { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,.95); color: var(--ink); font-family: var(--font-mono); font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 6px; }
+    .card-body { padding: 20px; display: flex; flex-direction: column; flex: 1; }
+    .card-cat { font-family: var(--font-mono); font-size: 11px; font-weight: 600; margin-bottom: 4px; }
+    .card-name { font-family: var(--font-display); font-size: 20px; font-weight: 600; color: var(--ink); margin-bottom: 10px; }
+    .card-desc { font-size: 13.5px; color: var(--ink-soft); line-height: 1.65; flex: 1; margin-bottom: 14px; }
+    .card-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+    .tag { font-family: var(--font-mono); font-size: 11px; padding: 2px 8px; border-radius: 6px; }
+    .card-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 14px; border-top: 1px solid var(--border); }
+    .card-meta { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+    .btn-dl {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; color: #fff;
+      transition: opacity .15s; border: none; cursor: pointer; text-decoration: none;
+    }
+    .btn-dl:hover { opacity: .85; }
+
+    /* CTA */
+    .cta-wrap { max-width: 1100px; margin: 0 auto 80px; padding: 0 24px; }
+    .cta-box { background: #0F172A; border-radius: 20px; padding: 64px 40px; text-align: center; position: relative; overflow: hidden; }
+    .cta-grid { position: absolute; inset: 0; opacity: .05; background-image: linear-gradient(#06B6D4 1px,transparent 1px),linear-gradient(90deg,#06B6D4 1px,transparent 1px); background-size: 40px 40px; }
+    .cta-eyebrow { font-family: var(--font-mono); font-size: 12px; color: #06B6D4; margin-bottom: 12px; position: relative; z-index: 1; }
+    .cta-box h2 { color: #fff; margin-bottom: 12px; position: relative; z-index: 1; }
+    .cta-sub { color: #94A3B8; font-size: 14px; max-width: 500px; margin: 0 auto 32px; line-height: 1.7; position: relative; z-index: 1; }
+    .cta-box .btn-primary { position: relative; z-index: 1; }
+
+    /* FOOTER */
+    footer { border-top: 1px solid var(--border); background: var(--surface); }
+    .footer-inner { max-width: 1100px; margin: 0 auto; padding: 28px 24px; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; }
+    .footer-logo { font-family: var(--font-display); font-size: 15px; font-weight: 600; color: var(--ink); }
+    .footer-logo span { color: var(--accent); }
+    .footer-copy { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a { font-size: 12px; color: var(--muted); transition: color .15s; }
+    .footer-links a:hover { color: var(--ink); }
+
+    /* RESPONSIVE */
+    @media (max-width: 1000px) {
+      .hero { grid-template-columns: 1fr; gap: 40px; }
+      .grid { grid-template-columns: repeat(2,1fr); }
+    }
+    @media (max-width: 640px) {
+      .grid { grid-template-columns: 1fr; }
+      nav { display: none; }
+      .hero { padding-top: 48px; }
+    }
+  </style>
+  <meta name="description" content="Showcase and download six software programs with detailed descriptions and visuals, designed for users seeking efficient programming solutions.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta property="og:title" content="Figma Make App">
+  <meta property="og:description" content="Showcase and download six software programs with detailed descriptions and visuals, designed for users seeking efficient programming solutions.">
+</head>
+<body>
+
+<header>
+  <div class="nav-inner">
+    <a href="#" class="logo">
+      <div class="logo-mark">FA</div>
+      FabrykaAplikacji<span></span>
+    </a>
+    <nav>
+      <a href="#apps">Aplikacje</a>
+      <a href="#o-mnie">O mnie</a>
+      <a href="#footer">Kontakt</a>
+    </nav>
+    <a href="#apps" class="btn-nav">Pobierz</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div>
+    <div class="badge"><span class="badge-dot"></span>6 aplikacji · darmowe · bez reklam</div>
+    <h1>Narzędzia, które<br><em>przyspieszą</em> Twój<br>dzień.</h1>
+    <p class="hero-sub">Zestaw aplikacji desktopowych stworzonych przez polskiego programistę dla entuzjastów wolnego oprogramowania. Darmowe, lekkie i gotowe do pracy.</p>
+    <div class="btn-group">
+      <a href="#apps" class="btn-primary">Przeglądaj aplikacje</a>
+      <a href="#" class="btn-ghost">GitHub →</a>
+    </div>
+  </div>
+  <div class="terminal">
+    <div class="terminal-bar">
+      <span class="dot dot-red"></span><span class="dot dot-amber"></span><span class="dot dot-green"></span>
+      <span class="terminal-title">zsh — fabrykaaplikacji</span>
+    </div>
+    <div class="terminal-body">
+      <div><span class="t-cmd">$ fabrykaaplikacji --list</span></div>
+      <div><span class="t-arrow">  →</span> <span class="t-name">YT Downloader PRO   </span><span class="t-ver">v2.4.1</span>  <span class="t-ok">[installed]</span></div>
+      <div><span class="t-arrow">  →</span> <span class="t-name">Sniper OLX    </span><span class="t-ver">v1.9.0</span>  <span class="t-dim">[available]</span></div>
+      <div><span class="t-arrow">  →</span> <span class="t-name">Generator Ogłoszeń Allegro    </span><span class="t-ver">v0.6.b</span>  <span class="t-dim">[available]</span></div>
+      <div><span class="t-arrow">  →</span> <span class="t-name">ShortsScanner PL  </span><span class="t-ver">v1.0.0</span>  <span class="t-dim">[available]</span></div>
+      <div><span class="t-arrow">  →</span> <span class="t-name">Monitoring cen Allegro.pl   </span><span class="t-ver">v2.0.3</span>  <span class="t-dim">[available]</span></div>
+      <div><span class="t-arrow">  →</span> <span class="t-name">Dyktafon AI  </span><span class="t-ver">v4.2.0</span>  <span class="t-dim">[available]</span></div>
+      <div style="margin-top:4px"><span class="t-cmd">$ </span><span class="cursor"></span></div>
+    </div>
+  </div>
+</section>
+
+<div class="stats">
+  <div class="stats-inner">
+    <div class="stat-item"><span class="stat-value">5 800+</span><span class="stat-label">Łączne pobrania</span></div>
+    <div class="stat-item"><span class="stat-value">Win / macOS / Linux</span><span class="stat-label">Platformy</span></div>
+    <div class="stat-item"><span class="stat-value">Freeware</span><span class="stat-label">Licencja</span></div>
+    <div class="stat-item"><span class="stat-value">Co miesiąc</span><span class="stat-label">Aktualizacje</span></div>
+  </div>
+</div>
+
+<section id="o-mnie" style="max-width:1100px;margin:0 auto 0;padding:64px 24px 0">
+  <p class="section-eyebrow">// o mnie</p>
+  <h2 style="margin-bottom:20px">O mnie</h2>
+  <p style="font-size:17px;color:var(--ink-soft);line-height:1.8;max-width:780px;border-left:3px solid var(--accent);padding-left:24px">
+    Na co dzień zajmuję się automatyzacją procesów biznesowych i rozwojem sprzedaży internetowej — łączę systemy e-commerce, ERP i marketplace w sprawnie działające mechanizmy, które oszczędzają czas i koszty firm. FabrykaAplikacji to przestrzeń, w której dzielę się autorskimi narzędziami desktopowymi: od inteligentnych asystentów zakupowych i analitycznych po aplikacje do codziennej produktywności. Każdy program tworzę z myślą o prostocie, szybkości i maksymalnej niezawodności. </p>
+</section>
+
+<section class="apps-section" id="apps">
+  <p class="section-eyebrow">// aplikacje</p>
+  <h2>Wszystkie narzędzia</h2>
+  <div class="grid">
+
+    <div class="card">
+      <div class="card-img" style="background:#CFFAFE">
+        <img src="yt-app.jpg" alt="CodeTimer" />
+        <div class="card-img-overlay"></div><span class="card-version">v2.4.1</span>
+      </div>
+      <div class="card-body">
+        <span class="card-cat" style="color:#06B6D4">Multimedia & Narzędzia</span>
+        <div class="card-name">Youtube Downloader Pro</div>
+        <p class="card-desc">Błyskawicznie pobieraj audio z YouTube bezpośrednio do plików MP3. Program automatycznie uzupełnia metadane wykonawcy i okładkę, działając w pełni lokalnie bez zbędnych reklam.</p>
+        <div class="card-tags">
+          <span class="tag" style="background:#CFFAFE;color:#06B6D4">MP3</span>
+          <span class="tag" style="background:#CFFAFE;color:#06B6D4">YouTube</span>
+          <span class="tag" style="background:#CFFAFE;color:#06B6D4">Konwerter</span>
+          <span class="tag" style="background:#CFFAFE;color:#06B6D4">Pobieracz</span>
+        </div>
+        <div class="card-footer">
+          <span class="card-meta">142.2 MB · 1 421 pobrań</span>
+          <a href="#" class="btn-dl" style="background:#06B6D4;box-shadow:0 2px 8px #06B6D455">
+            <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M6 1v7M3 5.5l3 3 3-3M1 10h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Pobierz
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-img" style="background:#EDE9FE">
+        <img src="sniper-olx.png" alt="GitSync" />
+        <div class="card-img-overlay"></div><span class="card-version">v1.9.0</span>
+      </div>
+      <div class="card-body">
+        <span class="card-cat" style="color:#8B5CF6">Zakupy & Automatyzacja</span>
+        <div class="card-name">Sniper OLX</div>
+        <p class="card-desc">Twój automatyczny monitor okazji cenowych. Skanuje ogłoszenia OLX w czasie rzeczywistym i natychmiast wysyła powiadomienie z bezpośrednim linkiem na Twój telefon i Discorda.</p>
+        <div class="card-tags">
+          <span class="tag" style="background:#CFFAFE;color:#06B6D4">Automatyzacja</span>
+          <span class="tag" style="background:#CFFAFE;color:#06B6D4">Alerty</span>
+          <span class="tag" style="background:#CFFAFE;color:#06B6D4">Konkurencja</span>
+        </div>
+        <div class="card-footer">
+          <span class="card-meta">38.7 MB · 1 900 pobrań</span>
+          <a href="#" class="btn-dl" style="background:#8B5CF6;box-shadow:0 2px 8px #8B5CF655">
+            <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M6 1v7M3 5.5l3 3 3-3M1 10h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Pobierz
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-img" style="background:#FEF3C7">
+        <img src="all.jfif" alt="DBViewer" />
+        <div class="card-img-overlay"></div><span class="card-version">v0.6.b</span>
+      </div>
+      <div class="card-body">
+        <span class="card-cat" style="color:#F59E0B">E-commerce & AI</span>
+        <div class="card-name">Generator Ogłoszeń Allegro</div>
+        <p class="card-desc">Inteligentne wystawianie ofert w kilka sekund. Algorytm usuwa tło ze zdjęć produktowych, analizuje przedmiot i generuje zoptymalizowany tytuł oraz unikalny opis na Allegro i OLX.</p>
+        <div class="card-tags">
+          <span class="tag" style="background:#FEF3C7;color:#F59E0B">AI</span>
+          <span class="tag" style="background:#FEF3C7;color:#F59E0B">Sprzedaż</span>
+          <span class="tag" style="background:#FEF3C7;color:#F59E0B">Zdjęcia</span>
+          <span class="tag" style="background:#FEF3C7;color:#F59E0B">Opisy</span>
+        </div>
+        <div class="card-footer">
+          <span class="card-meta">22.1 MB · 700 pobrań</span>
+          <a href="#" class="btn-dl" style="background:#F59E0B;box-shadow:0 2px 8px #F59E0B55">
+            <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M6 1v7M3 5.5l3 3 3-3M1 10h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Pobierz
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-img" style="background:#FEE2E2">
+        <img src="shorts.jfif" alt="PortScan" />
+        <div class="card-img-overlay"></div><span class="card-version">v1.0.0</span>
+      </div>
+      <div class="card-body">
+        <span class="card-cat" style="color:#EF4444">Wideo & Narzędzia AI</span>
+        <div class="card-name">ShortsScanner PL</div>
+        <p class="card-desc">Selekcjoner najciekawszych polskich materiałów YouTube Shorts. Filtruje algorytmiczny bałagan, powtórki i zagraniczne treści, serwując wyłącznie wartościowe i popularne shortsy.</p>
+        <div class="card-tags">
+          <span class="tag" style="background:#FEF3C7;color:#F59E0B">AI</span>
+          <span class="tag" style="background:#FEF3C7;color:#F59E0B">Rozrywka</span>
+          <span class="tag" style="background:#FEF3C7;color:#F59E0B">Selekcjoner</span>
+          <span class="tag" style="background:#FEF3C7;color:#F59E0B">Automat</span>
+        </div>
+        <div class="card-footer">
+          <span class="card-meta">9.4 MB · 500 pobrań</span>
+          <a href="#" class="btn-dl" style="background:#EF4444;box-shadow:0 2px 8px #EF444455">
+            <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M6 1v7M3 5.5l3 3 3-3M1 10h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Pobierz
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-img" style="background:#D1FAE5">
+        <img src="allegro.jfif" alt="LogCraft" />
+        <div class="card-img-overlay"></div><span class="card-version">v1.1.3</span>
+      </div>
+      <div class="card-body">
+        <span class="card-cat" style="color:#10B981">E-commerce / Monitoring cen</span>
+        <div class="card-name">Monitoring cen Allegro.pl</div>
+        <p class="card-desc">Wpisz nazwę lub kod kreskowy produktu, a aplikacja w kilka sekund prześwietli rynek, odsieje pomyłki i wskaże cenę, która da Ci 1. miejsce na liście ofert przy maksymalnym zysku ze sprzedaży.</p>
+        <div class="card-tags">
+          <span class="tag" style="background:#D1FAE5;color:#10B981">Marża</span>
+          <span class="tag" style="background:#D1FAE5;color:#10B981">Szybkość</span>
+          <span class="tag" style="background:#D1FAE5;color:#10B981">Konkurencja</span>
+          <span class="tag" style="background:#D1FAE5;color:#10B981">Automat</span>
+        </div>
+        <div class="card-footer">
+          <span class="card-meta">17.8 MB · 9 100 pobrań</span>
+          <a href="#" class="btn-dl" style="background:#10B981;box-shadow:0 2px 8px #10B98155">
+            <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M6 1v7M3 5.5l3 3 3-3M1 10h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Pobierz
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-img" style="background:#FCE7F3">
+        <img src="mikrofon.jfif" alt="JsonForge" />
+        <div class="card-img-overlay"></div><span class="card-version">v4.2.0</span>
+      </div>
+      <div class="card-body">
+        <span class="card-cat" style="color:#EC4899">AI / Produktywność</span>
+        <div class="card-name">Dyktafon AI</div>
+        <p class="card-desc">Mów swobodnie do mikrofonu, a sztuczna inteligencja na bieżąco zamieni mowę na czysty tekst z poprawną interpunkcją. Działa w 100% lokalnie na Twoim komputerze — bez wysyłania nagrań do sieci.</p>
+        <div class="card-tags">
+          <span class="tag" style="background:#FCE7F3;color:#EC4899">AI</span>
+          <span class="tag" style="background:#FCE7F3;color:#EC4899">Transkrypcja</span>
+          <span class="tag" style="background:#FCE7F3;color:#EC4899">Mowa</span>
+          <span class="tag" style="background:#FCE7F3;color:#EC4899">Offline</span>
+        </div>
+        <div class="card-footer">
+          <span class="card-meta">11.6 MB · 34 500 pobrań</span>
+          <a href="#" class="btn-dl" style="background:#EC4899;box-shadow:0 2px 8px #EC489955">
+            <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M6 1v7M3 5.5l3 3 3-3M1 10h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Pobierz
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <p class="apps-more"><strong>+ 50 dostępnych aplikacji.</strong> Zainteresowany? <a href="mailto:kontakt@fabrykaaplikacji.pl">Skontaktuj się ze mną.</a></p>
+</section>
+
+<div class="cta-wrap" id="cta">
+  <div class="cta-box">
+    <div class="cta-grid"></div>
+    <p class="cta-eyebrow">// open source</p>
+    <h2>Masz pomysł na nową aplikację?</h2>
+    <p class="cta-sub">Nasze narzędzia są open source. Zgłoś issue, wyślij pull request lub zaproponuj nową aplikację — razem budujemy narzędzia dla polskiej społeczności.</p>
+    <a href="mailto:czawiel@gmail.com" class="btn-primary">Napisz mail →</a>
+  </div>
+</div>
+
+<section id="kontakt" style="max-width:1100px;margin:0 auto 80px;padding:0 24px">
+  <p class="section-eyebrow">// kontakt</p>
+  <h2>Skontaktuj się ze mną</h2>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:40px 48px;display:flex;flex-wrap:wrap;gap:40px;align-items:center">
+    <div style="flex:1;min-width:220px">
+      <div style="font-size:22px;font-weight:700;color:var(--ink);margin-bottom:4px">Cezary Wielgus</div>
+      <div style="font-family:var(--font-mono);font-size:12px;color:var(--muted);margin-bottom:24px">Płock, Polska</div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <a href="tel:+48784474740" style="display:inline-flex;align-items:center;gap:10px;color:var(--ink);font-size:15px;font-weight:500;transition:color .15s"
+          onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--ink)'">
+          <span style="width:36px;height:36px;border-radius:10px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center">
+            <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M14 10.5c-1 0-2-.2-2.9-.5a1 1 0 0 0-1 .2l-1.8 1.8A10.9 10.9 0 0 1 3.9 7.7l1.8-1.8a1 1 0 0 0 .2-1C5.6 4 5.5 3 5.5 2a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1c0 7.2 5.8 13 13 13a1 1 0 0 0 1-1v-2.5a1 1 0 0 0-1-1z" stroke="#06B6D4" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          784-474-740
+        </a>
+        <a href="mailto:kontakt@fabrykaaplikacji.pl" style="display:inline-flex;align-items:center;gap:10px;color:var(--ink);font-size:15px;font-weight:500;transition:color .15s"
+          onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--ink)'">
+          <span style="width:36px;height:36px;border-radius:10px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center">
+            <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><rect x="1" y="3" width="14" height="10" rx="2" stroke="#06B6D4" stroke-width="1.3"/><path d="M1 5l7 5 7-5" stroke="#06B6D4" stroke-width="1.3" stroke-linecap="round"/></svg>
+          </span>
+          kontakt@fabrykaaplikacji.pl
+        </a>
+      </div>
+    </div>
+    <div style="font-family:var(--font-mono);font-size:12px;color:var(--muted);line-height:2;background:var(--bg);padding:20px 24px;border-radius:12px;border:1px solid var(--border)">
+      <span style="color:var(--accent)">$</span> whois cezary-wielgus<br>
+      <span style="color:var(--ink)">name:</span>     Cezary Wielgus<br>
+      <span style="color:var(--ink)">location:</span> Płock, PL<br>
+      <span style="color:var(--ink)">phone:</span>    +48 784-474-740<br>
+      <span style="color:var(--ink)">projects:</span> 6 apps · open source<br>
+      <span style="color:#10B981">status:</span>   <span style="color:#10B981">available</span>
+    </div>
+  </div>
+</section>
+
+<footer id="footer">
+  <div class="footer-inner">
+    <span class="footer-logo">FabrykaAplikacji<span></span></span>
+    <span class="footer-copy">© 2026 · made in Poland · freeware</span>
+    <div class="footer-links">
+      <a title="proste zasady">Regulamin</a>
+      <a title="w cztery oczy">Prywatność</a>
+      <a title="mailowy lub telefoniczny">Kontakt</a>
+    </div>
+  </div>
+</footer>
+
+<script defer src="/__figma__/make_community_banner_v1.js"></script></body>
+</html>
