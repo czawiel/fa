@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Formularz Kontaktowy</title>
+  <title>Formularz Kontaktowy - Fabryka.tech</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%230077D4'/><path fill='%23fff' d='M8 7h17v5H14v3h8v5h-8v7H8V7Z'/><path fill='%231E293B' d='M20 7h5v5h-5z'/></svg>">
   <style>
     .contact-card {
-      max-width: 420px;
+      max-width: 520px;
       margin: 40px auto;
       padding: 24px;
       border: 1px solid #e2e8f0;
@@ -14,11 +15,22 @@
       font-family: system-ui, -apple-system, sans-serif;
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
+    .logo-container {
+      text-align: center;
+      margin-bottom: 20px;
+      margin-top: 20px;
+    }
+    .logo-container img {
+      max-width: 210px;
+      height: auto;
+      display: inline-block;
+    }
     .contact-card h2 {
       margin-top: 0;
       margin-bottom: 20px;
       font-size: 1.25rem;
       color: #1e293b;
+      text-align: center;
     }
     .form-group {
       margin-bottom: 16px;
@@ -29,6 +41,10 @@
       font-size: 0.9rem;
       font-weight: 500;
       color: #334155;
+    }
+    .required-star {
+      color: #dc2626;
+      font-weight: bold;
     }
     .form-group input,
     .form-group textarea {
@@ -51,7 +67,7 @@
     .btn-submit {
       width: 100%;
       padding: 12px;
-      background-color: #2563eb;
+      background-color: #005190;
       color: #ffffff;
       border: none;
       border-radius: 6px;
@@ -65,27 +81,51 @@
   </style>
 </head>
 <body>
-
+    <a href="http://fabryka.tech/"><div class="logo-container">
+      <img src="logo3.svg" alt="Logo">
+    </div></a>
   <div class="contact-card">
-    <h2>Napisz do nas</h2>
+    <!-- Logo na samej górze -->
+
+    <h2>Napisz do mnie</h2>
     
-    <!-- Formularz korzysta z bramki FormSubmit -->
     <form action="https://formsubmit.co/czawiel@gmail.com" method="POST">
-      <!-- Wyłączenie mechanizmu CAPTCHA dla szybszej wysyłki (opcjonalne) -->
       <input type="hidden" name="_captcha" value="false">
 
       <div class="form-group">
         <label for="name">Imię i nazwisko</label>
-        <input type="text" id="name" name="name" placeholder="np. Jan Kowalski" required>
+        <input type="text" id="name" name="name" placeholder="np. Jan Kowalski">
       </div>
 
       <div class="form-group">
         <label for="email">Twój adres e-mail</label>
-        <input type="email" id="email" name="email" placeholder="twoj@email.pl" required>
+        <input type="email" id="email" name="email" placeholder="twoj@email.pl">
+      </div>
+
+      <!-- Wyszukiwarka / wybór aplikacji -->
+      <div class="form-group">
+        <label for="subject">Czego dotyczy...</label>
+        <input 
+          type="text" 
+          id="subject" 
+          name="subject" 
+          list="apps-list" 
+          placeholder="Wyszukaj lub wpisz aplikację..."
+          autocomplete="off"
+        >
+        <datalist id="apps-list">
+          <option value="YT Downloader PRO">
+          <option value="Sniper OLX">
+          <option value="Generator Ogłoszeń Allegro">
+          <option value="ShortsScanner PL">
+          <option value="Monitoring cen Allegro.pl">
+          <option value="Dyktafon AI">
+          <option value="Aplikacja Pogodowa"></option>
+        </datalist>
       </div>
 
       <div class="form-group">
-        <label for="message">Wiadomość</label>
+        <label for="message">Wiadomość <span class="required-star">*</span></label>
         <textarea id="message" name="message" placeholder="Treść wiadomości..." required></textarea>
       </div>
 
