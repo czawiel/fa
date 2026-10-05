@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="111.81409mm"
+   height="8.8131571mm"
+   viewBox="0 0 111.81409 8.8131571"
+   version="1.1"
+   id="svg1"
+   xml:space="preserve"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><defs
+     id="defs1"><style
+       id="style1">
+      .txt-domain { font-family: 'Montserrat', 'Inter', 'Segoe UI', system-ui, sans-serif; font-weight: 900; font-size: 46px; fill: #1E293B; letter-spacing: 1px; }
+      .txt-suffix { font-family: 'Montserrat', 'Inter', 'Segoe UI', system-ui, sans-serif; font-weight: 900; font-size: 64px; fill: #0077D4; letter-spacing: 1.5px; }
+      .txt-baseline { font-family: 'Segoe UI', sans-serif; font-weight: 600; font-size: 15px; fill: #334155; letter-spacing: 0.6px; }
+      .tag-label { font-family: 'Segoe UI', sans-serif; font-weight: 700; font-size: 13px; fill: #94A3B8; text-transform: uppercase; letter-spacing: 1.5px; }
+      .blue-line { stroke: #0077D4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    </style><style
+       id="style1-4">
+      .txt-top-main { font-family: 'Montserrat', 'Inter', 'Segoe UI', system-ui, sans-serif; font-weight: 900; font-size: 46px; fill: #1E293B; letter-spacing: 1px; }
+      .txt-bot-main { font-family: 'Montserrat', 'Inter', 'Segoe UI', system-ui, sans-serif; font-weight: 900; font-size: 64px; fill: #0077D4; letter-spacing: 1.5px; }
+      .txt-sub-main { font-family: 'Segoe UI', sans-serif; font-weight: 600; font-size: 15px; fill: #334155; letter-spacing: 0.6px; }
+      .tag-title { font-family: 'Segoe UI', sans-serif; font-weight: 700; font-size: 13px; fill: #94A3B8; text-transform: uppercase; letter-spacing: 1.5px; }
+      .pcb-trace { stroke: #0077D4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    </style><style
+       id="style1-5">
+      .txt-top-main { font-family: 'Montserrat', 'Inter', 'Segoe UI', system-ui, sans-serif; font-weight: 900; font-size: 46px; fill: #1E293B; letter-spacing: 1px; }
+      .txt-bot-main { font-family: 'Montserrat', 'Inter', 'Segoe UI', system-ui, sans-serif; font-weight: 900; font-size: 64px; fill: #0077D4; letter-spacing: 1.5px; }
+      .txt-sub-main { font-family: 'Segoe UI', sans-serif; font-weight: 600; font-size: 15px; fill: #334155; letter-spacing: 0.6px; }
+      .tag-title { font-family: 'Segoe UI', sans-serif; font-weight: 700; font-size: 13px; fill: #94A3B8; text-transform: uppercase; letter-spacing: 1.5px; }
+      .pcb-trace { stroke: #0077D4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    </style></defs><g
+     id="layer1"
+     transform="translate(-28.342981,-65.451175)"><g
+       id="g1"
+       transform="matrix(0.26458333,0,0,0.26458333,-46.831248,43.688679)"><g
+         transform="translate(50,45)"
+         id="g11"><g
+           transform="matrix(0.32303188,0,0,1.0774151,182.53442,-25.714228)"
+           id="g8-7"
+           style="fill:#005190;fill-opacity:1"><!-- Główne koło zębate z lewej strony --><!-- Magistrala biegnąca w prawo --><!-- Miniaturowa fabryka w luce między wierszami (przed NOLOGI) --><g
+             transform="translate(156.78326,41.493321)"
+             id="g7-6"
+             style="fill:#005190;fill-opacity:1"><!-- Sylwetka hali produkcyjnej z dachem pilastym/szedowym --><g
+               id="g25-1"
+               style="fill:#005190;fill-opacity:1"><path
+                 d="M 2.9181665,47.387274 V 28.153333 L 58.154389,38.838855 V 28.153333 L 113.39061,38.838855 V 17.467809 h 47.34533 v 29.919465 z"
+                 fill="#1e293b"
+                 id="path3-4"
+                 style="fill:#005190;fill-opacity:1;stroke-width:1.18546" /></g><!-- Okienka w fabryce --><!-- Dym z komina przekształcający się w impulsy binarne / punkty PCB --></g><!-- Dolna linia PCB wspierająca fundament fabryki --></g><!-- Napisy --><g
+           transform="translate(295,70)"
+           id="g10"><text
+             x="0"
+             y="0"
+             class="txt-domain"
+             id="text8">FABRYKA.TECH</text></g></g></g></g></svg>
