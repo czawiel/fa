@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FabrykaAplikacji — Narzędzia dla entuzjastów</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' stop-color='%2306B6D4'/><stop offset='100%25' stop-color='%238B5CF6'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><text x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' fill='%23ffffff' font-family='monospace' font-weight='700' font-size='13'>FA</text></svg>">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%230077D4'/><path fill='%23fff' d='M8 7h17v5H14v3h8v5h-8v7H8V7Z'/><path fill='%231E293B' d='M20 7h5v5h-5z'/></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -67,6 +67,11 @@
     nav a:hover { color: var(--ink); }
     .btn-nav { font-size: 13px; font-weight: 600; padding: 8px 18px; border-radius: 10px; background: var(--ink); color: #fff; transition: background .15s; }
     .btn-nav:hover { background: #1E293B; }
+    .logo-img {
+      height: auto;
+      width: 220px;
+      display: block;
+    }
 
     /* HERO */
     .hero {
@@ -188,10 +193,9 @@
 
 <header>
   <div class="nav-inner">
-    <a href="#" class="logo">
-      <div class="logo-mark">FA</div>
-      FabrykaAplikacji
-    </a>
+  <a href="#" class="logo-link">
+    <img src="logo1.svg" alt="FabrykaAplikacji" class="logo-img" />
+  </a>
     <nav>
       <a href="#apps">Aplikacje</a>
       <a href="#o-mnie">O mnie</a>
@@ -443,7 +447,7 @@
 
 <footer id="footer">
   <div class="footer-inner">
-    <span class="footer-logo">FabrykaAplikacji<span></span></span>
+    <span class="footer-logo">Fabryka.tech<span></span><b style="color: #005190;">nologi</b></span>
     <span class="footer-copy">© 2026 · made in Poland · freeware</span>
     <div class="footer-links">
       <a href="#apps">Aplikacje</a>
