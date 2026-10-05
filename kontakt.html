@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Formularz Kontaktowy</title>
+  <style>
+    .contact-card {
+      max-width: 420px;
+      margin: 40px auto;
+      padding: 24px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-family: system-ui, -apple-system, sans-serif;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    .contact-card h2 {
+      margin-top: 0;
+      margin-bottom: 20px;
+      font-size: 1.25rem;
+      color: #1e293b;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #334155;
+    }
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      box-sizing: border-box;
+      font-size: 0.95rem;
+    }
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #2563eb;
+    }
+    .form-group textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+    .btn-submit {
+      width: 100%;
+      padding: 12px;
+      background-color: #2563eb;
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-submit:hover {
+      background-color: #1d4ed8;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="contact-card">
+    <h2>Napisz do nas</h2>
+    
+    <!-- Formularz korzysta z bramki FormSubmit -->
+    <form action="https://formsubmit.co/czawiel@gmail.com" method="POST">
+      <!-- Wyłączenie mechanizmu CAPTCHA dla szybszej wysyłki (opcjonalne) -->
+      <input type="hidden" name="_captcha" value="false">
+
+      <div class="form-group">
+        <label for="name">Imię i nazwisko</label>
+        <input type="text" id="name" name="name" placeholder="np. Jan Kowalski" required>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Twój adres e-mail</label>
+        <input type="email" id="email" name="email" placeholder="twoj@email.pl" required>
+      </div>
+
+      <div class="form-group">
+        <label for="message">Wiadomość</label>
+        <textarea id="message" name="message" placeholder="Treść wiadomości..." required></textarea>
+      </div>
+
+      <button type="submit" class="btn-submit">Wyślij wiadomość</button>
+    </form>
+  </div>
+
+</body>
+</html>
