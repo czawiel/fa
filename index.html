@@ -1,14 +1,102 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FabrykaTechnologi | Narzędzia do pracy</title>
+
+  <!-- Podstawowe meta tagi SEO -->
+  <title>FabrykaTechnologi — Darmowe Aplikacje Desktopowe i Narzędzia AI</title>
+  <meta name="description" content="Pobieraj darmowe aplikacje desktopowe i narzędzia AI: transkrypcja mowy na żywo, monitoring cen Allegro i OLX, OCR oraz automatyzacja. Lekkie, darmowe i bez reklam." />
+  <meta name="keywords" content="aplikacje desktopowe, darmowe programy, transkrypcja mowy AI, monitoring cen allegro, sniper olx, narzędzia dla twórców, oprogramowanie freeware" />
+  <meta name="author" content="Cezary Wielgus" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+  <link rel="canonical" href="https://fabryka.tech/" />
+  <meta name="theme-color" content="#0077D4" />
+
+  <!-- Open Graph / Facebook / LinkedIn -->
+  <meta property="og:locale" content="pl_PL" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="FabrykaTechnologi — Darmowe Aplikacje Desktopowe i Narzędzia AI" />
+  <meta property="og:description" content="Lekkie, bezpłatne programy desktopowe i narzędzia AI stworzone do automatyzacji, transkrypcji mowy oraz monitorowania cen." />
+  <meta property="og:url" content="https://fabryka.tech/" />
+  <meta property="og:site_name" content="FabrykaTechnologi" />
+  <meta property="og:image" content="https://fabryka.tech/logo1.svg" />
+  <meta property="og:image:alt" content="FabrykaTechnologi - Logo" />
+
+  <!-- Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="FabrykaTechnologi — Darmowe Aplikacje Desktopowe i Narzędzia AI" />
+  <meta name="twitter:description" content="Lekkie, bezpłatne narzędzia użytkowe i desktopowe AI. Sprawdź i pobierz za darmo." />
+  <meta name="twitter:image" content="https://fabryka.tech/logo1.svg" />
+
+  <!-- Dane strukturalne Schema.org (JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://fabryka.tech/#website",
+        "url": "https://fabryka.tech/",
+        "name": "FabrykaTechnologi",
+        "description": "Zestaw autorskich narzędzi desktopowych i aplikacji freeware.",
+        "inLanguage": "pl-PL"
+      },
+      {
+        "@type": "Person",
+        "@id": "https://fabryka.tech/#author",
+        "name": "Cezary Wielgus",
+        "jobTitle": "Programista / Specjalista ds. automatyzacji",
+        "url": "https://fabryka.tech/",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Płock",
+          "addressCountry": "PL"
+        }
+      },
+      {
+        "@type": "ItemList",
+        "name": "Narzędzia desktopowe FabrykaTechnologi",
+        "itemListElement": [
+          {
+            "@type": "SoftwareApplication",
+            "name": "Youtube Downloader Pro",
+            "operatingSystem": "Windows, macOS, Linux",
+            "applicationCategory": "MultimediaApplication",
+            "offers": { "@type": "Offer", "price": "0", "priceCurrency": "PLN" }
+          },
+          {
+            "@type": "SoftwareApplication",
+            "name": "Sniper OLX",
+            "operatingSystem": "All",
+            "applicationCategory": "BusinessApplication",
+            "offers": { "@type": "Offer", "price": "0", "priceCurrency": "PLN" }
+          },
+          {
+            "@type": "SoftwareApplication",
+            "name": "Monitoring cen Allegro.pl",
+            "operatingSystem": "Windows, macOS, Linux",
+            "applicationCategory": "BusinessApplication",
+            "offers": { "@type": "Offer", "price": "0", "priceCurrency": "PLN" }
+          },
+          {
+            "@type": "SoftwareApplication",
+            "name": "Dyktafon AI",
+            "operatingSystem": "All",
+            "applicationCategory": "UtilitiesApplication",
+            "offers": { "@type": "Offer", "price": "0", "priceCurrency": "PLN" }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%230077D4'/><path fill='%23fff' d='M8 7h17v5H14v3h8v5h-8v7H8V7Z'/><path fill='%231E293B' d='M20 7h5v5h-5z'/></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -55,23 +143,16 @@
       height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 24px;
     }
     .logo { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-size: 17px; font-weight: 600; color: var(--ink); }
-    .logo-mark {
-      width: 32px; height: 32px; border-radius: 8px;
-      background: linear-gradient(135deg, #06B6D4, #8B5CF6);
-      color: #fff; font-size: 12px; font-weight: 700;
-      display: flex; align-items: center; justify-content: center; font-family: var(--font-mono);
-    }
-    .logo span { color: var(--accent); }
-    nav { display: flex; gap: 32px; }
-    nav a { font-size: 14px; color: var(--muted); transition: color .15s; }
-    nav a:hover { color: var(--ink); }
-    .btn-nav { font-size: 13px; font-weight: 600; padding: 8px 18px; border-radius: 10px; background: var(--ink); color: #fff; transition: background .15s; }
-    .btn-nav:hover { background: #1E293B; }
     .logo-img {
       height: auto;
       width: 220px;
       display: block;
     }
+    nav { display: flex; gap: 32px; }
+    nav a { font-size: 14px; color: var(--muted); transition: color .15s; }
+    nav a:hover { color: var(--ink); }
+    .btn-nav { font-size: 13px; font-weight: 600; padding: 8px 18px; border-radius: 10px; background: var(--ink); color: #fff; transition: background .15s; }
+    .btn-nav:hover { background: #1E293B; }
 
     /* HERO */
     .hero {
@@ -95,12 +176,6 @@
       font-size: 14px; font-weight: 600; box-shadow: 0 4px 16px rgba(6,182,212,.3); transition: opacity .15s;
     }
     .btn-primary:hover { opacity: .88; }
-    .btn-ghost {
-      display: inline-block; padding: 12px 24px; border-radius: 12px;
-      border: 1px solid var(--border); background: var(--surface);
-      color: var(--ink-soft); font-size: 14px; font-weight: 600; transition: border-color .15s;
-    }
-    .btn-ghost:hover { border-color: var(--muted); }
 
     /* TERMINAL */
     .terminal { border-radius: 18px; overflow: hidden; border: 1px solid var(--border); background: #0F172A; box-shadow: 0 12px 48px rgba(0,0,0,.12); }
@@ -167,7 +242,6 @@
     footer { border-top: 1px solid var(--border); background: var(--surface); }
     .footer-inner { max-width: 1100px; margin: 0 auto; padding: 28px 24px; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; }
     .footer-logo { font-family: var(--font-display); font-size: 15px; font-weight: 600; color: var(--ink); }
-    .footer-logo span { color: var(--accent); }
     .footer-copy { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
     .footer-links { display: flex; gap: 24px; }
     .footer-links a { font-size: 12px; color: var(--muted); transition: color .15s; }
@@ -184,19 +258,15 @@
       .hero { padding-top: 48px; }
     }
   </style>
-  <meta name="description" content="Pobieraj darmowe aplikacje desktopowe: transkrypcja mowy AI, monitoring cen na Allegro i OLX oraz narzędzia multimedialne. Lekkie, szybkie i bez reklam.">
-  <meta name="robots" content="index, follow">
-  <meta property="og:title" content="FabrykaTechnologi — Narzędzia dla entuzjastów">
-  <meta property="og:description" content="Pobieraj darmowe aplikacje desktopowe: transkrypcja mowy AI, monitoring cen na Allegro i OLX oraz narzędzia multimedialne. Lekkie, szybkie i bez reklam.">
 </head>
 <body>
 
 <header>
   <div id="upp" class="nav-inner">
-  <a href="https://fabryka.tech/" class="logo-link">
-    <img src="logo1.svg" alt="FabrykaAplikacji" class="logo-img" />
-  </a>
-    <nav>
+    <a href="https://fabryka.tech/" class="logo-link" aria-label="Strona główna FabrykaTechnologi">
+      <img src="logo1.svg" alt="FabrykaTechnologi - logo" class="logo-img" width="220" height="40" />
+    </a>
+    <nav aria-label="Główna nawigacja">
       <a href="#apps">Aplikacje</a>
       <a href="#o-mnie">O mnie</a>
       <a href="#kontakt">Kontakt</a>
@@ -205,345 +275,331 @@
   </div>
 </header>
 
-<section class="hero">
-  <div>
-    <div class="badge"><span class="badge-dot"></span>9 aplikacji · darmowe · bez reklam</div>
-    <h1>Narzędzia, które<br><em>przyspieszą</em> Twój<br>dzień.</h1>
-    <p class="hero-sub">Zestaw aplikacji desktopowych stworzonych przez polskiego programistę dla entuzjastów wolnego oprogramowania. Darmowe, lekkie i gotowe do pracy.</p>
-    <div class="btn-group">
-      <a href="#apps" class="btn-primary">Przeglądaj aplikacje</a>
+<main>
+  <section class="hero" aria-label="Sekcja powitalna">
+    <div>
+      <div class="badge"><span class="badge-dot"></span>9 aplikacji · darmowe · bez reklam</div>
+      <h1>Narzędzia, które<br><em>przyspieszą</em> Twój<br>dzień.</h1>
+      <p class="hero-sub">Zestaw aplikacji desktopowych stworzonych przez polskiego programistę dla entuzjastów wolnego oprogramowania. Darmowe, lekkie i gotowe do pracy.</p>
+      <div class="btn-group">
+        <a href="#apps" class="btn-primary">Przeglądaj aplikacje</a>
+      </div>
+    </div>
+    <div class="terminal" aria-hidden="true">
+      <div class="terminal-bar">
+        <span class="dot dot-red"></span><span class="dot dot-amber"></span><span class="dot dot-green"></span>
+        <span class="terminal-title">zsh — fabrykatechnologi</span>
+      </div>
+      <div class="terminal-body">
+        <div><span class="t-cmd">$ fabrykatechnologi --list</span></div>
+        <div><span class="t-arrow">  →</span> <span class="t-name">YT Downloader PRO   </span><span class="t-ver">v2.4.1</span>  <span class="t-ok">[installed]</span></div>
+        <div><span class="t-arrow">  →</span> <span class="t-name">Sniper OLX    </span><span class="t-ver">v1.9.0</span>  <span class="t-dim">[available]</span></div>
+        <div><span class="t-arrow">  →</span> <span class="t-name">Twoja Stacja Pogodowa    </span><span class="t-ver">v1.1.0</span>  <span class="t-dim">[available]</span></div>
+        <div><span class="t-arrow">  →</span> <span class="t-name">ShortsScanner PL  </span><span class="t-ver">v1.0.0</span>  <span class="t-dim">[available]</span></div>
+        <div><span class="t-arrow">  →</span> <span class="t-name">Monitoring cen Allegro.pl   </span><span class="t-ver">v2.0.3</span>  <span class="t-dim">[available]</span></div>
+        <div><span class="t-arrow">  →</span> <span class="t-name">Dyktafon AI  </span><span class="t-ver">v2.2.0</span>  <span class="t-dim">[available]</span></div>
+        <div><span class="t-arrow">  →</span> <span class="t-name">Zaawansowany Skaner Dokumentów AI  </span><span class="t-ver">v1.0.0</span>  <span class="t-dim">[available]</span></div>
+        <div><span class="t-arrow">  →</span> <span class="t-name">Prywatna Bramka SMS AI   </span><span class="t-ver">v1.1.9</span>  <span class="t-dim">[available]</span></div>
+        <div><span class="t-arrow">  →</span> <span class="t-name">Monitor wiadomości ze świata  </span><span class="t-ver">v3.0.0</span>  <span class="t-dim">[available]</span></div>
+        <div><span class="t-arrow">  →</span> <span class="t-name">Generator Ogłoszeń Allegro    </span><span class="t-ver">v0.6.b</span>  <span class="t-dim">[unavailable]</span></div>
+        <div style="margin-top:4px"><span class="t-cmd">$ </span><span class="cursor"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="stats">
+    <div class="stats-inner">
+      <div class="stat-item"><span class="stat-value">7 100+</span><span class="stat-label">Łączne pobrania</span></div>
+      <div class="stat-item"><span class="stat-value">Win / macOS / Linux</span><span class="stat-label">Platformy</span></div>
+      <div class="stat-item"><span class="stat-value">Freeware</span><span class="stat-label">Licencja</span></div>
+      <div class="stat-item"><span class="stat-value">Co miesiąc</span><span class="stat-label">Aktualizacje</span></div>
     </div>
   </div>
-  <div class="terminal">
-    <div class="terminal-bar">
-      <span class="dot dot-red"></span><span class="dot dot-amber"></span><span class="dot dot-green"></span>
-      <span class="terminal-title">zsh — fabrykatechnologi</span>
+
+  <section id="o-mnie" style="max-width:1100px;margin:0 auto 0;padding:64px 24px 0">
+    <p class="section-eyebrow">// o mnie</p>
+    <h2 style="margin-bottom:20px">O mnie</h2>
+    <p style="font-size:17px;color:var(--ink-soft);line-height:1.8;max-width:780px;border-left:3px solid var(--accent);padding-left:24px">
+      Na co dzień zajmuję się automatyzacją procesów biznesowych i rozwojem sprzedaży internetowej — łączę systemy e-commerce, ERP i marketplace w sprawnie działające mechanizmy, które oszczędzają czas i koszty firm. FabrykaTechnologi to przestrzeń, w której dzielę się autorskimi narzędziami desktopowymi: od inteligentnych asystentów zakupowych i analitycznych po aplikacje do codziennej produktywności. Każdy program tworzę z myślą o prostocie, szybkości i maksymalnej niezawodności.
+    </p>
+  </section>
+
+  <section class="apps-section" id="apps">
+    <p class="section-eyebrow">// aplikacje</p>
+    <h2>Wszystkie narzędzia</h2>
+    <div class="grid">
+
+      <!-- Card: Youtube Downloader Pro -->
+      <article class="card">
+        <div class="card-img" style="background:#CFFAFE">
+          <img src="yt-app.jpg" alt="Pobieranie plików MP3 z YouTube - Youtube Downloader Pro" loading="lazy" decoding="async" />
+          <div class="card-img-overlay"></div><span class="card-version">v2.4.1</span>
+        </div>
+        <div class="card-body">
+          <span class="card-cat" style="color:#06B6D4">Multimedia &amp; Narzędzia</span>
+          <h3 class="card-name">Youtube Downloader Pro</h3>
+          <p class="card-desc">Błyskawicznie pobieraj audio z YouTube bezpośrednio do plików MP3. Program automatycznie uzupełnia metadane wykonawcy i okładkę, działając w pełni lokalnie bez zbędnych reklam.</p>
+          <div class="card-tags">
+            <span class="tag" style="background:#CFFAFE;color:#06B6D4">MP3</span>
+            <span class="tag" style="background:#CFFAFE;color:#06B6D4">YouTube</span>
+            <span class="tag" style="background:#CFFAFE;color:#06B6D4">Konwerter</span>
+            <span class="tag" style="background:#CFFAFE;color:#06B6D4">Pobieracz</span>
+          </div>
+          <div class="card-footer">
+            <span class="card-meta">139.2 MB · 1 421 pobrań</span>
+            <a target="_blank" rel="noopener noreferrer" class="btn-dl" href="https://drive.google.com/uc?export=download&id=10pqfTzH6l4Phe9u3tWJpU2E3wo6ZKtBD" aria-label="Pobierz program Youtube Downloader Pro" style="background:#06B6D4;box-shadow:0 2px 8px #06B6D455">
+              <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M6 1v7M3 5.5l3 3 3-3M1 10h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Pobierz
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card: Sniper OLX -->
+      <article class="card">
+        <div class="card-img" style="background:#EDE9FE">
+          <img src="sniper-olx.jfif" alt="Automatyczny monitor ogłoszeń - Sniper OLX" loading="lazy" decoding="async" />
+          <div class="card-img-overlay"></div><span class="card-version">v1.9.0</span>
+        </div>
+        <div class="card-body">
+          <span class="card-cat" style="color:#8B5CF6">Zakupy &amp; Automatyzacja</span>
+          <h3 class="card-name">Sniper OLX</h3>
+          <p class="card-desc">Twój automatyczny monitor okazji cenowych. Skanuje ogłoszenia OLX w czasie rzeczywistym i natychmiast wysyła powiadomienie z bezpośrednim linkiem na Twój telefon i Discorda.</p>
+          <div class="card-tags">
+            <span class="tag" style="background:#EDE9FE;color:#8B5CF6">Automatyzacja</span>
+            <span class="tag" style="background:#EDE9FE;color:#8B5CF6">Alerty</span>
+            <span class="tag" style="background:#EDE9FE;color:#8B5CF6">Konkurencja</span>
+          </div>
+          <div class="card-footer">
+            <span class="card-meta">11.7 MB · 1 900 pobrań</span>
+            <a target="_blank" rel="noopener noreferrer" class="btn-dl" href="https://atawu7bta3fsgr58hegrf6.streamlit.app/" aria-label="Uruchom aplikację Sniper OLX" style="background:#8B5CF6;box-shadow:0 2px 8px #8B5CF655">
+              <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M6 1v7M3 5.5l3 3 3-3M1 10h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Otwórz
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card: Stacja Pogodowa -->
+      <article class="card">
+        <div class="card-img" style="background:#FEF3C7">
+          <img src="pogoda.jpg" alt="Aplikacja pogodowa z prognozą - Twoja Stacja Pogodowa" loading="lazy" decoding="async" />
+          <div class="card-img-overlay"></div><span class="card-version">v1.1.0</span>
+        </div>
+        <div class="card-body">
+          <span class="card-cat" style="color:#F59E0B">Pogoda &amp; Wizualizacja danych</span>
+          <h3 class="card-name">Twoja Stacja Pogodowa</h3>
+          <p class="card-desc">Interaktywny pulpit pogodowy oparty na OpenWeatherMap API. Prezentuje bieżące warunki atmosferyczne, prognozę godzinową i 7-dniową, automatycznie dostosowuje dynamiczne tła do aury i wyświetla mapę.</p>
+          <div class="card-tags">
+            <span class="tag" style="background:#FEF3C7;color:#F59E0B">Pogoda</span>
+            <span class="tag" style="background:#FEF3C7;color:#F59E0B">OpenWeatherMap</span>
+            <span class="tag" style="background:#FEF3C7;color:#F59E0B">Geolokalizacja</span>
+          </div>
+          <div class="card-footer">
+            <span class="card-meta">17 MB · 700 pobrań</span>
+            <a target="_blank" rel="noopener noreferrer" class="btn-dl" href="https://newp5hjugx3jq5tgeyjv8d.streamlit.app/" aria-label="Uruchom Twoją Stację Pogodową" style="background:#F59E0B;box-shadow:0 2px 8px #F59E0B55">
+              <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M6 1v7M3 5.5l3 3 3-3M1 10h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Otwórz
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card: OCR Skaner -->
+      <article class="card">
+        <div class="card-img" style="background:#E0E7FF">
+          <img src="pdf.jfif" alt="OCR i rozpoznawanie tekstu - Zaawansowany Skaner Dokumentów AI" loading="lazy" decoding="async" />
+          <div class="card-img-overlay"></div><span class="card-version">v1.0</span>
+        </div>
+        <div class="card-body">
+          <span class="card-cat" style="color:#4F46E5">OCR &amp; Dokumenty</span>
+          <h3 class="card-name">Zaawansowany Skaner Dokumentów AI</h3>
+          <p class="card-desc">Kompleksowe przetwarzanie zdjęć i skanów. Wbudowany moduł OpenCV poprawia jakość, silnik OCR odczytuje tekst, a sztuczna inteligencja DeepSeek generuje precyzyjne podsumowania i eksport do 5 formatów.</p>
+          <div class="card-tags">
+            <span class="tag" style="background:#E0E7FF;color:#4F46E5">AI</span>
+            <span class="tag" style="background:#E0E7FF;color:#4F46E5">OCR</span>
+            <span class="tag" style="background:#E0E7FF;color:#4F46E5">PDF</span>
+            <span class="tag" style="background:#E0E7FF;color:#4F46E5">OpenCV</span>
+          </div>
+          <div class="card-footer">
+            <span class="card-meta">Streamlit · Cloud Ready</span>
+            <a target="_blank" rel="noopener noreferrer" class="btn-dl" href="https://gogfdper5mf7tjax99an5r.streamlit.app/" aria-label="Otwórz aplikację Skaner Dokumentów AI" style="background:#4F46E5;box-shadow:0 2px 8px #4F46E555">
+              <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M6 1v7M3 5.5l3 3 3-3M1 10h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Otwórz
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card: Bramka SMS -->
+      <article class="card">
+        <div class="card-img" style="background:#FFEDD5">
+          <img src="sms.jfif" alt="Prywatna Bramka SMS z generowaniem treści AI" loading="lazy" decoding="async" />
+          <div class="card-img-overlay"></div><span class="card-version">v1.19</span>
+        </div>
+        <div class="card-body">
+          <span class="card-cat" style="color:#EA580C">Komunikacja &amp; AI</span>
+          <h3 class="card-name">Prywatna Bramka SMS AI</h3>
+          <p class="card-desc">Bezpieczna wysyłka wiadomości bezpośrednio na wskazany numer telefonu. Wbudowany inteligentny model błyskawicznie generuje naturalne treści SMS na podstawie prostego hasła, z pełną kontrolą limitów znaków.</p>
+          <div class="card-tags">
+            <span class="tag" style="background:#FFEDD5;color:#EA580C">AI</span>
+            <span class="tag" style="background:#FFEDD5;color:#EA580C">SMS</span>
+            <span class="tag" style="background:#FFEDD5;color:#EA580C">DeepSeek</span>
+            <span class="tag" style="background:#FFEDD5;color:#EA580C">Textbee</span>
+          </div>
+          <div class="card-footer">
+            <span class="card-meta">Streamlit · Cloud Ready</span>
+            <a target="_blank" rel="noopener noreferrer" class="btn-dl" href="https://zqkgxkpy9iawvwozsv4qok.streamlit.app/" aria-label="Otwórz bramkę SMS AI" style="background:#EA580C;box-shadow:0 2px 8px #EA580C55">
+              <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M6 1v7M3 5.5l3 3 3-3M1 10h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Otwórz
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card: Monitor Wiadomości -->
+      <article class="card">
+        <div class="card-img" style="background:#E0F2FE">
+          <img src="think-tank.jfif" alt="Monitor raportów i analiz geopolitycznych" loading="lazy" decoding="async" />
+          <div class="card-img-overlay"></div><span class="card-version">v3.0</span>
+        </div>
+        <div class="card-body">
+          <span class="card-cat" style="color:#0284C7">Geopolityka &amp; Analiza</span>
+          <h3 class="card-name">Monitor wiadomości ze świata</h3>
+          <p class="card-desc">Automatyczny agregator raportów z czołowych światowych i polskich ośrodków analitycznych. Błyskawiczny filtr długości tekstu, precyzyjna kategoryzacja tematów oraz natychmiastowe tłumaczenie pełnych analiz na język polski.</p>
+          <div class="card-tags">
+            <span class="tag" style="background:#E0F2FE;color:#0284C7">Geopolityka</span>
+            <span class="tag" style="background:#E0F2FE;color:#0284C7">RSS</span>
+            <span class="tag" style="background:#E0F2FE;color:#0284C7">Tłumaczenia</span>
+          </div>
+          <div class="card-footer">
+            <span class="card-meta">Streamlit · Cloud Ready</span>
+            <a target="_blank" rel="noopener noreferrer" class="btn-dl" href="https://think-tank-pa6wuy4vuaxkfytdc2gffj.streamlit.app/" aria-label="Otwórz Monitor wiadomości ze świata" style="background:#0284C7;box-shadow:0 2px 8px #0284C755">
+              <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M6 1v7M3 5.5l3 3 3-3M1 10h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Otwórz
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card: ShortsScanner -->
+      <article class="card">
+        <div class="card-img" style="background:#FEE2E2">
+          <img src="shorts.jfif" alt="ShortsScanner PL - selekcjoner YouTube Shorts" loading="lazy" decoding="async" />
+          <div class="card-img-overlay"></div><span class="card-version">v1.0.0</span>
+        </div>
+        <div class="card-body">
+          <span class="card-cat" style="color:#EF4444">Wideo &amp; Narzędzia AI</span>
+          <h3 class="card-name">ShortsScanner PL</h3>
+          <p class="card-desc">Selekcjoner najciekawszych polskich materiałów YouTube Shorts. Filtruje algorytmiczny bałagan, powtórki i zagraniczne treści, serwując wyłącznie wartościowe i popularne shortsy.</p>
+          <div class="card-tags">
+            <span class="tag" style="background:#FEE2E2;color:#EF4444">AI</span>
+            <span class="tag" style="background:#FEE2E2;color:#EF4444">Rozrywka</span>
+            <span class="tag" style="background:#FEE2E2;color:#EF4444">Selekcjoner</span>
+            <span class="tag" style="background:#FEE2E2;color:#EF4444">Automat</span>
+          </div>
+          <div class="card-footer">
+            <span class="card-meta">9.4 MB · 500 pobrań</span>
+            <a target="_blank" rel="noopener noreferrer" href="https://shorts-scan-pl-azwakp4ejizt6mvt5ijszi.streamlit.app/" class="btn-dl" aria-label="Otwórz aplikację ShortsScanner PL" style="background:#EF4444;box-shadow:0 2px 8px #EF444455">
+              <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M6 1v7M3 5.5l3 3 3-3M1 10h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Otwórz
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card: Monitoring cen Allegro -->
+      <article class="card">
+        <div class="card-img" style="background:#D1FAE5">
+          <img src="allegro.jfif" alt="Monitoring cen i konkurencji Allegro" loading="lazy" decoding="async" />
+          <div class="card-img-overlay"></div><span class="card-version">v2.0.3</span>
+        </div>
+        <div class="card-body">
+          <span class="card-cat" style="color:#10B981">E-commerce / Monitoring cen</span>
+          <h3 class="card-name">Monitoring cen Allegro.pl</h3>
+          <p class="card-desc">Wpisz nazwę lub kod kreskowy produktu, a aplikacja w kilka sekund prześwietli rynek, odsieje pomyłki i wskaże cenę, która da Ci pierwsze miejsce na liście ofert przy maksymalnym zysku ze sprzedaży.</p>
+          <div class="card-tags">
+            <span class="tag" style="background:#D1FAE5;color:#10B981">Marża</span>
+            <span class="tag" style="background:#D1FAE5;color:#10B981">Szybkość</span>
+            <span class="tag" style="background:#D1FAE5;color:#10B981">Konkurencja</span>
+            <span class="tag" style="background:#D1FAE5;color:#10B981">Automat</span>
+          </div>
+          <div class="card-footer">
+            <span class="card-meta">189.4 MB · 1 100 pobrań</span>
+            <a target="_blank" rel="noopener noreferrer" href="https://drive.usercontent.google.com/download?id=1yh8B0giMW1AA3Pt5IrW531UZni-RMIYy&export=download&confirm=t" class="btn-dl" aria-label="Pobierz program Monitoring cen Allegro" style="background:#10B981;box-shadow:0 2px 8px #10B98155">
+              <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M6 1v7M3 5.5l3 3 3-3M1 10h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Pobierz
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card: Dyktafon AI -->
+      <article class="card">
+        <div class="card-img" style="background:#FCE7F3">
+          <img src="mikrofon.jfif" alt="Lokalna transkrypcja mowy na tekst AI - Dyktafon AI" loading="lazy" decoding="async" />
+          <div class="card-img-overlay"></div><span class="card-version">v2.2.0</span>
+        </div>
+        <div class="card-body">
+          <span class="card-cat" style="color:#EC4899">AI / Produktywność</span>
+          <h3 class="card-name">Dyktafon AI</h3>
+          <p class="card-desc">Mów swobodnie do mikrofonu, a sztuczna inteligencja na bieżąco zamieni mowę na czysty tekst z poprawną interpunkcją. Działa w 100% lokalnie na Twoim komputerze — bez wysyłania nagrań do sieci.</p>
+          <div class="card-tags">
+            <span class="tag" style="background:#FCE7F3;color:#EC4899">AI</span>
+            <span class="tag" style="background:#FCE7F3;color:#EC4899">Transkrypcja</span>
+            <span class="tag" style="background:#FCE7F3;color:#EC4899">Mowa</span>
+            <span class="tag" style="background:#FCE7F3;color:#EC4899">Tekst</span>
+          </div>
+          <div class="card-footer">
+            <span class="card-meta">11.6 MB · 1 500 pobrań</span>
+            <a target="_blank" rel="noopener noreferrer" class="btn-dl" href="https://nj82hswotcdj6mjq3z46ta.streamlit.app/" aria-label="Otwórz aplikację Dyktafon AI" style="background:#EC4899;box-shadow:0 2px 8px #EC489955">
+              <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M6 1v7M3 5.5l3 3 3-3M1 10h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Otwórz
+            </a>
+          </div>
+        </div>
+      </article>
+
     </div>
-    <div class="terminal-body">
-      <div><span class="t-cmd">$ fabrykatechnologi --list</span></div>
-      <div><span class="t-arrow">  →</span> <span class="t-name">YT Downloader PRO   </span><span class="t-ver">v2.4.1</span>  <span class="t-ok">[installed]</span></div>
-      <div><span class="t-arrow">  →</span> <span class="t-name">Sniper OLX    </span><span class="t-ver">v1.9.0</span>  <span class="t-dim">[available]</span></div>
-      <div><span class="t-arrow">  →</span> <span class="t-name">Twoja Stacja Pogodowa    </span><span class="t-ver">v1.1.0</span>  <span class="t-dim">[available]</span></div>
-      <div><span class="t-arrow">  →</span> <span class="t-name">ShortsScanner PL  </span><span class="t-ver">v1.0.0</span>  <span class="t-dim">[available]</span></div>
-      <div><span class="t-arrow">  →</span> <span class="t-name">Monitoring cen Allegro.pl   </span><span class="t-ver">v2.0.3</span>  <span class="t-dim">[available]</span></div>
-      <div><span class="t-arrow">  →</span> <span class="t-name">Dyktafon AI  </span><span class="t-ver">v2.2.0</span>  <span class="t-dim">[available]</span></div>
-      <div><span class="t-arrow">  →</span> <span class="t-name">Zaawansowany Skaner Dokumentów AI  </span><span class="t-ver">v1.0.0</span>  <span class="t-dim">[available]</span></div>
-      <div><span class="t-arrow">  →</span> <span class="t-name">Prywatna Bramka SMS AI   </span><span class="t-ver">v1.1.9</span>  <span class="t-dim">[available]</span></div>
-      <div><span class="t-arrow">  →</span> <span class="t-name">Monitor wiadomości ze świata  </span><span class="t-ver">v3.0.0</span>  <span class="t-dim">[available]</span></div>
-      <div><span class="t-arrow">  →</span> <span class="t-name">Generator Ogłoszeń Allegro    </span><span class="t-ver">v0.6.b</span>  <span class="t-dim">[unavailable]</span></div>
-      <div style="margin-top:4px"><span class="t-cmd">$ </span><span class="cursor"></span></div>
-    </div>
-  </div>
-</section>
+    <p class="apps-more"><strong>+ 50 dostępnych aplikacji.</strong> Zainteresowany? <a href="https://fabryka.tech/kontakt">Skontaktuj się ze mną.</a></p>
+  </section>
 
-<div class="stats">
-  <div class="stats-inner">
-    <div class="stat-item"><span class="stat-value">7 100+</span><span class="stat-label">Łączne pobrania</span></div>
-    <div class="stat-item"><span class="stat-value">Win / macOS / Linux</span><span class="stat-label">Platformy</span></div>
-    <div class="stat-item"><span class="stat-value">Freeware</span><span class="stat-label">Licencja</span></div>
-    <div class="stat-item"><span class="stat-value">Co miesiąc</span><span class="stat-label">Aktualizacje</span></div>
-  </div>
-</div>
-
-<section id="o-mnie" style="max-width:1100px;margin:0 auto 0;padding:64px 24px 0">
-  <p class="section-eyebrow">// o mnie</p>
-  <h2 style="margin-bottom:20px">O mnie</h2>
-  <p style="font-size:17px;color:var(--ink-soft);line-height:1.8;max-width:780px;border-left:3px solid var(--accent);padding-left:24px">
-    Na co dzień zajmuję się automatyzacją procesów biznesowych i rozwojem sprzedaży internetowej — łączę systemy e-commerce, ERP i marketplace w sprawnie działające mechanizmy, które oszczędzają czas i koszty firm. FabrykaTechnologi to przestrzeń, w której dzielę się autorskimi narzędziami desktopowymi: od inteligentnych asystentów zakupowych i analitycznych po aplikacje do codziennej produktywności. Każdy program tworzę z myślą o prostocie, szybkości i maksymalnej niezawodności. </p>
-</section>
-
-<section class="apps-section" id="apps">
-  <p class="section-eyebrow">// aplikacje</p>
-  <h2>Wszystkie narzędzia</h2>
-  <div class="grid">
-
-    <div class="card">
-      <div class="card-img" style="background:#CFFAFE">
-        <img src="yt-app.jpg" alt="Youtube Downloader Pro" />
-        <div class="card-img-overlay"></div><span class="card-version">v2.4.1</span>
-      </div>
-      <div class="card-body">
-        <span class="card-cat" style="color:#06B6D4">Multimedia & Narzędzia</span>
-        <div class="card-name">Youtube Downloader Pro</div>
-        <p class="card-desc">Błyskawicznie pobieraj audio z YouTube bezpośrednio do plików MP3. Program automatycznie uzupełnia metadane wykonawcy i okładkę, działając w pełni lokalnie bez zbędnych reklam.</p>
-        <div class="card-tags">
-          <span class="tag" style="background:#CFFAFE;color:#06B6D4">MP3</span>
-          <span class="tag" style="background:#CFFAFE;color:#06B6D4">YouTube</span>
-          <span class="tag" style="background:#CFFAFE;color:#06B6D4">Konwerter</span>
-          <span class="tag" style="background:#CFFAFE;color:#06B6D4">Pobieracz</span>
-        </div>
-        <div class="card-footer">
-          <span class="card-meta">139.2 MB · 1 421 pobrań</span>
-          <a target="_blank" rel="noopener noreferrer" class="btn-dl" href="https://drive.google.com/uc?export=download&id=10pqfTzH6l4Phe9u3tWJpU2E3wo6ZKtBD" class="btn-dl" style="background:#06B6D4;box-shadow:0 2px 8px #06B6D455">
-            <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M6 1v7M3 5.5l3 3 3-3M1 10h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Pobierz
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-img" style="background:#EDE9FE">
-        <img src="sniper-olx.jfif" alt="Sniper OLX" />
-        <div class="card-img-overlay"></div><span class="card-version">v1.9.0</span>
-      </div>
-      <div class="card-body">
-        <span class="card-cat" style="color:#8B5CF6">Zakupy & Automatyzacja</span>
-        <div class="card-name">Sniper OLX</div>
-        <p class="card-desc">Twój automatyczny monitor okazji cenowych. Skanuje ogłoszenia OLX w czasie rzeczywistym i natychmiast wysyła powiadomienie z bezpośrednim linkiem na Twój telefon i Discorda.</p>
-        <div class="card-tags">
-          <span class="tag" style="background:#EDE9FE;color:#8B5CF6">Automatyzacja</span>
-          <span class="tag" style="background:#EDE9FE;color:#8B5CF6">Alerty</span>
-          <span class="tag" style="background:#EDE9FE;color:#8B5CF6">Konkurencja</span>
-        </div>
-        <div class="card-footer">
-          <span class="card-meta">11.7 MB · 1 900 pobrań</span>
-          <a target="_blank" rel="noopener noreferrer" class="btn-dl" target="_blank" rel="noopener noreferrer" href="https://atawu7bta3fsgr58hegrf6.streamlit.app/" class="btn-dl" style="background:#8B5CF6;box-shadow:0 2px 8px #8B5CF655">
-            <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M6 1v7M3 5.5l3 3 3-3M1 10h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Otwórz
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-img" style="background:#FEF3C7">
-        <img src="pogoda.jpg" alt="Generator Ogłoszeń Allegro" />
-        <div class="card-img-overlay"></div><span class="card-version">v1.1.0</span>
-      </div>
-      <div class="card-body">
-        <span class="card-cat" style="color:#F59E0B">Pogoda & Wizualizacja danych</span>
-        <div class="card-name">Twoja Stacja Pogodowa</div>
-        <p class="card-desc">Interaktywny pulpit pogodowy oparty na OpenWeatherMap API. Prezentuje bieżące warunki atmosferyczne, prognozę godzinową i 7-dniową, automatycznie dostosowuje dynamiczne tła do aury i wyświetla mapę.</p>
-        <div class="card-tags">
-          <span class="tag" style="background:#FEF3C7;color:#F59E0B">Pogoda</span>
-          <span class="tag" style="background:#FEF3C7;color:#F59E0B">OpenWeatherMap</span>
-          <span class="tag" style="background:#FEF3C7;color:#F59E0B">Geolokalizacja</span>
-        </div>
-        <div class="card-footer">
-          <span class="card-meta">17 MB · 700 pobrań</span>
-          <a target="_blank" rel="noopener noreferrer" class="btn-dl" href="https://newp5hjugx3jq5tgeyjv8d.streamlit.app/" class="btn-dl" style="background:#F59E0B;box-shadow:0 2px 8px #F59E0B55">
-            <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M6 1v7M3 5.5l3 3 3-3M1 10h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Otwórz
-          </a>
-        </div>
-      </div>
-    </div>
-
-<!--
-    <div class="card">
-      <div class="card-img" style="background:#FEF3C7">
-        <img src="all.jfif" alt="Generator Ogłoszeń Allegro" />
-        <div class="card-img-overlay"></div><span class="card-version">v0.6.b</span>
-      </div>
-      <div class="card-body">
-        <span class="card-cat" style="color:#F59E0B">E-commerce & AI</span>
-        <div class="card-name">Generator Ogłoszeń Allegro</div>
-        <p class="card-desc">Inteligentne wystawianie ofert w kilka sekund. Algorytm usuwa tło ze zdjęć produktowych, analizuje przedmiot i generuje zoptymalizowany tytuł oraz unikalny opis na Allegro i OLX.</p>
-        <div class="card-tags">
-          <span class="tag" style="background:#FEF3C7;color:#F59E0B">AI</span>
-          <span class="tag" style="background:#FEF3C7;color:#F59E0B">Sprzedaż</span>
-          <span class="tag" style="background:#FEF3C7;color:#F59E0B">Zdjęcia</span>
-          <span class="tag" style="background:#FEF3C7;color:#F59E0B">Opisy</span>
-        </div>
-        <div class="card-footer">
-          <span class="card-meta">313 MB · 700 pobrań</span>
-          <a target="_blank" rel="noopener noreferrer" class="btn-dl" href="https://drive.google.com/uc?export=download&id=1WjQZTFpAxFeVoc_NRtWFspxJAN_TEPns" class="btn-dl" style="background:#F59E0B;box-shadow:0 2px 8px #F59E0B55">
-            <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M6 1v7M3 5.5l3 3 3-3M1 10h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Pobierz
-          </a>
-        </div>
-      </div>
-    </div>
--->
-
-<div class="card">
-      <div class="card-img" style="background:#E0E7FF">
-        <img src="pdf.jfif" alt="Zaawansowany Skaner Dokumentów AI" />
-        <div class="card-img-overlay"></div><span class="card-version">v1.0</span>
-      </div>
-      <div class="card-body">
-        <span class="card-cat" style="color:#4F46E5">OCR & Dokumenty</span>
-        <div class="card-name">Zaawansowany Skaner Dokumentów AI</div>
-        <p class="card-desc">Kompleksowe przetwarzanie zdjęć i skanów. Wbudowany moduł OpenCV poprawia jakość, silnik OCR odczytuje tekst, a sztuczna inteligencja DeepSeek generuje precyzyjne podsumowania i eksport do 5 formatów.</p>
-        <div class="card-tags">
-          <span class="tag" style="background:#E0E7FF;color:#4F46E5">AI</span>
-          <span class="tag" style="background:#E0E7FF;color:#4F46E5">OCR</span>
-          <span class="tag" style="background:#E0E7FF;color:#4F46E5">PDF</span>
-          <span class="tag" style="background:#E0E7FF;color:#4F46E5">OpenCV</span>
-        </div>
-        <div class="card-footer">
-          <span class="card-meta">Streamlit · Cloud Ready</span>
-          <a target="_blank" rel="noopener noreferrer" class="btn-dl" href="https://gogfdper5mf7tjax99an5r.streamlit.app/" style="background:#4F46E5;box-shadow:0 2px 8px #4F46E555">
-            <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M6 1v7M3 5.5l3 3 3-3M1 10h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Otwórz
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-img" style="background:#FFEDD5">
-        <img src="sms.jfif" alt="Prywatna Bramka SMS AI" />
-        <div class="card-img-overlay"></div><span class="card-version">v1.19</span>
-      </div>
-      <div class="card-body">
-        <span class="card-cat" style="color:#EA580C">Komunikacja & AI</span>
-        <div class="card-name">Prywatna Bramka SMS AI</div>
-        <p class="card-desc">Bezpieczna wysyłka wiadomości bezpośrednio na wskazany numer telefonu. Wbudowany inteligentny model błyskawicznie generuje naturalne treści SMS na podstawie prostego hasła, z pełną kontrolą limitów znaków.</p>
-        <div class="card-tags">
-          <span class="tag" style="background:#FFEDD5;color:#EA580C">AI</span>
-          <span class="tag" style="background:#FFEDD5;color:#EA580C">SMS</span>
-          <span class="tag" style="background:#FFEDD5;color:#EA580C">DeepSeek</span>
-          <span class="tag" style="background:#FFEDD5;color:#EA580C">Textbee</span>
-        </div>
-        <div class="card-footer">
-          <span class="card-meta">Streamlit · Cloud Ready</span>
-          <a target="_blank" rel="noopener noreferrer" class="btn-dl" href="https://zqkgxkpy9iawvwozsv4qok.streamlit.app/" style="background:#EA580C;box-shadow:0 2px 8px #EA580C55">
-            <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M6 1v7M3 5.5l3 3 3-3M1 10h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Otwórz
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-img" style="background:#E0F2FE">
-        <img src="think-tank.jfif" alt="Think Tank Monitor PL" />
-        <div class="card-img-overlay"></div><span class="card-version">v3.0</span>
-      </div>
-      <div class="card-body">
-        <span class="card-cat" style="color:#0284C7">Geopolityka & Analiza</span>
-        <div class="card-name">Monitor wiadomości ze świata</div>
-        <p class="card-desc">Automatyczny agregator raportów z czołowych światowych i polskich ośrodków analitycznych. Błyskawiczny filtr długości tekstu, precyzyjna kategoryzacja tematów oraz natychmiastowe tłumaczenie pełnych analiz na język polski.</p>
-        <div class="card-tags">
-          <span class="tag" style="background:#E0F2FE;color:#0284C7">Geopolityka</span>
-          <span class="tag" style="background:#E0F2FE;color:#0284C7">RSS</span>
-          <span class="tag" style="background:#E0F2FE;color:#0284C7">Tłumaczenia</span>
-        </div>
-        <div class="card-footer">
-          <span class="card-meta">Streamlit · Cloud Ready</span>
-          <a target="_blank" rel="noopener noreferrer" class="btn-dl" href="https://think-tank-pa6wuy4vuaxkfytdc2gffj.streamlit.app/" style="background:#0284C7;box-shadow:0 2px 8px #0284C755">
-            <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M6 1v7M3 5.5l3 3 3-3M1 10h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Otwórz
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-img" style="background:#FEE2E2">
-        <img src="shorts.jfif" alt="ShortsScanner PL" />
-        <div class="card-img-overlay"></div><span class="card-version">v1.0.0</span>
-      </div>
-      <div class="card-body">
-        <span class="card-cat" style="color:#EF4444">Wideo & Narzędzia AI</span>
-        <div class="card-name">ShortsScanner PL</div>
-        <p class="card-desc">Selekcjoner najciekawszych polskich materiałów YouTube Shorts. Filtruje algorytmiczny bałagan, powtórki i zagraniczne treści, serwując wyłącznie wartościowe i popularne shortsy.</p>
-        <div class="card-tags">
-<span class="tag" style="background:#FEE2E2;color:#EF4444">AI</span>
-<span class="tag" style="background:#FEE2E2;color:#EF4444">Rozrywka</span>
-<span class="tag" style="background:#FEE2E2;color:#EF4444">Selekcjoner</span>
-<span class="tag" style="background:#FEE2E2;color:#EF4444">Automat</span>
-        </div>
-        <div class="card-footer">
-          <span class="card-meta">9.4 MB · 500 pobrań</span>
-          <a target="_blank" rel="noopener noreferrer" href="https://shorts-scan-pl-azwakp4ejizt6mvt5ijszi.streamlit.app/" class="btn-dl" style="background:#EF4444;box-shadow:0 2px 8px #EF444455">
-            <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M6 1v7M3 5.5l3 3 3-3M1 10h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Otwórz
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-img" style="background:#D1FAE5">
-        <img src="allegro.jfif" alt="Monitoring cen Allegro.pl" />
-        <div class="card-img-overlay"></div><span class="card-version">v2.0.3</span>
-      </div>
-      <div class="card-body">
-        <span class="card-cat" style="color:#10B981">E-commerce / Monitoring cen</span>
-        <div class="card-name">Monitoring cen Allegro.pl</div>
-        <p class="card-desc">Wpisz nazwę lub kod kreskowy produktu, a aplikacja w kilka sekund prześwietli rynek, odsieje pomyłki i wskaże cenę, która da Ci pierwsze miejsce na liście ofert przy maksymalnym zysku ze sprzedaży.</p>
-        <div class="card-tags">
-          <span class="tag" style="background:#D1FAE5;color:#10B981">Marża</span>
-          <span class="tag" style="background:#D1FAE5;color:#10B981">Szybkość</span>
-          <span class="tag" style="background:#D1FAE5;color:#10B981">Konkurencja</span>
-          <span class="tag" style="background:#D1FAE5;color:#10B981">Automat</span>
-        </div>
-        <div class="card-footer">
-          <span class="card-meta">189.4 MB · 1 100 pobrań</span>
-          <a target="_blank" rel="noopener noreferrer" href="https://drive.usercontent.google.com/download?id=1yh8B0giMW1AA3Pt5IrW531UZni-RMIYy&export=download&confirm=t" class="btn-dl" style="background:#10B981;box-shadow:0 2px 8px #10B98155">
-            <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M6 1v7M3 5.5l3 3 3-3M1 10h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Pobierz
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-img" style="background:#FCE7F3">
-        <img src="mikrofon.jfif" alt="Dyktafon AI" />
-        <div class="card-img-overlay"></div><span class="card-version">v2.2.0</span>
-      </div>
-      <div class="card-body">
-        <span class="card-cat" style="color:#EC4899">AI / Produktywność</span>
-        <div class="card-name">Dyktafon AI</div>
-        <p class="card-desc">Mów swobodnie do mikrofonu, a sztuczna inteligencja na bieżąco zamieni mowę na czysty tekst z poprawną interpunkcją. Działa w 100% lokalnie na Twoim komputerze — bez wysyłania nagrań do sieci.</p>
-        <div class="card-tags">
-          <span class="tag" style="background:#FCE7F3;color:#EC4899">AI</span>
-          <span class="tag" style="background:#FCE7F3;color:#EC4899">Transkrypcja</span>
-          <span class="tag" style="background:#FCE7F3;color:#EC4899">Mowa</span>
-          <span class="tag" style="background:#FCE7F3;color:#EC4899">Tekst</span>
-        </div>
-        <div class="card-footer">
-          <span class="card-meta">11.6 MB · 1 500 pobrań</span>
-          <a target="_blank" rel="noopener noreferrer" class="btn-dl" href="https://nj82hswotcdj6mjq3z46ta.streamlit.app/" class="btn-dl" style="background:#EC4899;box-shadow:0 2px 8px #EC489955">
-            <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M6 1v7M3 5.5l3 3 3-3M1 10h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Otwórz
-          </a>
-        </div>
-      </div>
-    </div>
-
-  </div>
-  <p class="apps-more"><strong>+ 50 dostępnych aplikacji.</strong> Zainteresowany? <a href="http://fabryka.tech/kontakt">Skontaktuj się ze mną.</a></p>
-</section>
-
-<div class="cta-wrap" id="cta">
-  <div class="cta-box">
-    <div class="cta-grid"></div>
-    <p class="cta-eyebrow">// freeware</p>
-    <h2>Masz pomysł na nową aplikację?</h2>
-    <p class="cta-sub">Moje narzędzia są całkowicie bezpłatne. Zgłoś pomysły, wyślij wiadomość lub zaproponuj nową aplikację — razem budujemy narzędzia dla polskiej społeczności.</p>
-    <a href="https://fabryka.tech/kontakt" class="btn-primary">Formularz kontaktowy →</a>
-  </div>
-</div>
-
-<section id="kontakt" style="max-width:1100px;margin:0 auto 80px;padding:0 24px">
-  <p class="section-eyebrow">// kontakt</p>
-  <h2>Skontaktuj się ze mną</h2>
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:40px 48px;display:flex;flex-wrap:wrap;gap:40px;align-items:center">
-    <div style="flex:1;min-width:220px">
-      <div style="font-size:22px;font-weight:700;color:var(--ink);margin-bottom:4px">Cezary Wielgus</div>
-      <div style="font-family:var(--font-mono);font-size:12px;color:var(--muted);margin-bottom:24px">Płock, Polska</div>
-      <div style="display:flex;flex-direction:column;gap:12px">
-        <a href="tel:+48784474740" style="display:inline-flex;align-items:center;gap:10px;color:var(--ink);font-size:15px;font-weight:500;transition:color .15s"
-          onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--ink)'">
-          <span style="width:36px;height:36px;border-radius:10px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center">
-            <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M14 10.5c-1 0-2-.2-2.9-.5a1 1 0 0 0-1 .2l-1.8 1.8A10.9 10.9 0 0 1 3.9 7.7l1.8-1.8a1 1 0 0 0 .2-1C5.6 4 5.5 3 5.5 2a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1c0 7.2 5.8 13 13 13a1 1 0 0 0 1-1v-2.5a1 1 0 0 0-1-1z" stroke="#06B6D4" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </span>
-          784-474-740
-        </a>
-        <a href="mailto:czawiel@gmail.com" style="display:inline-flex;align-items:center;gap:10px;color:var(--ink);font-size:15px;font-weight:500;transition:color .15s"
-          onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--ink)'">
-          <span style="width:36px;height:36px;border-radius:10px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center">
-            <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><rect x="1" y="3" width="14" height="10" rx="2" stroke="#06B6D4" stroke-width="1.3"/><path d="M1 5l7 5 7-5" stroke="#06B6D4" stroke-width="1.3" stroke-linecap="round"/></svg>
-          </span>
-          czawiel@gmail.com
-        </a>
-      </div>
-    </div>
-    <div style="font-family:var(--font-mono);font-size:12px;color:var(--muted);line-height:2;background:var(--bg);padding:20px 24px;border-radius:12px;border:1px solid var(--border)">
-      <span style="color:var(--accent)">$</span> whois cezary-wielgus<br>
-      <span style="color:var(--ink)">name:</span>     Cezary Wielgus<br>
-      <span style="color:var(--ink)">location:</span> Płock, PL<br>
-      <span style="color:var(--ink)">phone:</span>    +48 784-474-740<br>
-      <span style="color:var(--ink)">projects:</span> 6 apps · freeware<br>
-      <span style="color:#10B981">status:</span>   <span style="color:#10B981">available</span>
+  <div class="cta-wrap" id="cta">
+    <div class="cta-box">
+      <div class="cta-grid"></div>
+      <p class="cta-eyebrow">// freeware</p>
+      <h2>Masz pomysł na nową aplikację?</h2>
+      <p class="cta-sub">Moje narzędzia są całkowicie bezpłatne. Zgłoś pomysły, wyślij wiadomość lub zaproponuj nową aplikację — razem budujemy narzędzia dla polskiej społeczności.</p>
+      <a href="https://fabryka.tech/kontakt" class="btn-primary">Formularz kontaktowy →</a>
     </div>
   </div>
-</section>
+
+  <section id="kontakt" style="max-width:1100px;margin:0 auto 80px;padding:0 24px">
+    <p class="section-eyebrow">// kontakt</p>
+    <h2>Skontaktuj się ze mną</h2>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:40px 48px;display:flex;flex-wrap:wrap;gap:40px;align-items:center">
+      <div style="flex:1;min-width:220px">
+        <div style="font-size:22px;font-weight:700;color:var(--ink);margin-bottom:4px">Cezary Wielgus</div>
+        <div style="font-family:var(--font-mono);font-size:12px;color:var(--muted);margin-bottom:24px">Płock, Polska</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <a href="tel:+48784474740" style="display:inline-flex;align-items:center;gap:10px;color:var(--ink);font-size:15px;font-weight:500;transition:color .15s"
+            onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--ink)'" aria-label="Zadzwoń: +48 784 474 740">
+            <span style="width:36px;height:36px;border-radius:10px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center">
+              <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M14 10.5c-1 0-2-.2-2.9-.5a1 1 0 0 0-1 .2l-1.8 1.8A10.9 10.9 0 0 1 3.9 7.7l1.8-1.8a1 1 0 0 0 .2-1C5.6 4 5.5 3 5.5 2a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1c0 7.2 5.8 13 13 13a1 1 0 0 0 1-1v-2.5a1 1 0 0 0-1-1z" stroke="#06B6D4" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            784-474-740
+          </a>
+          <a href="mailto:czawiel@gmail.com" style="display:inline-flex;align-items:center;gap:10px;color:var(--ink);font-size:15px;font-weight:500;transition:color .15s"
+            onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--ink)'" aria-label="Napisz e-mail: czawiel@gmail.com">
+            <span style="width:36px;height:36px;border-radius:10px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center">
+              <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><rect x="1" y="3" width="14" height="10" rx="2" stroke="#06B6D4" stroke-width="1.3"/><path d="M1 5l7 5 7-5" stroke="#06B6D4" stroke-width="1.3" stroke-linecap="round"/></svg>
+            </span>
+            czawiel@gmail.com
+          </a>
+        </div>
+      </div>
+      <div style="font-family:var(--font-mono);font-size:12px;color:var(--muted);line-height:2;background:var(--bg);padding:20px 24px;border-radius:12px;border:1px solid var(--border)">
+        <span style="color:var(--accent)">$</span> whois cezary-wielgus<br>
+        <span style="color:var(--ink)">name:</span>     Cezary Wielgus<br>
+        <span style="color:var(--ink)">location:</span> Płock, PL<br>
+        <span style="color:var(--ink)">phone:</span>    +48 784-474-740<br>
+        <span style="color:var(--ink)">projects:</span> 6 apps · freeware<br>
+        <span style="color:#10B981">status:</span>   <span style="color:#10B981">available</span>
+      </div>
+    </div>
+  </section>
+</main>
 
 <footer id="footer">
   <div class="footer-inner">
