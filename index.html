@@ -166,7 +166,7 @@
       font-family: var(--font-mono); font-size: 12px; font-weight: 500; margin-bottom: 24px;
     }
     .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
-    h1 { font-family: var(--font-display); font-size: clamp(40px,5vw,58px); font-weight: 600; line-height: 1.12; margin-bottom: 20px; }
+    h1 { font-family: var(--font-display); font-size: clamp(40px,5vw,48px); font-weight: 600; line-height: 1.12; margin-bottom: 20px; }
     h1 em { font-style: normal; color: var(--accent); }
     .hero-sub { font-size: 17px; color: var(--ink-soft); line-height: 1.7; margin-bottom: 32px; }
     .btn-group { display: flex; gap: 12px; flex-wrap: wrap; }
@@ -262,7 +262,7 @@
 <body>
 
 <header>
-  <div id="upp" class="nav-inner">
+  <div class="nav-inner">
     <a href="https://fabryka.tech/" class="logo-link" aria-label="Strona główna FabrykaTechnologi">
       <img src="logo1.svg" alt="FabrykaTechnologi - logo" class="logo-img" width="220" height="40" />
     </a>
@@ -279,7 +279,7 @@
   <section class="hero" aria-label="Sekcja powitalna">
     <div>
       <div class="badge"><span class="badge-dot"></span>9 aplikacji · darmowe · bez reklam</div>
-      <h1>Narzędzia, które<br><em>przyspieszą</em> Twój<br>dzień.</h1>
+      <h1 id="upp">Narzędzia, które<br><em>przyspieszą</em> Twój<br>dzień.</h1>
       <p class="hero-sub">Zestaw aplikacji desktopowych stworzonych przez polskiego programistę dla entuzjastów wolnego oprogramowania. Darmowe, lekkie i gotowe do pracy.</p>
       <div class="btn-group">
         <a href="#apps" class="btn-primary">Przeglądaj aplikacje</a>
