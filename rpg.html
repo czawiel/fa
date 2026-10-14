@@ -1,0 +1,2180 @@
+<!DOCTYPE html>
+<html lang="pl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kroniki AI: Nieskończone Światy - Tekstowe RPG</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        display: ['Cinzel', 'serif'],
+                        serif: ['Lora', 'serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        rpg: {
+                            bg: '#090b10',
+                            panel: '#121620',
+                            card: '#1a202e',
+                            border: '#2a3246',
+                            gold: '#d4af37',
+                            goldHover: '#e5c158',
+                            crimson: '#dc2626',
+                            mana: '#2563eb',
+                            xp: '#9333ea',
+                            emerald: '#10b981'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #090b10;
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0d1017;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2a3246;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #d4af37;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(212, 175, 55, 0.25); }
+            50% { box-shadow: 0 0 25px rgba(212, 175, 55, 0.55); }
+        }
+        .glow-gold {
+            animation: pulseGlow 3s infinite;
+        }
+
+        @keyframes diceRollAnim {
+            0% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(90deg) scale(1.15); }
+            50% { transform: rotate(180deg) scale(0.95); }
+            75% { transform: rotate(270deg) scale(1.1); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+        .rolling-dice {
+            animation: diceRollAnim 0.4s linear infinite;
+        }
+
+        .story-text p {
+            margin-bottom: 1rem;
+            line-height: 1.8;
+        }
+        .story-text p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Ornate border utility */
+        .rpg-border {
+            border: 1px solid #2a3246;
+            box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+        }
+        .rpg-border-gold {
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            box-shadow: inset 0 1px 0 0 rgba(212, 175, 55, 0.15);
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col select-none sm:select-auto overflow-hidden bg-rpg-bg text-slate-200">
+
+    <header class="h-14 bg-rpg-panel border-b border-rpg-border px-4 flex items-center justify-between shrink-0 z-20">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-500/20 to-amber-700/40 border border-amber-500/50 flex items-center justify-center text-rpg-gold shadow-inner">
+                <i class="ph-fill ph-scroll text-xl"></i>
+            </div>
+            <div>
+                <h1 class="font-display font-bold text-base sm:text-lg tracking-wider text-white flex items-center gap-2">
+                    KRONIKI AI
+                    <span id="header-world-badge" class="hidden text-[11px] font-sans font-medium uppercase tracking-widest px-2 py-0.5 rounded bg-amber-500/10 text-rpg-gold border border-amber-500/30">
+                        Dark Fantasy
+                    </span>
+                </h1>
+            </div>
+        </div>
+
+        <!-- Mobile View Switcher (Visible only during active game on small screens) -->
+        <div id="mobile-tabs" class="hidden lg:hidden flex items-center bg-rpg-bg p-1 rounded-lg border border-rpg-border">
+            <button onclick="switchMobileView('hero')" id="mob-tab-hero" class="px-2.5 py-1 rounded text-xs font-medium text-slate-400 hover:text-white transition flex items-center gap-1">
+                <i class="ph ph-user"></i> <span class="hidden xs:inline">Postać</span>
+            </button>
+            <button onclick="switchMobileView('story')" id="mob-tab-story" class="px-2.5 py-1 rounded text-xs font-medium bg-rpg-card text-rpg-gold border border-amber-500/30 transition flex items-center gap-1">
+                <i class="ph ph-book-open-text"></i> <span class="hidden xs:inline">Fabuła</span>
+            </button>
+            <button onclick="switchMobileView('inv')" id="mob-tab-inv" class="px-2.5 py-1 rounded text-xs font-medium text-slate-400 hover:text-white transition flex items-center gap-1">
+                <i class="ph ph-backpack"></i> <span class="hidden xs:inline">Plecak</span>
+            </button>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <button id="btn-api-settings" onclick="openApiSettingsModal()" title="Ustawienia DeepSeek API" class="p-2 sm:px-3 sm:py-1.5 rounded-lg bg-rpg-card hover:bg-slate-800 text-slate-200 border border-amber-500/40 text-xs font-medium transition flex items-center gap-1.5">
+                <i class="ph-fill ph-key text-base text-rpg-gold"></i>
+                <span class="hidden md:inline">DeepSeek API</span>
+                <span id="api-status-dot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            </button>
+            <button id="btn-sound-toggle" onclick="toggleSoundEffects()" title="Efekty dźwiękowe (Syntezator)" class="p-2 rounded-lg bg-rpg-card hover:bg-slate-800 text-slate-300 border border-rpg-border transition flex items-center justify-center">
+                <i id="icon-sound" class="ph ph-speaker-high text-lg text-emerald-400"></i>
+            </button>
+            <button id="btn-save-game" onclick="saveGameToStorage(true)" title="Zapisz stan gry" class="hidden p-2 sm:px-3 sm:py-1.5 rounded-lg bg-rpg-card hover:bg-slate-800 text-slate-200 border border-rpg-border text-xs font-medium transition items-center gap-1.5">
+                <i class="ph ph-floppy-disk text-base text-rpg-gold"></i>
+                <span class="hidden sm:inline">Zapisz</span>
+            </button>
+            <button id="btn-export-log" onclick="exportStoryModal()" title="Eksportuj kronikę przygody" class="hidden p-2 sm:px-3 sm:py-1.5 rounded-lg bg-rpg-card hover:bg-slate-800 text-slate-200 border border-rpg-border text-xs font-medium transition items-center gap-1.5">
+                <i class="ph ph-export text-base text-sky-400"></i>
+                <span class="hidden sm:inline">Kronika</span>
+            </button>
+            <button id="btn-reset-game" onclick="openResetModal()" title="Nowa Gra" class="hidden p-2 sm:px-3 sm:py-1.5 rounded-lg bg-red-950/40 hover:bg-red-900/60 text-red-300 border border-red-800/50 text-xs font-medium transition items-center gap-1.5">
+                <i class="ph ph-arrow-counter-clockwise text-base"></i>
+                <span class="hidden sm:inline">Nowa Gra</span>
+            </button>
+        </div>
+    </header>
+
+    <div id="creation-screen" class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 flex items-start justify-center bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-rpg-bg to-rpg-bg">
+        <div class="max-w-5xl w-full bg-rpg-panel rpg-border rounded-2xl p-5 sm:p-8 shadow-2xl my-auto animate-fade-in">
+            
+            <!-- Saved Game Banner -->
+            <div id="saved-game-banner" class="hidden mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/40 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="p-2.5 rounded-lg bg-amber-500/20 text-rpg-gold">
+                        <i class="ph-fill ph-clock-counter-clockwise text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-semibold text-white">Znaleziono zapisaną przygodę!</h3>
+                        <p id="saved-game-info" class="text-xs text-slate-300">Kontynuuj swoją ostatnią rozgrywkę od miejsca, w którym skończyłeś.</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <button onclick="loadSavedGame()" class="flex-1 sm:flex-initial px-4 py-2 rounded-lg bg-rpg-gold hover:bg-rpg-goldHover text-slate-950 font-semibold text-xs transition flex items-center justify-center gap-1.5 shadow-lg">
+                        <i class="ph-bold ph-play"></i> Wznów Grę
+                    </button>
+                    <button onclick="clearSavedGame()" class="p-2 rounded-lg bg-slate-800 hover:bg-red-950 text-slate-400 hover:text-red-400 border border-slate-700 transition" title="Usuń zapis">
+                        <i class="ph ph-trash"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="text-center max-w-2xl mx-auto mb-8">
+                <h2 class="font-display text-2xl sm:text-4xl font-bold text-white tracking-wide mb-2">Stwórz Swoją Legendę</h2>
+                <p class="text-sm text-slate-400">Wybierz uniwersum, określ profesję oraz rozdysponuj punkty cech. Każda decyzja, rzut kością i konsekwencja będzie generowana na żywo przez Sztuczną Inteligencję.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
+                <!-- Left Column: World & Class Selection -->
+                <div class="lg:col-span-7 space-y-6">
+                    <!-- Step 1: Genre / World -->
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-rpg-gold mb-3 flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-[11px]">1</span>
+                            Wybierz Uniwersum
+                        </label>
+                        <div id="world-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Character Class -->
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-rpg-gold mb-3 flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-[11px]">2</span>
+                            Wybierz Klasę / Profesję
+                        </label>
+                        <div id="class-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Identity & Attributes -->
+                <div class="lg:col-span-5 flex flex-col justify-between bg-rpg-bg/80 p-5 rounded-xl border border-rpg-border space-y-6">
+                    <div class="space-y-5">
+                        <!-- Step 3: Name & Backstory -->
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-rpg-gold mb-2 flex items-center gap-2">
+                                <span class="w-5 h-5 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-[11px]">3</span>
+                                Tożsamość Bohatera
+                            </label>
+                            <div class="flex gap-2 mb-3">
+                                <input type="text" id="input-hero-name" placeholder="Imię lub pseudonim postaci..." maxlength="32"
+                                    class="w-full bg-rpg-panel border border-rpg-border focus:border-rpg-gold rounded-lg px-3.5 py-2 text-sm text-white placeholder-slate-500 outline-none transition">
+                                <button onclick="randomizeHeroName()" title="Wylosuj imię" class="px-3 py-2 rounded-lg bg-rpg-card hover:bg-slate-800 text-rpg-gold border border-rpg-border transition shrink-0">
+                                    <i class="ph ph-dice-five text-lg"></i>
+                                </button>
+                            </div>
+                            <textarea id="input-hero-trait" rows="2" placeholder="Opcjonalnie: Krótka cecha charakterystyczna, cel lub mroczny sekret (np. 'Szuka zaginionego brata', 'Były najemnik z długiem')..."
+                                class="w-full bg-rpg-panel border border-rpg-border focus:border-rpg-gold rounded-lg px-3.5 py-2 text-xs text-slate-200 placeholder-slate-500 outline-none transition resize-none"></textarea>
+                        </div>
+
+                        <!-- Step 4: Attributes -->
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <label class="text-xs font-semibold uppercase tracking-wider text-rpg-gold flex items-center gap-2">
+                                    <span class="w-5 h-5 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-[11px]">4</span>
+                                    Atrybuty Postaci
+                                </label>
+                                <span class="text-xs font-medium px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-slate-300">
+                                    Punkty do rozdania: <strong id="stat-points-left" class="text-rpg-gold font-bold">5</strong>
+                                </span>
+                            </div>
+
+                            <div id="stats-allocator" class="space-y-2.5">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Start Adventure Button -->
+                    <div class="pt-4 border-t border-rpg-border">
+                        <button id="btn-start-adventure" onclick="startNewAdventure()" class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-display font-bold text-base tracking-wider uppercase shadow-xl glow-gold transition transform active:scale-[0.99] flex items-center justify-center gap-2">
+                            <i class="ph-fill ph-sword text-xl"></i>
+                            Rozpocznij Przygodę
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main id="game-screen" class="hidden flex-1 flex overflow-hidden relative">
+        
+        <!-- LEFT SIDEBAR: Character Sheet & Dice Roller -->
+        <aside id="panel-hero" class="w-full lg:w-80 bg-rpg-panel border-r border-rpg-border flex flex-col shrink-0 overflow-y-auto p-4 space-y-5 z-10">
+            
+            <!-- Character Identity Card -->
+            <div class="bg-rpg-card rpg-border rounded-xl p-4 relative overflow-hidden">
+                <div class="flex items-center gap-3.5">
+                    <div id="hero-avatar-box" class="w-14 h-14 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 border border-amber-500/40 flex items-center justify-center text-rpg-gold text-2xl shrink-0 shadow-md">
+                        <i class="ph-fill ph-shield-chevron"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center justify-between gap-1">
+                            <h2 id="hud-name" class="font-display font-bold text-base text-white truncate">Alistair</h2>
+                            <span id="hud-level" class="text-[11px] font-bold px-2 py-0.5 rounded bg-amber-500/20 text-rpg-gold border border-amber-500/40 shrink-0">
+                                Poz. 1
+                            </span>
+                        </div>
+                        <p id="hud-class" class="text-xs text-slate-400 truncate mt-0.5">Wojownik Cienia</p>
+                        <div class="flex items-center gap-1.5 mt-2 text-xs text-amber-400 font-medium">
+                            <i class="ph-fill ph-coins"></i>
+                            <span id="hud-gold">50</span> <span id="hud-currency-name" class="text-slate-400 text-[11px]">Złota</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vital Bars (HP, MP/Energy, XP) -->
+                <div class="mt-4 space-y-2.5 pt-3 border-t border-rpg-border/60">
+                    <!-- HP -->
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="font-medium text-red-400 flex items-center gap-1"><i class="ph-fill ph-heart"></i> Zdrowie (HP)</span>
+                            <span id="hud-hp-text" class="font-mono text-slate-300">100 / 100</span>
+                        </div>
+                        <div class="w-full h-2 bg-slate-950 rounded-full overflow-hidden p-0.5 border border-red-900/30">
+                            <div id="hud-hp-bar" class="h-full bg-gradient-to-r from-red-600 to-rose-500 rounded-full transition-all duration-500" style="width: 100%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Mana / Energy -->
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span id="hud-mp-label" class="font-medium text-sky-400 flex items-center gap-1"><i class="ph-fill ph-sparkle"></i> Energia / Mana</span>
+                            <span id="hud-mp-text" class="font-mono text-slate-300">50 / 50</span>
+                        </div>
+                        <div class="w-full h-2 bg-slate-950 rounded-full overflow-hidden p-0.5 border border-blue-900/30">
+                            <div id="hud-mp-bar" class="h-full bg-gradient-to-r from-blue-600 to-cyan-400 rounded-full transition-all duration-500" style="width: 100%"></div>
+                        </div>
+                    </div>
+
+                    <!-- XP -->
+                    <div>
+                        <div class="flex justify-between text-[11px] mb-1">
+                            <span class="font-medium text-purple-400 flex items-center gap-1"><i class="ph-fill ph-star"></i> Doświadczenie (XP)</span>
+                            <span id="hud-xp-text" class="font-mono text-slate-400">0 / 100</span>
+                        </div>
+                        <div class="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden">
+                            <div id="hud-xp-bar" class="h-full bg-gradient-to-r from-purple-600 to-fuchsia-500 rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Location & Status Effects -->
+            <div class="bg-rpg-card rpg-border rounded-xl p-3.5 space-y-2.5">
+                <div class="flex items-start gap-2.5">
+                    <i class="ph-fill ph-map-pin text-rpg-gold text-lg shrink-0 mt-0.5"></i>
+                    <div>
+                        <span class="text-[10px] uppercase tracking-wider text-slate-400 block">Aktualna Lokacja</span>
+                        <h3 id="hud-location" class="text-xs font-semibold text-white">Rozdroża Przeznaczenia</h3>
+                    </div>
+                </div>
+                <div id="hud-statuses-box" class="pt-2 border-t border-rpg-border/60 flex flex-wrap gap-1.5">
+                    <span class="text-[11px] px-2 py-0.5 rounded bg-emerald-950/60 text-emerald-300 border border-emerald-700/40">Pełnia sił</span>
+                </div>
+            </div>
+
+            <!-- Attributes Grid -->
+            <div class="bg-rpg-card rpg-border rounded-xl p-3.5">
+                <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2.5 flex items-center justify-between">
+                    <span>Atrybuty i Modyfikatory</span>
+                    <i class="ph ph-chart-bar text-rpg-gold"></i>
+                </h3>
+                <div id="hud-stats-grid" class="grid grid-cols-2 gap-2">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- Interactive K20 Dice Box -->
+            <div class="bg-gradient-to-b from-rpg-card to-slate-900/90 rpg-border-gold rounded-xl p-4 text-center relative overflow-hidden">
+                <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+                    <span class="uppercase tracking-wider font-semibold text-rpg-gold">Kość Przeznaczenia (K20)</span>
+                    <button onclick="manualDiceRoll()" class="text-[11px] text-amber-400 hover:underline flex items-center gap-1">
+                        <i class="ph ph-arrows-clockwise"></i> Rzuć
+                    </button>
+                </div>
+                <div class="flex items-center justify-center gap-4 my-1">
+                    <div id="dice-visual" onclick="manualDiceRoll()" class="w-14 h-14 rounded-2xl bg-amber-500/10 border-2 border-rpg-gold flex items-center justify-center font-display font-extrabold text-2xl text-white shadow-inner cursor-pointer hover:bg-amber-500/20 transition">
+                        20
+                    </div>
+                    <div class="text-left flex-1">
+                        <div id="dice-roll-title" class="text-xs font-semibold text-slate-200">Gotowa do testu</div>
+                        <div id="dice-roll-detail" class="text-[11px] text-slate-400">Wybierz akcję z symbolem kości lub rzuć ręcznie.</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- CENTER COLUMN: Narrative Log & Player Input -->
+        <section id="panel-story" class="flex-1 flex flex-col bg-rpg-bg overflow-hidden relative">
+            
+            <!-- Story Feed Container -->
+            <div id="story-container" class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
+                <!-- Story entries dynamically appended here -->
+            </div>
+
+            <!-- AI Thinking Indicator -->
+            <div id="ai-loading" class="hidden px-6 py-3 bg-rpg-panel/95 border-t border-rpg-border flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-7 h-7 rounded-full bg-amber-500/20 border border-rpg-gold flex items-center justify-center text-rpg-gold animate-spin">
+                        <i class="ph ph-spinner-gap text-lg"></i>
+                    </div>
+                    <div>
+                        <span id="ai-loading-text" class="text-xs font-medium text-slate-200 block">Mistrz Gry DeepSeek splata nici przeznaczenia...</span>
+                        <span id="ai-loading-sub" class="text-[11px] text-slate-400">Generowanie fabuły, konsekwencji i stanu świata przez DeepSeek AI</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Choices & Free Input Footer -->
+            <div class="bg-rpg-panel border-t border-rpg-border p-3 sm:p-4 shrink-0 shadow-2xl z-10">
+                <div class="max-w-4xl mx-auto space-y-3">
+                    
+                    <!-- Predefined AI Action Choices -->
+                    <div id="choices-container" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <!-- Dynamically populated choices -->
+                    </div>
+
+                    <!-- Custom Free-form Player Action -->
+                    <form id="custom-action-form" onsubmit="handleCustomActionSubmit(event)" class="flex items-center gap-2">
+                        <div class="relative flex-1">
+                            <i class="ph ph-feather absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
+                            <input type="text" id="custom-action-input" placeholder="Wpisz własną akcję, dialog lub użyj przedmiotu (pełna swoboda)..."
+                                class="w-full bg-rpg-bg border border-rpg-border focus:border-rpg-gold rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder-slate-500 outline-none transition">
+                        </div>
+                        <button type="submit" id="btn-submit-action" class="px-4 py-2.5 rounded-xl bg-rpg-gold hover:bg-rpg-goldHover text-slate-950 font-semibold text-xs sm:text-sm transition flex items-center gap-1.5 shrink-0 shadow-md">
+                            <span>Wykonaj</span>
+                            <i class="ph-bold ph-paper-plane-right"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- RIGHT SIDEBAR: Inventory, Quests & World Codex -->
+        <aside id="panel-inv" class="hidden lg:flex w-full lg:w-80 bg-rpg-panel border-l border-rpg-border flex-col shrink-0 overflow-hidden z-10">
+            
+            <!-- Right Sidebar Tabs -->
+            <div class="grid grid-cols-2 border-b border-rpg-border bg-rpg-bg/50 p-1.5 m-3 mb-0 rounded-xl">
+                <button onclick="switchRightTab('inventory')" id="tab-btn-inventory" class="py-1.5 rounded-lg text-xs font-semibold bg-rpg-card text-rpg-gold border border-amber-500/30 transition flex items-center justify-center gap-1.5">
+                    <i class="ph-fill ph-backpack"></i> Ekwipunek (<span id="inv-count">0</span>)
+                </button>
+                <button onclick="switchRightTab('quests')" id="tab-btn-quests" class="py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition flex items-center justify-center gap-1.5">
+                    <i class="ph-fill ph-scroll"></i> Zadania (<span id="quest-count">0</span>)
+                </button>
+            </div>
+
+            <!-- Inventory Content -->
+            <div id="tab-content-inventory" class="flex-1 overflow-y-auto p-4 space-y-2.5">
+                <p class="text-[11px] text-slate-400 mb-2">Kliknij przedmiot, aby go użyć, zbadać lub wyposażyć w kolejnej turze.</p>
+                <div id="inventory-list" class="space-y-2">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- Quests Content -->
+            <div id="tab-content-quests" class="hidden flex-1 overflow-y-auto p-4 space-y-3">
+                <div id="quests-list" class="space-y-2.5">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- Quick World Lore / Log Stats Footer -->
+            <div class="p-3.5 border-t border-rpg-border bg-rpg-bg/40 text-[11px] text-slate-400 flex items-center justify-between">
+                <span>Tura przygody: <strong id="hud-turn-counter" class="text-white">1</strong></span>
+                <span id="autosave-indicator" class="text-emerald-400 flex items-center gap-1 opacity-80">
+                    <i class="ph-fill ph-check-circle"></i> Autozapis aktywny
+                </span>
+            </div>
+        </aside>
+
+    </main>
+
+    <!-- Custom Modal Container -->
+    <div id="modal-overlay" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-rpg-panel rpg-border rounded-2xl max-w-lg w-full p-6 shadow-2xl animate-fade-in">
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-rpg-border">
+                <h3 id="modal-title" class="font-display font-bold text-lg text-white flex items-center gap-2">
+                    <i class="ph-fill ph-info text-rpg-gold"></i> Powiadomienie
+                </h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white p-1">
+                    <i class="ph ph-x text-lg"></i>
+                </button>
+            </div>
+            <div id="modal-body" class="text-sm text-slate-300 space-y-4 max-h-[65vh] overflow-y-auto">
+                <!-- Dynamic Modal Content -->
+            </div>
+            <div id="modal-footer" class="mt-6 pt-3 border-t border-rpg-border flex justify-end gap-2">
+                <button onclick="closeModal()" class="px-4 py-2 rounded-lg bg-rpg-card hover:bg-slate-800 text-slate-200 border border-rpg-border text-xs font-medium transition">
+                    Zamknij
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <script>
+        const DEFAULT_DEEPSEEK_KEY = "sk-8f7fed0c5eba47318b6a3ab4cec15cd5";
+        const DEEPSEEK_STORAGE_KEY = "kroniki_ai_deepseek_config_v1";
+
+        let aiConfig = {
+            apiKey: DEFAULT_DEEPSEEK_KEY,
+            model: "deepseek-chat",
+            temperature: 0.85
+        };
+
+        function loadAiConfig() {
+            try {
+                const saved = localStorage.getItem(DEEPSEEK_STORAGE_KEY);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (parsed.apiKey) aiConfig.apiKey = parsed.apiKey;
+                    if (parsed.model) aiConfig.model = parsed.model;
+                    if (typeof parsed.temperature === 'number') aiConfig.temperature = parsed.temperature;
+                }
+            } catch (e) {
+                console.warn("Could not load AI config:", e);
+            }
+            updateApiStatusIndicator();
+        }
+
+        function saveAiConfig(newKey, newModel, newTemp) {
+            aiConfig.apiKey = (newKey || DEFAULT_DEEPSEEK_KEY).trim();
+            aiConfig.model = newModel || "deepseek-chat";
+            aiConfig.temperature = parseFloat(newTemp) || 0.85;
+            try {
+                localStorage.setItem(DEEPSEEK_STORAGE_KEY, JSON.stringify(aiConfig));
+            } catch (e) {}
+            updateApiStatusIndicator();
+        }
+
+        function updateApiStatusIndicator() {
+            const dot = document.getElementById('api-status-dot');
+            if (!dot) return;
+            if (aiConfig.apiKey && aiConfig.apiKey.startsWith('sk-')) {
+                dot.className = 'w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]';
+            } else {
+                dot.className = 'w-2 h-2 rounded-full bg-red-500';
+            }
+        }
+
+        function openApiSettingsModal() {
+            playSfx('click');
+            const bodyHtml = `
+                <div class="space-y-4">
+                    <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-slate-300 leading-relaxed">
+                        Gra korzysta bezpośrednio z oficjalnego punktu końcowego <strong>DeepSeek API</strong> (<code class="text-amber-300">https://api.deepseek.com/chat/completions</code>) w trybie ustrukturyzowanego obiektu JSON.
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-rpg-gold mb-1.5">Klucz DeepSeek API (API Key)</label>
+                        <div class="flex gap-2">
+                            <div class="relative flex-1">
+                                <input type="password" id="modal-input-apikey" value="${escapeHtml(aiConfig.apiKey)}" placeholder="sk-..."
+                                    class="w-full bg-rpg-bg border border-rpg-border focus:border-rpg-gold rounded-lg pl-3 pr-10 py-2 text-xs font-mono text-white outline-none transition">
+                                <button type="button" onclick="togglePasswordVisibility()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
+                                    <i id="icon-pass-vis" class="ph ph-eye text-base"></i>
+                                </button>
+                            </div>
+                            <button type="button" onclick="restoreDefaultApiKey()" title="Przywróć domyślny klucz" class="px-3 py-2 rounded-lg bg-rpg-card hover:bg-slate-800 text-xs text-amber-400 border border-rpg-border transition shrink-0">
+                                Domyślny
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-rpg-gold mb-1.5">Model DeepSeek</label>
+                        <select id="modal-select-model" class="w-full bg-rpg-bg border border-rpg-border focus:border-rpg-gold rounded-lg px-3 py-2 text-xs text-white outline-none transition">
+                            <option value="deepseek-chat" ${aiConfig.model === 'deepseek-chat' ? 'selected' : ''}>deepseek-chat (DeepSeek-V3 — Szybki i rekomendowany do RPG)</option>
+                            <option value="deepseek-reasoner" ${aiConfig.model === 'deepseek-reasoner' ? 'selected' : ''}>deepseek-reasoner (DeepSeek-R1 — Głębokie rozumowanie fabularne)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <label class="font-semibold uppercase tracking-wider text-rpg-gold">Kreatywność Narracji (Temperature)</label>
+                            <span id="temp-val-label" class="font-mono text-slate-300">${aiConfig.temperature}</span>
+                        </div>
+                        <input type="range" id="modal-input-temp" min="0.3" max="1.3" step="0.05" value="${aiConfig.temperature}"
+                            oninput="document.getElementById('temp-val-label').textContent = this.value"
+                            class="w-full accent-amber-500 cursor-pointer">
+                    </div>
+                </div>
+            `;
+
+            const footerHtml = `
+                <button onclick="closeModal()" class="px-4 py-2 rounded-lg bg-rpg-card hover:bg-slate-800 text-slate-300 border border-rpg-border text-xs font-medium transition">Anuluj</button>
+                <button onclick="saveApiSettingsFromModal()" class="px-4 py-2 rounded-lg bg-rpg-gold hover:bg-rpg-goldHover text-slate-950 font-semibold text-xs transition flex items-center gap-1.5">
+                    <i class="ph-bold ph-check"></i> Zapisz konfigurację
+                </button>
+            `;
+
+            openModal(`<i class="ph-fill ph-key text-rpg-gold"></i> Konfiguracja Silnika DeepSeek AI`, bodyHtml, footerHtml);
+        }
+
+        function togglePasswordVisibility() {
+            const input = document.getElementById('modal-input-apikey');
+            const icon = document.getElementById('icon-pass-vis');
+            if (!input) return;
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'ph ph-eye-slash text-base text-amber-400';
+            } else {
+                input.type = 'password';
+                icon.className = 'ph ph-eye text-base';
+            }
+        }
+
+        function restoreDefaultApiKey() {
+            const input = document.getElementById('modal-input-apikey');
+            if (input) input.value = DEFAULT_DEEPSEEK_KEY;
+            showToast('Przywrócono domyślny klucz DeepSeek API.', 'info');
+        }
+
+        function saveApiSettingsFromModal() {
+            const keyInput = document.getElementById('modal-input-apikey');
+            const modelSelect = document.getElementById('modal-select-model');
+            const tempInput = document.getElementById('modal-input-temp');
+
+            saveAiConfig(
+                keyInput ? keyInput.value : DEFAULT_DEEPSEEK_KEY,
+                modelSelect ? modelSelect.value : 'deepseek-chat',
+                tempInput ? tempInput.value : 0.85
+            );
+            closeModal();
+            playSfx('success');
+            showToast(`Zapisano konfigurację DeepSeek (${aiConfig.model})!`, 'gold');
+        }
+
+        // --- WORLD & GENRE DEFINITIONS ---
+        const WORLDS = {
+            dark_fantasy: {
+                id: 'dark_fantasy',
+                name: 'Mroczne Fantasy',
+                subtitle: 'Przeklęte królestwa, dawna magia i potwory',
+                icon: 'ph-skull',
+                currency: 'Złote Korony',
+                mpLabel: 'Mana / Wigoru',
+                artPromptStyle: 'dark fantasy digital painting, grimdark atmosphere, dramatic lighting, detailed concept art',
+                classes: [
+                    { id: 'witcher_blade', name: 'Łowca Bestii', desc: 'Mistrz miecza, alchemii i pradawnych znaków bojowych.', icon: 'ph-sword', bonus: { str: 2, dex: 2, int: 1, cha: 0 } },
+                    { id: 'necromancer', name: 'Mag Krwi i Cienia', desc: 'Włada zakazaną sztuką arkana oraz tajemną wiedzą.', icon: 'ph-fire', bonus: { str: 0, dex: 1, int: 3, cha: 1 } },
+                    { id: 'rogue', name: 'Skrytobójca Gildii', desc: 'Niezrównany w cichym przemykaniu, sztyletach i intrygach.', icon: 'ph- hood', bonus: { str: 0, dex: 3, int: 1, cha: 1 } },
+                    { id: 'paladin', name: 'Upadły Inkwizytor', desc: 'Ciężki pancerz, niezłomna wola i autorytet budzący grozę.', icon: 'ph-shield-plus', bonus: { str: 3, dex: 0, int: 0, cha: 2 } }
+                ],
+                sampleNames: ['Valerius', 'Kaelen', 'Morrigan', 'Vespera', 'Aldric', 'Elowen', 'Draven', 'Lyra']
+            },
+            cyberpunk: {
+                id: 'cyberpunk',
+                name: 'Cyberpunk 2099',
+                subtitle: 'Megakorporacje, cyberwszczepy i neonowe zaułki',
+                icon: 'ph-cpu',
+                currency: 'Kredyty (EC)',
+                mpLabel: 'RAM / Cyber-Energia',
+                artPromptStyle: 'cyberpunk neon-noir concept art, futuristic dystopian megacity, rain reflections, high tech low life',
+                classes: [
+                    { id: 'netrunner', name: 'Netrunner', desc: 'Elitarny haker łamiący zabezpieczenia Lodu i implanty wrogów.', icon: 'ph-terminal-window', bonus: { str: 0, dex: 1, int: 3, cha: 1 } },
+                    { id: 'solo', name: 'Solo (Cybernajemnik)', desc: 'Żywa broń naszpikowana bojowym chromem i refleksem.', icon: 'ph-crosshair', bonus: { str: 2, dex: 3, int: 0, cha: 0 } },
+                    { id: 'fixer', name: 'Fixer Ulicy', desc: 'Zna każdego w mieście, załatwi nielegalny sprzęt i informacje.', icon: 'ph-briefcase', bonus: { str: 0, dex: 1, int: 1, cha: 3 } },
+                    { id: 'techie', name: 'Inżynier Dronów', desc: 'Mistrz rusznikarstwa, modyfikacji sprzętu i robotyki.', icon: 'ph-wrench', bonus: { str: 1, dex: 1, int: 3, cha: 0 } }
+                ],
+                sampleNames: ['Vex', 'Kuro', 'Nyx', 'Cipher', 'Jax', 'Sora', 'Razor', 'Echo']
+            },
+            post_apo: {
+                id: 'post_apo',
+                name: 'Post-Apokalipsa',
+                subtitle: 'Radioaktywne pustkowia, ruiny cywilizacji i walka o przetrwanie',
+                icon: 'ph-radioactive',
+                currency: 'Kapsle / Naboje',
+                mpLabel: 'Adrenalina',
+                artPromptStyle: 'post-apocalyptic wasteland concept art, ruined overgrown city, gritty survival atmosphere, cinematic lighting',
+                classes: [
+                    { id: 'stalker', name: 'Stalker Zony', desc: 'Wyczuwa anomalie, zna bezpieczne ścieżki i kryjówki przedwojnia.', icon: 'ph-compass', bonus: { str: 1, dex: 2, int: 2, cha: 0 } },
+                    { id: 'juggernaut', name: 'Weteran Pustkowi', desc: 'Specjalista od ciężkiej broni palnej i pancerzy ze złomu.', icon: 'ph-shield-warning', bonus: { str: 3, dex: 1, int: 0, cha: 1 } },
+                    { id: 'medic', name: 'Chemik-Medyk', desc: 'Tworzy stymulanty, leczy popromienne rany i zna starą naukę.', icon: 'ph-first-aid-kit', bonus: { str: 0, dex: 1, int: 3, cha: 1 } },
+                    { id: 'caravan', name: 'Handlarz Karawany', desc: 'Mistrz negocjacji, blefu i przetrwania wśród gangów.', icon: 'ph-handshake', bonus: { str: 1, dex: 1, int: 0, cha: 3 } }
+                ],
+                sampleNames: ['Kruk', 'Rdzawy', 'Iskra', 'Artem', 'Kora', 'Szakal', 'Mira', 'Grom']
+            },
+            space_opera: {
+                id: 'space_opera',
+                name: 'Space Opera',
+                subtitle: 'Odległe galaktyki, obce cywilizacje i gwiezdne floty',
+                icon: 'ph-planet',
+                currency: 'Astrodolary',
+                mpLabel: 'Pole Psioniczne',
+                artPromptStyle: 'epic sci-fi space opera artwork, alien worlds, starships, cosmic nebula background, cinematic sci-fi',
+                classes: [
+                    { id: 'corsair', name: 'Gwiezdny Korsarz', desc: 'As pilotażu, przemytnik i strzelec wyborowy z blasterem.', icon: 'ph-rocket-launch', bonus: { str: 1, dex: 3, int: 0, cha: 1 } },
+                    { id: 'psion', name: 'Psionik Pustki', desc: 'Manipuluje grawitacją i umysłami dzięki energii kosmicznej.', icon: 'ph-spiral', bonus: { str: 0, dex: 1, int: 3, cha: 1 } },
+                    { id: 'vanguard', name: 'Komandos Floty', desc: 'Taktyczny szturmowiec w egzoszkielecie bojowym.', icon: 'ph-shield-checkered', bonus: { str: 3, dex: 1, int: 1, cha: 0 } },
+                    { id: 'envoy', name: 'Emisariusz Galaktyczny', desc: 'Dyplomata, szpieg i znawca kultur obcych ras.', icon: 'ph-globe-hemisphere-west', bonus: { str: 0, dex: 0, int: 2, cha: 3 } }
+                ],
+                sampleNames: ['Kaelis', 'Orion', 'Lyra Voss', 'Zane', 'Tali', 'Cassian', 'Nova', 'Theron']
+            }
+        };
+
+        const STAT_META = {
+            str: { name: 'Siła', abbr: 'SIŁ', icon: 'ph-barbell', desc: 'Walka wręcz, wyważanie drzwi, wytrzymałość fizyczna.' },
+            dex: { name: 'Zręczność', abbr: 'ZRĘ', icon: 'ph-wind', desc: 'Uniki, skradanie się, broń dystansowa, refleks.' },
+            int: { name: 'Intelekt', abbr: 'INT', icon: 'ph-brain', desc: 'Wiedza, magia/technologia, śledztwo, percepcja.' },
+            cha: { name: 'Charyzma', abbr: 'CHA', icon: 'ph-chats-circle', desc: 'Perswazja, zastraszanie, handel, dowodzenie.' }
+        };
+
+        // --- APPLICATION STATE ---
+        let creationState = {
+            worldId: 'dark_fantasy',
+            classId: 'witcher_blade',
+            baseStats: { str: 10, dex: 10, int: 10, cha: 10 },
+            pointsRemaining: 5
+        };
+
+        let gameState = null;
+        let isGenerating = false;
+        let soundEnabled = true;
+        let activeAudioSource = null;
+
+        // --- SYNTHESIZED SOUND EFFECTS (Web Audio API) ---
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function playSfx(type) {
+            if (!soundEnabled) return;
+            try {
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(520, now);
+                    osc.frequency.exponentialRampToValueAtTime(220, now + 0.06);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+                    osc.start(now);
+                    osc.stop(now + 0.06);
+                } else if (type === 'dice') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(300, now);
+                    osc.frequency.setValueAtTime(480, now + 0.05);
+                    osc.frequency.setValueAtTime(620, now + 0.1);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+                    osc.start(now);
+                    osc.stop(now + 0.16);
+                } else if (type === 'success') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.setValueAtTime(554.37, now + 0.08);
+                    osc.frequency.setValueAtTime(659.25, now + 0.16);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                } else if (type === 'fail') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.linearRampToValueAtTime(130, now + 0.25);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+                    osc.start(now);
+                    osc.stop(now + 0.28);
+                }
+            } catch (e) {
+                // Ignore audio errors if blocked by browser autoplay policy
+            }
+        }
+
+        function toggleSoundEffects() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('icon-sound');
+            if (soundEnabled) {
+                icon.className = 'ph ph-speaker-high text-lg text-emerald-400';
+                playSfx('click');
+                showToast('Dźwięki interfejsu włączone', 'info');
+            } else {
+                icon.className = 'ph ph-speaker-slash text-lg text-slate-500';
+                showToast('Dźwięki interfejsu wyciszone', 'info');
+            }
+        }
+
+        function initCreationScreen() {
+            loadAiConfig();
+            checkSavedGame();
+            renderWorldSelector();
+            renderClassSelector();
+            renderStatsAllocator();
+            randomizeHeroName();
+        }
+
+        function renderWorldSelector() {
+            const grid = document.getElementById('world-grid');
+            grid.innerHTML = '';
+            Object.values(WORLDS).forEach(world => {
+                const active = creationState.worldId === world.id;
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.onclick = () => selectWorld(world.id);
+                btn.className = `p-3.5 rounded-xl text-left transition flex items-start gap-3 border ${
+                    active 
+                        ? 'bg-amber-500/15 border-rpg-gold shadow-lg' 
+                        : 'bg-rpg-card/70 border-rpg-border hover:border-slate-600'
+                }`;
+                btn.innerHTML = `
+                    <div class="w-10 h-10 rounded-lg ${active ? 'bg-rpg-gold text-slate-950' : 'bg-slate-800 text-rpg-gold'} flex items-center justify-center shrink-0 text-xl transition">
+                        <i class="ph-fill ${world.icon}"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="font-display font-bold text-sm text-white flex items-center gap-1.5">
+                            ${world.name}
+                        </div>
+                        <p class="text-[11px] text-slate-400 leading-snug mt-0.5">${world.subtitle}</p>
+                    </div>
+                `;
+                grid.appendChild(btn);
+            });
+        }
+
+        function selectWorld(worldId) {
+            playSfx('click');
+            creationState.worldId = worldId;
+            creationState.classId = WORLDS[worldId].classes[0].id;
+            renderWorldSelector();
+            renderClassSelector();
+            renderStatsAllocator();
+            randomizeHeroName();
+        }
+
+        function renderClassSelector() {
+            const grid = document.getElementById('class-grid');
+            grid.innerHTML = '';
+            const world = WORLDS[creationState.worldId];
+
+            world.classes.forEach(cls => {
+                const active = creationState.classId === cls.id;
+                const bonusTags = Object.entries(cls.bonus)
+                    .filter(([_, val]) => val > 0)
+                    .map(([stat, val]) => `+${val} ${STAT_META[stat].abbr}`)
+                    .join(', ');
+
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.onclick = () => {
+                    playSfx('click');
+                    creationState.classId = cls.id;
+                    renderClassSelector();
+                    renderStatsAllocator();
+                };
+                btn.className = `p-3 rounded-xl text-left transition border flex flex-col justify-between ${
+                    active
+                        ? 'bg-amber-500/15 border-rpg-gold shadow-md'
+                        : 'bg-rpg-card/60 border-rpg-border hover:border-slate-600'
+                }`;
+                btn.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="font-semibold text-xs sm:text-sm text-white">${cls.name}</span>
+                            <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-500/20 text-rpg-gold border border-amber-500/30">${bonusTags}</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">${cls.desc}</p>
+                    </div>
+                `;
+                grid.appendChild(btn);
+            });
+        }
+
+        function getSelectedClassObj() {
+            const world = WORLDS[creationState.worldId];
+            return world.classes.find(c => c.id === creationState.classId) || world.classes[0];
+        }
+
+        function getStatModifier(value) {
+            return Math.floor((value - 10) / 2);
+        }
+
+        function formatMod(mod) {
+            return mod >= 0 ? `+${mod}` : `${mod}`;
+        }
+
+        function renderStatsAllocator() {
+            const container = document.getElementById('stats-allocator');
+            const pointsLeftEl = document.getElementById('stat-points-left');
+            pointsLeftEl.textContent = creationState.pointsRemaining;
+            container.innerHTML = '';
+
+            const cls = getSelectedClassObj();
+
+            Object.keys(STAT_META).forEach(statKey => {
+                const meta = STAT_META[statKey];
+                const base = creationState.baseStats[statKey];
+                const bonus = cls.bonus[statKey] || 0;
+                const total = base + bonus;
+                const mod = getStatModifier(total);
+
+                const row = document.createElement('div');
+                row.className = 'flex items-center justify-between p-2.5 rounded-lg bg-rpg-panel border border-rpg-border';
+                row.innerHTML = `
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-rpg-card flex items-center justify-center text-rpg-gold">
+                            <i class="ph-fill ${meta.icon} text-base"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs font-semibold text-white flex items-center gap-1.5">
+                                ${meta.name}
+                                ${bonus > 0 ? `<span class="text-[10px] text-amber-400 font-normal">(+${bonus} klasa)</span>` : ''}
+                            </div>
+                            <div class="text-[10px] text-slate-400">${meta.desc}</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <button type="button" onclick="adjustStat('${statKey}', -1)" ${base <= 8 ? 'disabled' : ''}
+                            class="w-7 h-7 rounded bg-rpg-card hover:bg-slate-700 disabled:opacity-30 text-white border border-rpg-border flex items-center justify-center text-xs font-bold transition">
+                            -
+                        </button>
+                        <div class="w-12 text-center">
+                            <span class="text-sm font-bold text-white block leading-none">${total}</span>
+                            <span class="text-[10px] font-mono ${mod >= 0 ? 'text-emerald-400' : 'text-red-400'}">(${formatMod(mod)})</span>
+                        </div>
+                        <button type="button" onclick="adjustStat('${statKey}', 1)" ${creationState.pointsRemaining <= 0 || base >= 16 ? 'disabled' : ''}
+                            class="w-7 h-7 rounded bg-rpg-card hover:bg-slate-700 disabled:opacity-30 text-white border border-rpg-border flex items-center justify-center text-xs font-bold transition">
+                            +
+                        </button>
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        function adjustStat(statKey, delta) {
+            if (delta > 0 && creationState.pointsRemaining > 0 && creationState.baseStats[statKey] < 16) {
+                creationState.baseStats[statKey]++;
+                creationState.pointsRemaining--;
+                playSfx('click');
+                renderStatsAllocator();
+            } else if (delta < 0 && creationState.baseStats[statKey] > 8) {
+                creationState.baseStats[statKey]--;
+                creationState.pointsRemaining++;
+                playSfx('click');
+                renderStatsAllocator();
+            }
+        }
+
+        function randomizeHeroName() {
+            const world = WORLDS[creationState.worldId];
+            const names = world.sampleNames;
+            const randomName = names[Math.floor(Math.random() * names.length)];
+            document.getElementById('input-hero-name').value = randomName;
+        }
+
+        async function fetchWithRetry(url, options, maxRetries = 3) {
+            let delay = 1200;
+            for (let attempt = 0; attempt < maxRetries; attempt++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.ok) {
+                        return await response.json();
+                    }
+                    const errText = await response.text();
+                    let errMsg = `HTTP ${response.status}`;
+                    try {
+                        const errJson = JSON.parse(errText);
+                        if (errJson.error && errJson.error.message) {
+                            errMsg = errJson.error.message;
+                        }
+                    } catch (_) {}
+
+                    if (response.status !== 429 && response.status < 500) {
+                        throw new Error(errMsg);
+                    }
+                } catch (err) {
+                    if (attempt === maxRetries - 1) throw err;
+                }
+                await new Promise(res => setTimeout(res, delay));
+                delay *= 2;
+            }
+        }
+
+        function buildSystemInstruction() {
+            const world = WORLDS[gameState.worldId];
+            return `Jesteś wybitnym Mistrzem Gry (Game Master) prowadzącym rozbudowaną, interaktywną grę RPG w języku polskim.
+Uniwersum gry: ${world.name} (${world.subtitle}). Waluta: ${world.currency}.
+Twój styl pisania jest plastyczny, angażujący, dojrzały i pełen klimatu (wzorowany na najlepszych grach cRPG takich jak Wiedźmin, Baldur's Gate, Cyberpunk 2077 czy Planescape: Torment).
+
+ZASADY PROWADZENIA GRY:
+1. ZAWSZE odpowiadaj WYŁĄCZNIE poprawnym obiektem JSON (json_object). Nie dodawaj żadnego tekstu przed ani po obiekcie JSON.
+2. Reaguj bezpośrednio na akcję gracza oraz wynik rzutu kością K20 (jeśli wystąpił).
+   - Jeśli rzut był SUKCESEM lub KRYTYCZNYM SUKCESEM, opisz efektowne powodzenie i nagrodź gracza (XP, postęp fabuły, łup lub przewaga).
+   - Jeśli rzut był PORAŻKĄ, wprowadź ciekawe komplikacje fabularne, utratę HP, zasobów lub pogorszenie sytuacji (zasada "fail forward" - fabuła zawsze idzie naprzód).
+3. Dbaj o spójność ekwipunku, finansów i zadań. Nie dodawaj ponownie przedmiotów, które gracz już posiada, chyba że znajduje kolejne sztuki.
+4. W każdej turze zaproponuj 4 różnorodne wybory (choices). Przynajmniej 2-3 wybory powinny wymagać testu atrybutu (STR, DEX, INT lub CHA) o stopniu trudności (difficulty) od 10 do 17, dopasowanym do ryzyka.
+
+WYMAGANY SCHEMAT JSON:
+{
+  "narrative": "Bogaty, klimatyczny opis fabularny po polsku (2-4 akapity oddzielone podwójnym enterem \\n\\n). Opisuje wynik akcji gracza, otoczenie, dialogi NPC oraz buduje napięcie.",
+  "locationName": "Krótka nazwa aktualnej lokacji po polsku",
+  "hpChange": 0,
+  "mpChange": 0,
+  "goldChange": 0,
+  "xpGained": 15,
+  "itemsAdded": [
+    { "name": "Nazwa przedmiotu", "type": "Broń | Pancerz | Mikstura | Kluczowy | Inne", "description": "Krótki opis przedmiotu" }
+  ],
+  "itemsRemoved": ["Nazwa zużytego lub utraconego przedmiotu"],
+  "questsUpdated": [
+    { "title": "Tytuł zadania", "description": "Opis aktualnego celu zadania", "status": "active | completed | failed" }
+  ],
+  "statusEffects": ["Pełnia sił"],
+  "sceneVisualPrompt": "Detailed English visual description of the current scene in 1 sentence for image generation",
+  "choices": [
+    { "text": "Tekst akcji nr 1 po polsku", "statCheck": "STR", "difficulty": 12 },
+    { "text": "Tekst akcji nr 2 po polsku", "statCheck": "DEX", "difficulty": 14 },
+    { "text": "Tekst akcji nr 3 po polsku", "statCheck": "INT", "difficulty": 11 },
+    { "text": "Tekst akcji nr 4 po polsku (bez testu)", "statCheck": "NONE", "difficulty": 0 }
+  ]
+}`;
+        }
+
+        function buildTurnPrompt(actionText, rollOutcomeInfo) {
+            const invSummary = gameState.inventory.map(i => `${i.name} (${i.type})`).join(', ') || 'Brak przedmiotów';
+            const questSummary = gameState.quests.map(q => `[${q.status.toUpperCase()}] ${q.title}: ${q.description}`).join(' | ') || 'Brak aktywnych zadań';
+            const recentHistory = gameState.history.slice(-4).map(h => `Gracz: ${h.action}\nFabuła: ${h.summary}`).join('\n---\n');
+
+            return `AKTUALNY STAN BOHATERA:
+- Imię: ${gameState.name} (${gameState.className}, Poziom ${gameState.level})
+- Cecha/Historia: ${gameState.backstory || 'Wędrowiec szukający przeznaczenia'}
+- Lokacja: ${gameState.location}
+- Zdrowie (HP): ${gameState.hp}/${gameState.maxHp} | Energia/Mana: ${gameState.mp}/${gameState.maxMp} | Waluta: ${gameState.gold} ${WORLDS[gameState.worldId].currency}
+- Atrybuty: SIŁ ${gameState.stats.str}, ZRĘ ${gameState.stats.dex}, INT ${gameState.stats.int}, CHA ${gameState.stats.cha}
+- Ekwipunek: ${invSummary}
+- Zadania: ${questSummary}
+
+OSTATNIE WYDARZENIA:
+${recentHistory || 'Początek przygody.'}
+
+AKCJA GRACZA W TEJ TURZE:
+"${actionText}"
+${rollOutcomeInfo ? `WYNIK TESTU KOŚCIĄ K20: ${rollOutcomeInfo}` : 'Test kością: Brak (standardowa akcja narracyjna).'}
+
+Wygeneruj kolejną scenę przygody oraz zaktualizuj stan gry zwracając poprawny obiekt JSON.`;
+        }
+
+        function parseDeepSeekJson(rawText) {
+            if (!rawText) throw new Error("Pusta odpowiedź od modelu DeepSeek.");
+            let cleaned = rawText.trim();
+            // Strip markdown code fences if present
+            if (cleaned.startsWith("```")) {
+                cleaned = cleaned.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+            }
+            const firstBrace = cleaned.indexOf('{');
+            const lastBrace = cleaned.lastIndexOf('}');
+            if (firstBrace !== -1 && lastBrace !== -1) {
+                cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+            }
+            return JSON.parse(cleaned);
+        }
+
+        async function startNewAdventure() {
+            const nameInput = document.getElementById('input-hero-name').value.trim() || 'Bezimienny';
+            const traitInput = document.getElementById('input-hero-trait').value.trim();
+            const world = WORLDS[creationState.worldId];
+            const cls = getSelectedClassObj();
+
+            const finalStats = {
+                str: creationState.baseStats.str + (cls.bonus.str || 0),
+                dex: creationState.baseStats.dex + (cls.bonus.dex || 0),
+                int: creationState.baseStats.int + (cls.bonus.int || 0),
+                cha: creationState.baseStats.cha + (cls.bonus.cha || 0),
+            };
+
+            const maxHp = 80 + (finalStats.str * 3);
+            const maxMp = 30 + (finalStats.int * 3);
+
+            // Starter items based on world & class
+            const starterItems = getStarterItems(world.id, cls.id);
+
+            gameState = {
+                worldId: world.id,
+                name: nameInput,
+                classId: cls.id,
+                className: cls.name,
+                backstory: traitInput,
+                level: 1,
+                xp: 0,
+                xpToNext: 100,
+                hp: maxHp,
+                maxHp: maxHp,
+                mp: maxMp,
+                maxMp: maxMp,
+                gold: 60,
+                location: 'Nieznane Pogranicze',
+                statuses: ['Pełnia sił'],
+                stats: finalStats,
+                inventory: starterItems,
+                quests: [],
+                turn: 1,
+                history: [],
+                storyLog: []
+            };
+
+            playSfx('success');
+            switchScreenToGame();
+            updateHUD();
+
+            const introPrompt = `ROZPOCZĘCIE GRY: Wprowadź bohatera (${gameState.name}, profesja: ${gameState.className}) w świat ${world.name}. ${traitInput ? `Uwzględnij tło postaci: "${traitInput}".` : ''} Stwórz intrygującą scenę otwierającą w klimatycznej lokacji, nadaj pierwsze zadanie główne (quest) w dzienniku i przedstaw 4 opcje działania.`;
+
+            await executeAITurn('Rozpoczęcie przygody', null, introPrompt);
+        }
+
+        function getStarterItems(worldId, classId) {
+            if (worldId === 'dark_fantasy') {
+                return [
+                    { name: 'Stalowy Miecz Podróżny', type: 'Broń', description: 'Solidne, dobrze wyważone ostrze noszące ślady dawnych potyczek.' },
+                    { name: 'Eliksir Jaskółki', type: 'Mikstura', description: 'Alchemiczny wywar przyspieszający regenerację ran (+30 HP).' },
+                    { name: 'Sakiewka z pieczęcią', type: 'Kluczowy', description: 'Tajemniczy list polecający z lakową pieczęcią.' }
+                ];
+            } else if (worldId === 'cyberpunk') {
+                return [
+                    { name: 'Pistolet Termalny Militech', type: 'Broń', description: 'Kompaktowa broń krótka z inteligentnym celownikiem optycznym.' },
+                    { name: 'Stymulant MaxDoc', type: 'Mikstura', description: 'Inhalator bojowy natychmiastowo łatający obrażenia (+30 HP).' },
+                    { name: 'Zaszyfrowana Drzazga', type: 'Kluczowy', description: 'Nośnik danych z gorącymi informacjami z podziemia.' }
+                ];
+            } else if (worldId === 'post_apo') {
+                return [
+                    { name: 'Zmodyfikowany Karabin AK', type: 'Broń', description: 'Niezawodna broń palna poskładana z części przedwojennych.' },
+                    { name: 'Apteczka Przeciwpromienna', type: 'Mikstura', description: 'Zestaw opatrunków i leków oczyszczających organizm (+30 HP).' },
+                    { name: 'Detektor Anomalii', type: 'Kluczowy', description: 'Urządzenie ostrzegające przed zabójczymi strefami.' }
+                ];
+            } else {
+                return [
+                    { name: 'Blaster Plazmowy Mk-IV', type: 'Broń', description: 'Standardowa broń energetyczna gwiezdnych najemników.' },
+                    { name: 'Nano-Żel Medyczny', type: 'Mikstura', description: 'Nanoboty regenerujące tkanki w kilka sekund (+30 HP).' },
+                    { name: 'Karta Dostępu Sektora 7', type: 'Kluczowy', description: 'Klucz holograficzny do zastrzeżonych doków stacji.' }
+                ];
+            }
+        }
+
+        function performSkillCheck(statCheck, difficulty) {
+            if (!statCheck || statCheck === 'NONE' || !difficulty || difficulty <= 0) {
+                return null;
+            }
+            const statKey = statCheck.toLowerCase();
+            const statVal = gameState.stats[statKey] || 10;
+            const mod = getStatModifier(statVal);
+            const rawRoll = Math.floor(Math.random() * 20) + 1;
+            const total = rawRoll + mod;
+
+            let outcome = 'SUKCES';
+            let isSuccess = true;
+            if (rawRoll === 20) {
+                outcome = 'KRYTYCZNY SUKCES (Naturalne 20!)';
+                isSuccess = true;
+            } else if (rawRoll === 1) {
+                outcome = 'KRYTYCZNA PORAŻKA (Naturalne 1!)';
+                isSuccess = false;
+            } else if (total >= difficulty) {
+                outcome = 'SUKCES';
+                isSuccess = true;
+            } else {
+                outcome = 'PORAŻKA';
+                isSuccess = false;
+            }
+
+            const statLabel = STAT_META[statKey] ? STAT_META[statKey].abbr : statCheck;
+
+            // Update visual dice in sidebar
+            animateDiceBox(rawRoll, total, difficulty, statLabel, outcome, isSuccess);
+
+            return {
+                rawRoll,
+                mod,
+                total,
+                difficulty,
+                statLabel,
+                outcome,
+                isSuccess,
+                summaryForAI: `Test ${statLabel} (ST ${difficulty}): Rzut K20 = ${rawRoll} ${formatMod(mod)} (modyfikator) = ${total}. Wynik: ${outcome}.`
+            };
+        }
+
+        function animateDiceBox(rawRoll, total, dc, statLabel, outcome, isSuccess) {
+            const diceEl = document.getElementById('dice-visual');
+            const titleEl = document.getElementById('dice-roll-title');
+            const detailEl = document.getElementById('dice-roll-detail');
+
+            diceEl.classList.add('rolling-dice');
+            playSfx('dice');
+
+            setTimeout(() => {
+                diceEl.classList.remove('rolling-dice');
+                diceEl.textContent = rawRoll;
+                if (isSuccess) {
+                    diceEl.className = 'w-14 h-14 rounded-2xl bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center font-display font-extrabold text-2xl text-emerald-300 shadow-inner cursor-pointer transition';
+                    titleEl.innerHTML = `<span class="text-emerald-400 font-bold">${outcome}</span>`;
+                    playSfx('success');
+                } else {
+                    diceEl.className = 'w-14 h-14 rounded-2xl bg-red-500/20 border-2 border-red-400 flex items-center justify-center font-display font-extrabold text-2xl text-red-300 shadow-inner cursor-pointer transition';
+                    titleEl.innerHTML = `<span class="text-red-400 font-bold">${outcome}</span>`;
+                    playSfx('fail');
+                }
+                detailEl.textContent = `Test ${statLabel}: ${total} przeciw ST ${dc} (K20: ${rawRoll})`;
+            }, 380);
+        }
+
+        function manualDiceRoll() {
+            const roll = Math.floor(Math.random() * 20) + 1;
+            const diceEl = document.getElementById('dice-visual');
+            const titleEl = document.getElementById('dice-roll-title');
+            const detailEl = document.getElementById('dice-roll-detail');
+
+            diceEl.classList.add('rolling-dice');
+            playSfx('dice');
+            setTimeout(() => {
+                diceEl.classList.remove('rolling-dice');
+                diceEl.textContent = roll;
+                diceEl.className = 'w-14 h-14 rounded-2xl bg-amber-500/15 border-2 border-rpg-gold flex items-center justify-center font-display font-extrabold text-2xl text-white shadow-inner cursor-pointer transition';
+                titleEl.textContent = `Swobodny rzut K20: ${roll}`;
+                detailEl.textContent = roll === 20 ? 'Krytyczne szczęście!' : (roll === 1 ? 'Krytyczny pech!' : 'Rzut wykonany ręcznie.');
+            }, 350);
+        }
+
+        async function executeAITurn(playerActionText, rollObject = null, customPromptOverride = null) {
+            if (isGenerating) return;
+            if (!aiConfig.apiKey) {
+                openApiSettingsModal();
+                showToast("Wprowadź klucz DeepSeek API, aby rozpocząć grę.", "error");
+                return;
+            }
+
+            isGenerating = true;
+            setLoadingState(true);
+
+            // Append player action bubble if not initial intro
+            if (!customPromptOverride) {
+                appendPlayerActionToFeed(playerActionText, rollObject);
+            }
+
+            const promptText = customPromptOverride || buildTurnPrompt(playerActionText, rollObject ? rollObject.summaryForAI : null);
+            const apiUrl = "https://api.deepseek.com/chat/completions";
+
+            const payload = {
+                model: aiConfig.model || "deepseek-chat",
+                messages: [
+                    { role: "system", content: buildSystemInstruction() },
+                    { role: "user", content: promptText }
+                ],
+                temperature: aiConfig.temperature || 0.85,
+                max_tokens: 2048
+            };
+
+            // deepseek-chat supports strict json_object response_format
+            if (payload.model === "deepseek-chat") {
+                payload.response_format = { type: "json_object" };
+            }
+
+            try {
+                const result = await fetchWithRetry(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${aiConfig.apiKey}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const rawContent = result?.choices?.[0]?.message?.content;
+                const data = parseDeepSeekJson(rawContent);
+                applyTurnChanges(playerActionText, data);
+            } catch (error) {
+                console.error("DeepSeek Turn Error:", error);
+                showToast(`Błąd DeepSeek API: ${error.message || 'Sprawdź klucz lub połączenie'}`, "error");
+                appendErrorRetryCard(playerActionText, rollObject, customPromptOverride);
+            } finally {
+                isGenerating = false;
+                setLoadingState(false);
+            }
+        }
+
+        function applyTurnChanges(playerActionText, data) {
+            const stateChanges = [];
+
+            // Location
+            if (data.locationName) {
+                gameState.location = data.locationName;
+            }
+
+            // HP
+            if (typeof data.hpChange === 'number' && data.hpChange !== 0) {
+                gameState.hp = Math.max(0, Math.min(gameState.maxHp, gameState.hp + data.hpChange));
+                stateChanges.push({
+                    label: `${data.hpChange > 0 ? '+' : ''}${data.hpChange} HP`,
+                    color: data.hpChange > 0 ? 'emerald' : 'red',
+                    icon: 'ph-heart'
+                });
+            }
+
+            // MP
+            if (typeof data.mpChange === 'number' && data.mpChange !== 0) {
+                gameState.mp = Math.max(0, Math.min(gameState.maxMp, gameState.mp + data.mpChange));
+                stateChanges.push({
+                    label: `${data.mpChange > 0 ? '+' : ''}${data.mpChange} Energii`,
+                    color: data.mpChange > 0 ? 'sky' : 'blue',
+                    icon: 'ph-sparkle'
+                });
+            }
+
+            // Gold
+            if (typeof data.goldChange === 'number' && data.goldChange !== 0) {
+                gameState.gold = Math.max(0, gameState.gold + data.goldChange);
+                stateChanges.push({
+                    label: `${data.goldChange > 0 ? '+' : ''}${data.goldChange} ${WORLDS[gameState.worldId].currency}`,
+                    color: 'amber',
+                    icon: 'ph-coins'
+                });
+            }
+
+            // XP & Level Up
+            if (typeof data.xpGained === 'number' && data.xpGained > 0) {
+                gameState.xp += data.xpGained;
+                stateChanges.push({
+                    label: `+${data.xpGained} XP`,
+                    color: 'purple',
+                    icon: 'ph-star'
+                });
+
+                while (gameState.xp >= gameState.xpToNext) {
+                    gameState.xp -= gameState.xpToNext;
+                    gameState.level++;
+                    gameState.xpToNext = Math.floor(gameState.xpToNext * 1.4);
+                    gameState.maxHp += 15;
+                    gameState.hp = gameState.maxHp;
+                    gameState.maxMp += 10;
+                    gameState.mp = gameState.maxMp;
+                    // Boost highest stat or random stat
+                    const statKeys = ['str', 'dex', 'int', 'cha'];
+                    const boosted = statKeys[Math.floor(Math.random() * statKeys.length)];
+                    gameState.stats[boosted]++;
+
+                    stateChanges.push({
+                        label: `AWANS NA POZIOM ${gameState.level}! (+1 ${STAT_META[boosted].abbr})`,
+                        color: 'amber',
+                        icon: 'ph-trophy'
+                    });
+                    showToast(`Awansowałeś na poziom ${gameState.level}! Pełne uzdrowienie i wzrost cech.`, 'gold');
+                }
+            }
+
+            // Items Removed
+            if (Array.isArray(data.itemsRemoved)) {
+                data.itemsRemoved.forEach(remName => {
+                    const idx = gameState.inventory.findIndex(i => i.name.toLowerCase() === remName.toLowerCase());
+                    if (idx !== -1) {
+                        const removed = gameState.inventory.splice(idx, 1)[0];
+                        stateChanges.push({
+                            label: `Utracono: ${removed.name}`,
+                            color: 'slate',
+                            icon: 'ph-minus-circle'
+                        });
+                    }
+                });
+            }
+
+            // Items Added
+            if (Array.isArray(data.itemsAdded)) {
+                data.itemsAdded.forEach(item => {
+                    if (item && item.name) {
+                        const exists = gameState.inventory.some(i => i.name.toLowerCase() === item.name.toLowerCase());
+                        if (!exists) {
+                            gameState.inventory.push({
+                                name: item.name,
+                                type: item.type || 'Inne',
+                                description: item.description || 'Przedmiot zdobyty podczas przygody.'
+                            });
+                            stateChanges.push({
+                                label: `Zdobyto: ${item.name}`,
+                                color: 'emerald',
+                                icon: 'ph-backpack'
+                            });
+                        }
+                    }
+                });
+            }
+
+            // Quests Updated
+            if (Array.isArray(data.questsUpdated)) {
+                data.questsUpdated.forEach(q => {
+                    if (!q || !q.title) return;
+                    const existing = gameState.quests.find(ex => ex.title.toLowerCase() === q.title.toLowerCase());
+                    if (existing) {
+                        existing.description = q.description || existing.description;
+                        existing.status = q.status || existing.status;
+                    } else {
+                        gameState.quests.unshift({
+                            title: q.title,
+                            description: q.description || '',
+                            status: q.status || 'active'
+                        });
+                    }
+                    stateChanges.push({
+                        label: `Zadanie: ${q.title}`,
+                        color: 'sky',
+                        icon: 'ph-scroll'
+                    });
+                });
+            }
+
+            // Status Effects
+            if (Array.isArray(data.statusEffects) && data.statusEffects.length > 0) {
+                gameState.statuses = data.statusEffects.slice(0, 4);
+            }
+
+            // Record History
+            const shortSummary = data.narrative.length > 220 ? data.narrative.substring(0, 220) + '...' : data.narrative;
+            gameState.history.push({
+                turn: gameState.turn,
+                action: playerActionText,
+                summary: shortSummary
+            });
+
+            const entryId = 'entry-' + Date.now();
+            gameState.storyLog.push({
+                id: entryId,
+                turn: gameState.turn,
+                action: playerActionText,
+                narrative: data.narrative,
+                location: gameState.location,
+                visualPrompt: data.sceneVisualPrompt || data.locationName,
+                stateChanges
+            });
+
+            gameState.turn++;
+
+            // Render Narrative Entry & Choices
+            appendNarrativeToFeed(entryId, data.narrative, gameState.location, data.sceneVisualPrompt, stateChanges);
+            renderActionChoices(data.choices || []);
+            updateHUD();
+            saveGameToStorage(false);
+
+            // Check if hero died
+            if (gameState.hp <= 0) {
+                handleHeroDefeat();
+            }
+        }
+
+        function appendPlayerActionToFeed(actionText, rollObj) {
+            const container = document.getElementById('story-container');
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex justify-end animate-fade-in';
+
+            let rollBadge = '';
+            if (rollObj) {
+                const badgeColor = rollObj.isSuccess
+                    ? 'bg-emerald-950/80 text-emerald-300 border-emerald-600/40'
+                    : 'bg-red-950/80 text-red-300 border-red-600/40';
+                rollBadge = `
+                    <div class="mt-2 pt-2 border-t border-slate-700/60 flex items-center gap-2 text-[11px] font-mono ${badgeColor} px-2.5 py-1 rounded-lg border">
+                        <i class="ph-fill ph-dice-five text-sm"></i>
+                        <span>Test ${rollObj.statLabel} (ST ${rollObj.difficulty}): <strong>${rollObj.total}</strong> [K20:${rollObj.rawRoll}${formatMod(rollObj.mod)}] — ${rollObj.outcome}</span>
+                    </div>
+                `;
+            }
+
+            wrapper.innerHTML = `
+                <div class="max-w-xl bg-rpg-card/90 border border-amber-500/30 rounded-2xl rounded-tr-sm px-4 py-3 shadow-md">
+                    <div class="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-rpg-gold mb-1">
+                        <i class="ph-fill ph-user"></i> Decyzja Gracza
+                    </div>
+                    <p class="text-xs sm:text-sm text-white font-medium">${escapeHtml(actionText)}</p>
+                    ${rollBadge}
+                </div>
+            `;
+            container.appendChild(wrapper);
+            scrollToBottom();
+        }
+
+        function appendNarrativeToFeed(entryId, narrativeText, locationName, visualPrompt, stateChanges) {
+            const container = document.getElementById('story-container');
+            const card = document.createElement('article');
+            card.id = entryId;
+            card.className = 'bg-rpg-panel rpg-border rounded-2xl p-5 sm:p-6 shadow-xl animate-fade-in space-y-4';
+
+            // Format paragraphs
+            const paragraphs = narrativeText
+                .split(/\n\n+/)
+                .map(p => `<p>${escapeHtml(p.trim())}</p>`)
+                .join('');
+
+            // State changes badges
+            let changesHtml = '';
+            if (stateChanges && stateChanges.length > 0) {
+                const badges = stateChanges.map(ch => {
+                    const colorMap = {
+                        emerald: 'bg-emerald-950/60 text-emerald-300 border-emerald-700/40',
+                        red: 'bg-red-950/60 text-red-300 border-red-700/40',
+                        amber: 'bg-amber-950/60 text-amber-300 border-amber-700/40',
+                        sky: 'bg-sky-950/60 text-sky-300 border-sky-700/40',
+                        purple: 'bg-purple-950/60 text-purple-300 border-purple-700/40',
+                        blue: 'bg-blue-950/60 text-blue-300 border-blue-700/40',
+                        slate: 'bg-slate-800 text-slate-300 border-slate-600/40'
+                    };
+                    const cls = colorMap[ch.color] || colorMap.slate;
+                    return `<span class="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-0.5 rounded-full border ${cls}">
+                        <i class="ph-fill ${ch.icon}"></i> ${escapeHtml(ch.label)}
+                    </span>`;
+                }).join('');
+                changesHtml = `<div class="flex flex-wrap gap-1.5 pt-3 border-t border-rpg-border/60">${badges}</div>`;
+            }
+
+            const safePrompt = encodeURIComponent(visualPrompt || locationName);
+            const safeNarrative = encodeURIComponent(narrativeText);
+
+            card.innerHTML = `
+                <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-rpg-border/70">
+                    <div class="flex items-center gap-2 text-xs font-display font-bold tracking-wider text-rpg-gold uppercase">
+                        <i class="ph-fill ph-compass"></i>
+                        <span>${escapeHtml(locationName)}</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <button type="button" onclick="generateSceneArtwork('${entryId}', '${safePrompt}')" id="btn-art-${entryId}"
+                            class="px-2.5 py-1 rounded-lg bg-rpg-card hover:bg-slate-800 text-[11px] font-medium text-slate-300 hover:text-rpg-gold border border-rpg-border transition flex items-center gap-1">
+                            <i class="ph ph-image text-sm text-amber-400"></i>
+                            <span>Ilustruj scenę</span>
+                        </button>
+                        <button type="button" onclick="narrateSceneTTS('${entryId}', '${safeNarrative}')" id="btn-tts-${entryId}"
+                            class="px-2.5 py-1 rounded-lg bg-rpg-card hover:bg-slate-800 text-[11px] font-medium text-slate-300 hover:text-sky-400 border border-rpg-border transition flex items-center gap-1">
+                            <i class="ph ph-speaker-high text-sm text-sky-400"></i>
+                            <span>Lektor AI</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="art-box-${entryId}" class="hidden rounded-xl overflow-hidden border border-rpg-border bg-rpg-bg"></div>
+
+                <div class="story-text font-serif text-sm sm:text-base text-slate-200 leading-relaxed">
+                    ${paragraphs}
+                </div>
+
+                ${changesHtml}
+            `;
+
+            container.appendChild(card);
+            scrollToBottom();
+        }
+
+        function appendErrorRetryCard(actionText, rollObject, customPromptOverride) {
+            const container = document.getElementById('story-container');
+            const errDiv = document.createElement('div');
+            errDiv.className = 'p-4 rounded-xl bg-red-950/40 border border-red-700/50 text-center space-y-2 animate-fade-in';
+            errDiv.innerHTML = `
+                <p class="text-xs text-red-300">Nie udało się wygenerować odpowiedzi Mistrza Gry.</p>
+                <button type="button" class="px-4 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-semibold transition">
+                    Ponów próbę
+                </button>
+            `;
+            const btn = errDiv.querySelector('button');
+            btn.onclick = () => {
+                errDiv.remove();
+                executeAITurn(actionText, rollObject, customPromptOverride);
+            };
+            container.appendChild(errDiv);
+            scrollToBottom();
+        }
+
+        function renderActionChoices(choices) {
+            const container = document.getElementById('choices-container');
+            container.innerHTML = '';
+
+            choices.forEach((choice, idx) => {
+                const hasCheck = choice.statCheck && choice.statCheck !== 'NONE' && choice.difficulty > 0;
+                const statKey = hasCheck ? choice.statCheck.toLowerCase() : null;
+                const meta = statKey && STAT_META[statKey] ? STAT_META[statKey] : null;
+
+                let checkBadge = '';
+                if (hasCheck && meta) {
+                    const mod = getStatModifier(gameState.stats[statKey] || 10);
+                    checkBadge = `
+                        <span class="shrink-0 text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-amber-500/15 text-rpg-gold border border-amber-500/30 flex items-center gap-1">
+                            <i class="ph-fill ph-dice-five"></i> ${meta.abbr} ST ${choice.difficulty} (${formatMod(mod)})
+                        </span>
+                    `;
+                }
+
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.onclick = () => handleChoiceClick(choice);
+                btn.className = 'p-3 rounded-xl bg-rpg-card hover:bg-slate-800/90 border border-rpg-border hover:border-rpg-gold/60 text-left transition flex items-center justify-between gap-2 group shadow-sm';
+                btn.innerHTML = `
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <span class="w-5 h-5 rounded-md bg-rpg-bg border border-rpg-border group-hover:border-rpg-gold group-hover:text-rpg-gold text-[11px] font-bold text-slate-400 flex items-center justify-center shrink-0 transition">
+                            ${idx + 1}
+                        </span>
+                        <span class="text-xs sm:text-sm text-slate-200 group-hover:text-white font-medium line-clamp-2">${escapeHtml(choice.text)}</span>
+                    </div>
+                    ${checkBadge}
+                `;
+                container.appendChild(btn);
+            });
+        }
+
+        function handleChoiceClick(choice) {
+            if (isGenerating) return;
+            playSfx('click');
+            const rollResult = performSkillCheck(choice.statCheck, choice.difficulty);
+            executeAITurn(choice.text, rollResult);
+        }
+
+        function handleCustomActionSubmit(e) {
+            e.preventDefault();
+            if (isGenerating) return;
+            const input = document.getElementById('custom-action-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            input.value = '';
+            playSfx('click');
+
+            // Automatically perform a general luck/skill check if action seems risky
+            executeAITurn(text, null);
+        }
+
+        async function generateSceneArtwork(entryId, encodedPrompt) {
+            const artBox = document.getElementById(`art-box-${entryId}`);
+            const btn = document.getElementById(`btn-art-${entryId}`);
+            if (!artBox || !btn) return;
+
+            const rawPrompt = decodeURIComponent(encodedPrompt);
+            const worldStyle = WORLDS[gameState.worldId].artPromptStyle;
+            const fullPrompt = `${rawPrompt}, ${worldStyle}, masterpiece RPG concept art, atmospheric lighting, no text`;
+
+            btn.disabled = true;
+            btn.innerHTML = `<i class="ph ph-spinner animate-spin text-amber-400"></i> <span>Malowanie...</span>`;
+            artBox.classList.remove('hidden');
+            artBox.innerHTML = `
+                <div class="h-48 sm:h-64 flex flex-col items-center justify-center gap-2 text-slate-400 bg-slate-950/60 animate-pulse">
+                    <i class="ph-duotone ph-paint-brush-broad text-3xl text-rpg-gold"></i>
+                    <span class="text-xs">Generowanie ilustracji sceny...</span>
+                </div>
+            `;
+
+            const seed = Math.floor(Math.random() * 999999);
+            const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?width=960&height=540&seed=${seed}&nologo=true`;
+
+            const img = new Image();
+            img.onload = () => {
+                artBox.innerHTML = `
+                    <img src="${imgUrl}" alt="Ilustracja sceny" class="w-full max-h-80 object-cover animate-fade-in" />
+                `;
+                btn.innerHTML = `<i class="ph-fill ph-check text-emerald-400"></i> <span>Gotowe</span>`;
+            };
+            img.onerror = () => {
+                // Fallback procedural SVG illustration if external image service is unreachable
+                artBox.innerHTML = createProceduralSceneSvg(gameState.worldId, gameState.location, rawPrompt);
+                btn.innerHTML = `<i class="ph-fill ph-sparkle text-amber-400"></i> <span>Wizualizacja</span>`;
+            };
+            img.src = imgUrl;
+        }
+
+        function createProceduralSceneSvg(worldId, locationTitle, promptText) {
+            const palettes = {
+                dark_fantasy: ['#0f172a', '#3b0764', '#d4af37'],
+                cyberpunk: ['#090d16', '#701a75', '#06b6d4'],
+                post_apo: ['#1c1917', '#7c2d12', '#f59e0b'],
+                space_opera: ['#020617', '#1e1b4b', '#38bdf8']
+            };
+            const [c1, c2, accent] = palettes[worldId] || palettes.dark_fantasy;
+            return `
+                <div class="relative w-full h-56 overflow-hidden flex items-end p-5" style="background: linear-gradient(135deg, ${c1} 0%, ${c2} 100%);">
+                    <svg class="absolute inset-0 w-full h-full opacity-25" viewBox="0 0 800 300" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="650" cy="80" r="45" fill="${accent}" opacity="0.6"/>
+                        <path d="M0 300 L0 210 L120 150 L260 220 L420 120 L580 210 L720 140 L800 190 L800 300 Z" fill="#090b10" opacity="0.7"/>
+                        <path d="M0 300 L0 240 L180 190 L340 250 L520 170 L680 240 L800 210 L800 300 Z" fill="#090b10"/>
+                    </svg>
+                    <div class="relative z-10">
+                        <span class="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded bg-black/50 text-amber-300 border border-amber-500/30">Wizualizacja Sceny</span>
+                        <h4 class="font-display font-bold text-base text-white mt-1">${escapeHtml(locationTitle)}</h4>
+                        <p class="text-xs text-slate-300 line-clamp-2 mt-0.5 italic">${escapeHtml(promptText)}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function narrateSceneTTS(entryId, encodedText) {
+            const btn = document.getElementById(`btn-tts-${entryId}`);
+            if (!btn) return;
+
+            if (!('speechSynthesis' in window)) {
+                showToast("Twoja przeglądarka nie obsługuje syntezatora mowy (Web Speech API).", "error");
+                return;
+            }
+
+            // If currently speaking, stop it
+            if (window.speechSynthesis.speaking) {
+                window.speechSynthesis.cancel();
+                if (activeAudioSource === entryId) {
+                    activeAudioSource = null;
+                    btn.innerHTML = `<i class="ph ph-speaker-high text-sm text-sky-400"></i> <span>Lektor AI</span>`;
+                    return;
+                }
+            }
+
+            const textToRead = decodeURIComponent(encodedText);
+            const utterance = new SpeechSynthesisUtterance(textToRead);
+            utterance.lang = 'pl-PL';
+            utterance.rate = 0.95;
+            utterance.pitch = 0.9;
+
+            const voices = window.speechSynthesis.getVoices();
+            const polishVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('pl'));
+            if (polishVoice) {
+                utterance.voice = polishVoice;
+            }
+
+            activeAudioSource = entryId;
+            btn.innerHTML = `<i class="ph-fill ph-stop-circle text-sm text-red-400"></i> <span>Zatrzymaj</span>`;
+
+            utterance.onend = () => {
+                activeAudioSource = null;
+                btn.innerHTML = `<i class="ph ph-speaker-high text-sm text-sky-400"></i> <span>Lektor AI</span>`;
+            };
+
+            utterance.onerror = () => {
+                activeAudioSource = null;
+                btn.innerHTML = `<i class="ph ph-speaker-high text-sm text-sky-400"></i> <span>Lektor AI</span>`;
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function updateHUD() {
+            if (!gameState) return;
+            const world = WORLDS[gameState.worldId];
+
+            document.getElementById('header-world-badge').textContent = world.name;
+            document.getElementById('hud-name').textContent = gameState.name;
+            document.getElementById('hud-class').textContent = gameState.className;
+            document.getElementById('hud-level').textContent = `Poz. ${gameState.level}`;
+            document.getElementById('hud-gold').textContent = gameState.gold;
+            document.getElementById('hud-currency-name').textContent = world.currency;
+            document.getElementById('hud-mp-label').innerHTML = `<i class="ph-fill ph-sparkle"></i> ${world.mpLabel}`;
+            document.getElementById('hud-location').textContent = gameState.location;
+            document.getElementById('hud-turn-counter').textContent = gameState.turn;
+
+            // Bars
+            const hpPct = Math.max(0, Math.min(100, Math.round((gameState.hp / gameState.maxHp) * 100)));
+            document.getElementById('hud-hp-text').textContent = `${gameState.hp} / ${gameState.maxHp}`;
+            document.getElementById('hud-hp-bar').style.width = `${hpPct}%`;
+
+            const mpPct = Math.max(0, Math.min(100, Math.round((gameState.mp / gameState.maxMp) * 100)));
+            document.getElementById('hud-mp-text').textContent = `${gameState.mp} / ${gameState.maxMp}`;
+            document.getElementById('hud-mp-bar').style.width = `${mpPct}%`;
+
+            const xpPct = Math.max(0, Math.min(100, Math.round((gameState.xp / gameState.xpToNext) * 100)));
+            document.getElementById('hud-xp-text').textContent = `${gameState.xp} / ${gameState.xpToNext}`;
+            document.getElementById('hud-xp-bar').style.width = `${xpPct}%`;
+
+            // Statuses
+            const statusBox = document.getElementById('hud-statuses-box');
+            statusBox.innerHTML = (gameState.statuses || ['Pełnia sił']).map(st => `
+                <span class="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-amber-300 border border-amber-500/30">${escapeHtml(st)}</span>
+            `).join('');
+
+            // Stats
+            const statsGrid = document.getElementById('hud-stats-grid');
+            statsGrid.innerHTML = Object.keys(STAT_META).map(key => {
+                const meta = STAT_META[key];
+                const val = gameState.stats[key];
+                const mod = getStatModifier(val);
+                return `
+                    <div class="p-2 rounded-lg bg-rpg-bg border border-rpg-border flex items-center justify-between">
+                        <div class="flex items-center gap-1.5">
+                            <i class="ph-fill ${meta.icon} text-rpg-gold text-sm"></i>
+                            <span class="text-xs font-medium text-slate-300">${meta.abbr}</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs font-bold text-white">${val}</span>
+                            <span class="text-[10px] font-mono ${mod >= 0 ? 'text-emerald-400' : 'text-red-400'}">(${formatMod(mod)})</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            renderInventoryList();
+            renderQuestsList();
+        }
+
+        function renderInventoryList() {
+            const list = document.getElementById('inventory-list');
+            document.getElementById('inv-count').textContent = gameState.inventory.length;
+
+            if (gameState.inventory.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center py-8 text-slate-500 text-xs">
+                        <i class="ph ph-backpack text-2xl block mb-1 mx-auto"></i>
+                        Twój plecak jest pusty.
+                    </div>
+                `;
+                return;
+            }
+
+            const iconByType = {
+                'Broń': 'ph-sword text-red-400',
+                'Pancerz': 'ph-shield text-sky-400',
+                'Mikstura': 'ph-flask text-emerald-400',
+                'Kluczowy': 'ph-key text-amber-400',
+                'Inne': 'ph-package text-slate-400'
+            };
+
+            list.innerHTML = gameState.inventory.map((item, index) => {
+                const iconCls = iconByType[item.type] || iconByType['Inne'];
+                return `
+                    <div onclick="useInventoryItem(${index})" class="p-3 rounded-xl bg-rpg-card hover:bg-slate-800 border border-rpg-border hover:border-rpg-gold/50 transition cursor-pointer group">
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <i class="ph-fill ${iconCls} text-base shrink-0"></i>
+                                <span class="text-xs font-semibold text-white group-hover:text-rpg-gold truncate">${escapeHtml(item.name)}</span>
+                            </div>
+                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-rpg-bg text-slate-400 border border-rpg-border shrink-0">${escapeHtml(item.type)}</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-1 line-clamp-2">${escapeHtml(item.description)}</p>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function useInventoryItem(index) {
+            if (isGenerating) return;
+            const item = gameState.inventory[index];
+            if (!item) return;
+
+            playSfx('click');
+            const input = document.getElementById('custom-action-input');
+            input.value = `Używam przedmiotu z ekwipunku: ${item.name}`;
+            input.focus();
+            showToast(`Wybrano: ${item.name}. Kliknij "Wykonaj", aby użyć w grze.`, 'info');
+        }
+
+        function renderQuestsList() {
+            const list = document.getElementById('quests-list');
+            const activeCount = gameState.quests.filter(q => q.status === 'active').length;
+            document.getElementById('quest-count').textContent = activeCount;
+
+            if (gameState.quests.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center py-8 text-slate-500 text-xs">
+                        <i class="ph ph-scroll text-2xl block mb-1 mx-auto"></i>
+                        Brak zapisanych zadań w dzienniku.
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = gameState.quests.map(q => {
+                let badge = `<span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-rpg-gold border border-amber-500/30">Aktywne</span>`;
+                if (q.status === 'completed') {
+                    badge = `<span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Ukończone</span>`;
+                } else if (q.status === 'failed') {
+                    badge = `<span class="text-[10px] px-2 py-0.5 rounded bg-red-500/20 text-red-300 border border-red-500/30">Nieudane</span>`;
+                }
+                return `
+                    <div class="p-3 rounded-xl bg-rpg-card border border-rpg-border space-y-1">
+                        <div class="flex items-start justify-between gap-2">
+                            <h4 class="text-xs font-bold text-white">${escapeHtml(q.title)}</h4>
+                            ${badge}
+                        </div>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">${escapeHtml(q.description)}</p>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function switchScreenToGame() {
+            document.getElementById('creation-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            document.getElementById('header-world-badge').classList.remove('hidden');
+            document.getElementById('mobile-tabs').classList.remove('hidden');
+            document.getElementById('btn-save-game').classList.remove('hidden');
+            document.getElementById('btn-save-game').classList.add('flex');
+            document.getElementById('btn-export-log').classList.remove('hidden');
+            document.getElementById('btn-export-log').classList.add('flex');
+            document.getElementById('btn-reset-game').classList.remove('hidden');
+            document.getElementById('btn-reset-game').classList.add('flex');
+            switchMobileView('story');
+        }
+
+        function switchRightTab(tab) {
+            playSfx('click');
+            const invBtn = document.getElementById('tab-btn-inventory');
+            const questBtn = document.getElementById('tab-btn-quests');
+            const invContent = document.getElementById('tab-content-inventory');
+            const questContent = document.getElementById('tab-content-quests');
+
+            if (tab === 'inventory') {
+                invBtn.className = 'py-1.5 rounded-lg text-xs font-semibold bg-rpg-card text-rpg-gold border border-amber-500/30 transition flex items-center justify-center gap-1.5';
+                questBtn.className = 'py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition flex items-center justify-center gap-1.5';
+                invContent.classList.remove('hidden');
+                questContent.classList.add('hidden');
+            } else {
+                questBtn.className = 'py-1.5 rounded-lg text-xs font-semibold bg-rpg-card text-rpg-gold border border-amber-500/30 transition flex items-center justify-center gap-1.5';
+                invBtn.className = 'py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition flex items-center justify-center gap-1.5';
+                questContent.classList.remove('hidden');
+                invContent.classList.add('hidden');
+            }
+        }
+
+        function switchMobileView(view) {
+            if (window.innerWidth >= 1024) return;
+            const heroPanel = document.getElementById('panel-hero');
+            const storyPanel = document.getElementById('panel-story');
+            const invPanel = document.getElementById('panel-inv');
+
+            const btnHero = document.getElementById('mob-tab-hero');
+            const btnStory = document.getElementById('mob-tab-story');
+            const btnInv = document.getElementById('mob-tab-inv');
+
+            const activeCls = 'px-2.5 py-1 rounded text-xs font-medium bg-rpg-card text-rpg-gold border border-amber-500/30 transition flex items-center gap-1';
+            const inactiveCls = 'px-2.5 py-1 rounded text-xs font-medium text-slate-400 hover:text-white transition flex items-center gap-1';
+
+            heroPanel.classList.add('hidden');
+            storyPanel.classList.add('hidden');
+            invPanel.classList.add('hidden');
+            invPanel.classList.remove('flex');
+
+            btnHero.className = inactiveCls;
+            btnStory.className = inactiveCls;
+            btnInv.className = inactiveCls;
+
+            if (view === 'hero') {
+                heroPanel.classList.remove('hidden');
+                btnHero.className = activeCls;
+            } else if (view === 'inv') {
+                invPanel.classList.remove('hidden');
+                invPanel.classList.add('flex');
+                btnInv.className = activeCls;
+            } else {
+                storyPanel.classList.remove('hidden');
+                btnStory.className = activeCls;
+            }
+        }
+
+        window.addEventListener('resize', () => {
+            if (!gameState) return;
+            const heroPanel = document.getElementById('panel-hero');
+            const storyPanel = document.getElementById('panel-story');
+            const invPanel = document.getElementById('panel-inv');
+            if (window.innerWidth >= 1024) {
+                heroPanel.classList.remove('hidden');
+                storyPanel.classList.remove('hidden');
+                invPanel.classList.remove('hidden');
+                invPanel.classList.add('flex');
+            } else {
+                switchMobileView('story');
+            }
+        });
+
+        function setLoadingState(loading) {
+            const loader = document.getElementById('ai-loading');
+            const submitBtn = document.getElementById('btn-submit-action');
+            const input = document.getElementById('custom-action-input');
+            const choices = document.getElementById('choices-container');
+
+            if (loading) {
+                loader.classList.remove('hidden');
+                submitBtn.disabled = true;
+                input.disabled = true;
+                choices.classList.add('opacity-50', 'pointer-events-none');
+                scrollToBottom();
+            } else {
+                loader.classList.add('hidden');
+                submitBtn.disabled = false;
+                input.disabled = false;
+                choices.classList.remove('opacity-50', 'pointer-events-none');
+                input.focus();
+            }
+        }
+
+        function scrollToBottom() {
+            const container = document.getElementById('story-container');
+            setTimeout(() => {
+                container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+            }, 50);
+        }
+
+        // --- LOCAL STORAGE SAVE / LOAD ---
+        const STORAGE_KEY = 'kroniki_ai_rpg_save_v1';
+
+        function saveGameToStorage(manualNotify = false) {
+            if (!gameState) return;
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(gameState));
+                if (manualNotify) {
+                    playSfx('success');
+                    showToast('Stan przygody został pomyślnie zapisany!', 'gold');
+                }
+            } catch (e) {
+                console.warn('Save failed:', e);
+            }
+        }
+
+        function checkSavedGame() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return;
+                const saved = JSON.parse(raw);
+                if (saved && saved.name && saved.worldId) {
+                    const banner = document.getElementById('saved-game-banner');
+                    const info = document.getElementById('saved-game-info');
+                    const worldName = WORLDS[saved.worldId]?.name || saved.worldId;
+                    info.textContent = `${saved.name} (${saved.className}, Poz. ${saved.level}) — ${worldName} • Lokacja: ${saved.location}`;
+                    banner.classList.remove('hidden');
+                }
+            } catch (e) {}
+        }
+
+        function loadSavedGame() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return;
+                gameState = JSON.parse(raw);
+                playSfx('success');
+                switchScreenToGame();
+                updateHUD();
+
+                const container = document.getElementById('story-container');
+                container.innerHTML = '';
+
+                (gameState.storyLog || []).forEach(entry => {
+                    if (entry.action && entry.turn > 1) {
+                        appendPlayerActionToFeed(entry.action, null);
+                    }
+                    appendNarrativeToFeed(entry.id, entry.narrative, entry.location, entry.visualPrompt, entry.stateChanges);
+                });
+
+                renderActionChoices([
+                    { text: 'Rozejrzyj się uważnie po okolicy i oceń sytuację', statCheck: 'INT', difficulty: 11 },
+                    { text: 'Ruszaj ostrożnie naprzód, wypatrując zagrożeń', statCheck: 'DEX', difficulty: 12 },
+                    { text: 'Zagadaj do najbliższej napotkanej postaci', statCheck: 'CHA', difficulty: 12 },
+                    { text: 'Przygotuj broń i sprawdź swój ekwipunek', statCheck: 'NONE', difficulty: 0 }
+                ]);
+                showToast('Wczytano zapisaną przygodę!', 'gold');
+            } catch (e) {
+                showToast('Błąd wczytywania zapisu gry.', 'error');
+            }
+        }
+
+        function clearSavedGame() {
+            localStorage.removeItem(STORAGE_KEY);
+            document.getElementById('saved-game-banner').classList.add('hidden');
+            showToast('Usunięto zapisaną grę.', 'info');
+        }
+
+        // --- MODALS & EXPORT ---
+        function openModal(title, bodyHtml, footerHtml = null) {
+            document.getElementById('modal-title').innerHTML = title;
+            document.getElementById('modal-body').innerHTML = bodyHtml;
+            const footer = document.getElementById('modal-footer');
+            if (footerHtml) {
+                footer.innerHTML = footerHtml;
+            } else {
+                footer.innerHTML = `<button onclick="closeModal()" class="px-4 py-2 rounded-lg bg-rpg-card hover:bg-slate-800 text-slate-200 border border-rpg-border text-xs font-medium transition">Zamknij</button>`;
+            }
+            document.getElementById('modal-overlay').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('modal-overlay').classList.add('hidden');
+        }
+
+        function openResetModal() {
+            openModal(
+                `<i class="ph-fill ph-warning-circle text-amber-400"></i> Rozpocząć Nową Grę?`,
+                `<p>Czy na pewno chcesz opuścić bieżącą rozgrywkę i wrócić do kreatora postaci? Twój dotychczasowy postęp możesz zapisać lub wyeksportować do kroniki.</p>`,
+                `
+                    <button onclick="closeModal()" class="px-4 py-2 rounded-lg bg-rpg-card hover:bg-slate-800 text-slate-300 border border-rpg-border text-xs font-medium transition">Anuluj</button>
+                    <button onclick="confirmResetToCreator()" class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-semibold transition">Zakończ i stwórz nową postać</button>
+                `
+            );
+        }
+
+        function confirmResetToCreator() {
+            closeModal();
+            gameState = null;
+            document.getElementById('story-container').innerHTML = '';
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('creation-screen').classList.remove('hidden');
+            document.getElementById('header-world-badge').classList.add('hidden');
+            document.getElementById('mobile-tabs').classList.add('hidden');
+            document.getElementById('btn-save-game').classList.add('hidden');
+            document.getElementById('btn-export-log').classList.add('hidden');
+            document.getElementById('btn-reset-game').classList.add('hidden');
+            checkSavedGame();
+        }
+
+        function exportStoryModal() {
+            if (!gameState || !gameState.storyLog) return;
+            const fullText = gameState.storyLog.map(e => `=== TURA ${e.turn} (${e.location}) ===\n> Akcja: ${e.action}\n\n${e.narrative}\n`).join('\n');
+
+            openModal(
+                `<i class="ph-fill ph-book-bookmark text-rpg-gold"></i> Kronika Twojej Przygody`,
+                `
+                    <p class="text-xs text-slate-400 mb-2">Skopiuj pełny zapis fabularny swojej sesji RPG:</p>
+                    <textarea id="export-textarea" readonly rows="10" class="w-full bg-rpg-bg border border-rpg-border rounded-xl p-3 text-xs font-serif text-slate-200 outline-none">${escapeHtml(fullText)}</textarea>
+                `,
+                `
+                    <button onclick="copyExportedChronicle()" class="px-4 py-2 rounded-lg bg-rpg-gold hover:bg-rpg-goldHover text-slate-950 font-semibold text-xs transition flex items-center gap-1.5">
+                        <i class="ph-bold ph-copy"></i> Kopiuj do schowka
+                    </button>
+                    <button onclick="closeModal()" class="px-4 py-2 rounded-lg bg-rpg-card hover:bg-slate-800 text-slate-200 border border-rpg-border text-xs font-medium transition">Zamknij</button>
+                `
+            );
+        }
+
+        function copyExportedChronicle() {
+            const textarea = document.getElementById('export-textarea');
+            if (!textarea) return;
+            textarea.select();
+            document.execCommand('copy');
+            showToast('Kronika skopiowana do schowka!', 'gold');
+        }
+
+        function handleHeroDefeat() {
+            openModal(
+                `<i class="ph-fill ph-skull text-red-500"></i> Bohater Padł na Polu Chwały`,
+                `
+                    <p class="text-slate-200">Punkty zdrowia Twojej postaci spadły do zera. Możesz spróbować ostatniego Rzutu Przeznaczenia o przetrwanie (z bliznami i utratą części złota) lub zakończyć tę opowieść.</p>
+                `,
+                `
+                    <button onclick="reviveHeroSecondWind()" class="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition">
+                        Ostatnie Tchnienie (Wskrzeszenie z 30% HP)
+                    </button>
+                    <button onclick="confirmResetToCreator()" class="px-4 py-2 rounded-lg bg-red-900/70 hover:bg-red-800 text-red-200 text-xs font-medium transition">
+                        Nowa Postać
+                    </button>
+                `
+            );
+        }
+
+        function reviveHeroSecondWind() {
+            closeModal();
+            gameState.hp = Math.max(15, Math.floor(gameState.maxHp * 0.3));
+            gameState.gold = Math.floor(gameState.gold * 0.5);
+            gameState.statuses = ['Ciężko ranny', 'Ocalały o włos'];
+            updateHUD();
+            showToast('Odzyskałeś przytomność mimo ciężkich ran!', 'gold');
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const colors = {
+                info: 'bg-rpg-panel border-rpg-border text-slate-200',
+                gold: 'bg-rpg-panel border-rpg-gold text-rpg-gold',
+                error: 'bg-red-950/90 border-red-600 text-red-200'
+            };
+            toast.className = `px-4 py-2.5 rounded-xl border shadow-xl text-xs font-medium flex items-center gap-2 animate-fade-in ${colors[type] || colors.info}`;
+            toast.innerHTML = `<i class="ph-fill ph-sparkle"></i> <span>${escapeHtml(message)}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3200);
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        window.onload = function () {
+            initCreationScreen();
+        };
+    </script>
+</body>
+</html>
