@@ -1,0 +1,2302 @@
+<!DOCTYPE html>
+<html lang="pl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArchitektPro 2D/3D — Planer Pokoju i Warsztatu</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Inter & JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Three.js & OrbitControls -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        slate: {
+                            850: '#151e2e',
+                            925: '#0c1322',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        input, select, textarea {
+            user-select: auto;
+            -webkit-user-select: auto;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+        .canvas-container {
+            background-image: radial-gradient(#1e293b 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        input[type="range"] {
+            accent-color: #3b82f6;
+        }
+    </style>
+</head>
+<body class="bg-slate-925 text-slate-100 font-sans h-screen w-screen overflow-hidden flex flex-col">
+
+    <!-- GÓRNY PASEK NARZĘDZI (TOPBAR) -->
+    <header class="h-14 bg-slate-900 border-b border-slate-800 px-4 flex items-center justify-between shrink-0 z-20 shadow-md">
+        <!-- Logo & Tytuł -->
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                <i class="fa-solid fa-compass-drafting text-white text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-sm md:text-base tracking-tight text-white flex items-center gap-2">
+                    ArchitektPro <span class="text-xs font-mono uppercase px-2 py-0.5 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded">2D + 3D CAD</span>
+                </h1>
+                <p class="text-[11px] text-slate-400 hidden sm:block">Planer Mieszkania, Pokoju i Warsztatu</p>
+            </div>
+        </div>
+
+        <img src="logw1.svg" style="height: 14px"/>
+
+        <!-- Przełącznik Widoku 2D / 3D oraz Narzędzia Główne -->
+        <div class="flex items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800">
+            <button type="button" id="btnView2D" onclick="switchView('2d')" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 bg-blue-600 text-white shadow cursor-pointer">
+                <i class="fa-solid fa-vector-square"></i> <span>Rzut 2D (Siatka)</span>
+            </button>
+            <button type="button" id="btnView3D" onclick="switchView('3d')" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 text-slate-400 hover:text-white cursor-pointer">
+                <i class="fa-solid fa-cube"></i> <span>Wizualizacja 3D</span>
+            </button>
+            <div class="h-5 w-[1px] bg-slate-800 mx-0.5"></div>
+            <button type="button" id="btnSelectTool" onclick="activateEditMode()" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 bg-indigo-600 text-white shadow cursor-pointer" title="Tryb wybierania, przesuwania i edycji mebli">
+                <i class="fa-solid fa-arrow-pointer"></i> <span class="hidden md:inline">Edycja Mebli</span>
+            </button>
+            <button type="button" id="btnRuler" onclick="toggleRulerTool()" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 text-slate-300 hover:bg-slate-800 cursor-pointer" title="Zmierz odległość między dwoma punktami (przejście)">
+                <i class="fa-solid fa-ruler-combined text-amber-400"></i> <span class="hidden md:inline">Miarka przejścia</span>
+            </button>
+            <button type="button" id="btnClearance" onclick="toggleAutoClearance()" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 cursor-pointer" title="Automatycznie pokazuj odległości od ścian i sąsiednich mebli">
+                <i class="fa-solid fa-arrows-left-right-to-line"></i> <span class="hidden xl:inline">Auto-Wymiary</span>
+            </button>
+        </div>
+
+        <!-- Szablony i Zapis/Eksport -->
+        <div class="flex items-center gap-2">
+            <!-- Wybór gotowego szablonu -->
+            <div class="relative">
+                <select id="templateSelect" onchange="loadTemplate(this.value)" class="bg-slate-800 hover:bg-slate-750 text-xs text-slate-200 rounded-lg px-3 py-2 border border-slate-700 focus:outline-none focus:border-blue-500 cursor-pointer">
+                    <option value="" disabled selected>📂 Szablony startowe...</option>
+                    <option value="workshop">🔧 Domowy Warsztat / Garaż (6.0 x 4.5 m)</option>
+                    <option value="gamer">🎮 Biuro / Pokój Gracza (4.2 x 3.6 m)</option>
+                    <option value="living">🛋️ Salon / Kawalerka (5.5 x 4.2 m)</option>
+                    <option value="empty">⬜ Pusty pokój (5.0 x 4.0 m)</option>
+                </select>
+            </div>
+
+            <button onclick="saveToLocalStorage(true)" class="p-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 text-xs flex items-center gap-1.5 transition" title="Zapisz w przeglądarce">
+                <i class="fa-solid fa-floppy-disk text-blue-400"></i> <span class="hidden xl:inline">Zapisz</span>
+            </button>
+            <button onclick="exportJSON()" class="p-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 text-xs flex items-center gap-1.5 transition" title="Pobierz plik projektu JSON">
+                <i class="fa-solid fa-download text-emerald-400"></i> <span class="hidden xl:inline">Eksport</span>
+            </button>
+            <label class="p-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 text-xs flex items-center gap-1.5 transition cursor-pointer" title="Wczytaj plik projektu JSON">
+                <i class="fa-solid fa-upload text-amber-400"></i> <span class="hidden xl:inline">Import</span>
+                <input type="file" id="importFile" accept=".json" class="hidden" onchange="importJSON(event)">
+            </label>
+        </div>
+    </header>
+
+    <!-- GŁÓWNY OBSZAR ROBOCZY -->
+    <div class="flex-1 flex overflow-hidden relative">
+
+        <!-- LEWY PANEL: KONFIGURACJA POMIESZCZENIA I KATALOG OBIEKTÓW -->
+        <aside class="w-80 bg-slate-900 border-r border-slate-800 flex flex-col shrink-0 z-10 select-none">
+            
+            <!-- Zakładki lewego panelu -->
+            <div class="grid grid-cols-2 border-b border-slate-800 bg-slate-950/50 p-1 m-2 rounded-lg">
+                <button id="tabCatalogBtn" onclick="switchLeftTab('catalog')" class="py-1.5 text-xs font-semibold rounded-md bg-slate-800 text-white shadow">
+                    <i class="fa-solid fa-couch mr-1 text-blue-400"></i> Katalog Obiektów
+                </button>
+                <button id="tabRoomBtn" onclick="switchLeftTab('room')" class="py-1.5 text-xs font-semibold rounded-md text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-sliders mr-1 text-indigo-400"></i> Pomieszczenie
+                </button>
+            </div>
+
+            <!-- ZAWARTOŚĆ ZAKŁADKI: KATALOG -->
+            <div id="tabCatalog" class="flex-1 overflow-y-auto px-3 pb-4 space-y-4">
+                
+                <!-- Wyszukiwarka / Filtr -->
+                <div class="sticky top-0 bg-slate-900 pt-1 pb-2 z-10">
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-500 text-xs"></i>
+                        <input type="text" id="catalogSearch" oninput="renderCatalog()" placeholder="Szukaj (np. biurko, tokarka, szafa)..." class="w-full bg-slate-950 border border-slate-800 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-blue-500">
+                    </div>
+                </div>
+
+                <!-- Dynamiczna lista kategorii i przedmiotów -->
+                <div id="catalogContainer" class="space-y-4"></div>
+            </div>
+
+            <!-- ZAWARTOŚĆ ZAKŁADKI: USTAWIENIA POMIESZCZENIA -->
+            <div id="tabRoom" class="hidden flex-1 overflow-y-auto px-4 pb-6 space-y-5">
+                <div class="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80 space-y-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                        <i class="fa-solid fa-ruler-horizontal text-blue-400"></i> Wymiary Pomieszczenia
+                    </h3>
+                    
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-300">Szerokość (oś X):</span>
+                            <span id="roomWidthVal" class="font-mono text-blue-400 font-semibold">500 cm (5.0 m)</span>
+                        </div>
+                        <div class="flex gap-2 items-center">
+                            <input type="range" id="roomWidthRange" min="200" max="1500" step="10" value="500" oninput="updateRoomSetting('width', this.value)" class="flex-1">
+                            <input type="number" id="roomWidthInput" min="200" max="1500" step="5" value="500" onchange="updateRoomSetting('width', this.value)" class="w-16 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs font-mono text-right">
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-300">Długość (oś Z):</span>
+                            <span id="roomLengthVal" class="font-mono text-blue-400 font-semibold">400 cm (4.0 m)</span>
+                        </div>
+                        <div class="flex gap-2 items-center">
+                            <input type="range" id="roomLengthRange" min="200" max="1500" step="10" value="400" oninput="updateRoomSetting('length', this.value)" class="flex-1">
+                            <input type="number" id="roomLengthInput" min="200" max="1500" step="5" value="400" onchange="updateRoomSetting('length', this.value)" class="w-16 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs font-mono text-right">
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-300">Wysokość ścian (oś Y):</span>
+                            <span id="roomHeightVal" class="font-mono text-blue-400 font-semibold">260 cm (2.6 m)</span>
+                        </div>
+                        <div class="flex gap-2 items-center">
+                            <input type="range" id="roomHeightRange" min="200" max="500" step="5" value="260" oninput="updateRoomSetting('height', this.value)" class="flex-1">
+                            <input type="number" id="roomHeightInput" min="200" max="500" step="5" value="260" onchange="updateRoomSetting('height', this.value)" class="w-16 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs font-mono text-right">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kolory i materiały -->
+                <div class="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80 space-y-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                        <i class="fa-solid fa-palette text-purple-400"></i> Wygląd Ścian i Podłogi
+                    </h3>
+
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs text-slate-300">Kolor ścian:</label>
+                        <div class="flex items-center gap-2">
+                            <input type="color" id="wallColorPicker" value="#e2e8f0" onchange="updateRoomSetting('wallColor', this.value)" class="w-8 h-8 rounded cursor-pointer bg-transparent border-0">
+                            <span id="wallColorHex" class="text-xs font-mono text-slate-400">#e2e8f0</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-xs text-slate-300 block mb-1.5">Styl / Tekstura podłogi:</label>
+                        <select id="floorTypeSelect" onchange="updateRoomSetting('floorType', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-2 text-xs text-slate-200">
+                            <option value="wood_oak">🪵 Panele Dąb Jasny (Pokój / Salon)</option>
+                            <option value="wood_walnut">🪵 Parkiet Orzech Ciemny</option>
+                            <option value="concrete">🧱 Posadzka Betonowa / Żywica (Warsztat)</option>
+                            <option value="tiles_gray">▦ Płytki Gresowe Szare 60x60</option>
+                            <option value="carpet_dark">⬛ Wykładzina Biurowa Antracyt</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-1">
+                        <label class="text-xs text-slate-300">Kolor własny podłogi:</label>
+                        <input type="color" id="floorColorPicker" value="#c89f72" onchange="updateRoomSetting('floorColor', this.value)" class="w-8 h-8 rounded cursor-pointer bg-transparent border-0">
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                        <label class="text-xs text-slate-300">Przezroczyste ściany w 3D:</label>
+                        <input type="checkbox" id="wallOpacityToggle" checked onchange="updateRoomSetting('autoHideWalls', this.checked)" class="w-4 h-4 rounded text-blue-600 bg-slate-900 border-slate-700">
+                    </div>
+                </div>
+
+                <!-- Siatka i Przyciąganie -->
+                <div class="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80 space-y-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                        <i class="fa-solid fa-border-all text-emerald-400"></i> Siatka i Przyciąganie (Snap)
+                    </h3>
+
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-slate-300">Przyciągaj do siatki:</span>
+                        <input type="checkbox" id="snapToggle" checked onchange="appState.grid.snap = this.checked" class="w-4 h-4 rounded">
+                    </div>
+
+                    <div>
+                        <label class="text-xs text-slate-300 block mb-1">Skok przyciągania (Snap):</label>
+                        <select id="snapStepSelect" onchange="appState.grid.snapStep = parseInt(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono">
+                            <option value="1">1 cm (Pełna swoboda)</option>
+                            <option value="5" selected>5 cm (Standardowy)</option>
+                            <option value="10">10 cm (Szybki układ)</option>
+                            <option value="25">25 cm (Modułowy)</option>
+                            <option value="50">50 cm (Duża siatka)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Podsumowanie powierzchni na dole lewego panelu -->
+            <div class="p-3 bg-slate-950 border-t border-slate-800 text-xs flex justify-between items-center">
+                <div>
+                    <span class="text-slate-400">Powierzchnia:</span>
+                    <span id="statTotalArea" class="font-mono font-bold text-white ml-1">20.0 m²</span>
+                </div>
+                <div>
+                    <span class="text-slate-400">Wolne:</span>
+                    <span id="statFreeArea" class="font-mono font-bold text-emerald-400 ml-1">16.4 m² (82%)</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ŚRODKOWY OBSZAR: CANVAS 2D ORAZ THREE.JS 3D -->
+        <main class="flex-1 relative bg-slate-950 overflow-hidden flex flex-col">
+            
+            <!-- Pływający pasek informacyjny i sterowania zoomem -->
+            <div class="absolute top-3 left-3 right-3 flex justify-between items-start pointer-events-none z-20">
+                <!-- Instrukcja kontekstowa + szybki powrót do 2D -->
+                <div class="flex items-center gap-2 pointer-events-auto">
+                    <button type="button" id="btnFloatingBack2D" onclick="switchView('2d')" class="hidden bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs px-3.5 py-2 rounded-xl shadow-lg border border-blue-400/40 items-center gap-2 transition cursor-pointer">
+                        <i class="fa-solid fa-arrow-left"></i> Powrót do edycji 2D
+                    </button>
+                    <div id="ViewportHint" class="bg-slate-900/90 backdrop-blur-md border border-slate-800 px-3.5 py-2 rounded-xl shadow-lg flex items-center gap-3 text-xs text-slate-300">
+                        <span id="hintIcon" class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span id="hintText"><strong>Widok 2D:</strong> Przeciągaj meble LPM. <kbd class="px-1.5 py-0.5 bg-slate-800 rounded text-[10px] font-mono">R</kbd> obraca o 45°, <kbd class="px-1.5 py-0.5 bg-slate-800 rounded text-[10px] font-mono">Del</kbd> usuwa, kółko myszy przybliża.</span>
+                    </div>
+                </div>
+
+                <!-- Kontrolki Zoomu i Kamery -->
+                <div class="flex items-center gap-1.5 bg-slate-900/90 backdrop-blur-md border border-slate-800 p-1.5 rounded-xl shadow-lg pointer-events-auto">
+                    <button onclick="zoomCanvas(1.15)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center justify-center transition" title="Przybliż">
+                        <i class="fa-solid fa-plus text-xs"></i>
+                    </button>
+                    <button onclick="zoomCanvas(0.85)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center justify-center transition" title="Oddal">
+                        <i class="fa-solid fa-minus text-xs"></i>
+                    </button>
+                    <button onclick="resetCameraView()" class="px-2.5 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 flex items-center gap-1.5 transition" title="Wyśrodkuj widok">
+                        <i class="fa-solid fa-expand text-blue-400"></i> Centruj
+                    </button>
+                    <div id="controls3DExtra" class="hidden items-center gap-1.5 pl-1 border-l border-slate-700">
+                        <button onclick="set3DCameraPreset('top')" class="px-2.5 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 transition" title="Rzut z góry 3D">
+                            Z góry
+                        </button>
+                        <button onclick="set3DCameraPreset('iso')" class="px-2.5 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 transition" title="Widok izometryczny">
+                            Izo
+                        </button>
+                        <button onclick="set3DCameraPreset('human')" class="px-2.5 h-8 rounded-lg bg-indigo-600/40 hover:bg-indigo-600/60 border border-indigo-500/40 text-xs text-indigo-200 transition" title="Perspektywa wzroku człowieka (170 cm)">
+                            <i class="fa-solid fa-person"></i> Wzrok 1.7m
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WIDOK 2D (CANVAS) -->
+            <div id="view2DContainer" class="w-full h-full relative canvas-container" style="display: block; pointer-events: auto;">
+                <canvas id="canvas2D" class="w-full h-full block cursor-grab active:cursor-grabbing"></canvas>
+            </div>
+
+            <!-- WIDOK 3D (THREE.JS) -->
+            <div id="view3DContainer" class="w-full h-full relative hidden" style="display: none; pointer-events: none;">
+                <div id="threeCanvasMount" class="w-full h-full"></div>
+                <!-- Legenda 3D na dole -->
+                <div class="absolute bottom-4 left-4 bg-slate-900/85 backdrop-blur border border-slate-800 px-3 py-2 rounded-xl text-[11px] text-slate-300 pointer-events-none flex items-center gap-4">
+                    <span><i class="fa-solid fa-computer-mouse text-blue-400 mr-1"></i> <strong>LPM:</strong> Obrót kamery</span>
+                    <span><i class="fa-solid fa-arrows-up-down-left-right text-emerald-400 mr-1"></i> <strong>PPM:</strong> Przesuwanie</span>
+                    <span><i class="fa-solid fa-magnifying-glass text-amber-400 mr-1"></i> <strong>Rolka:</strong> Przybliżanie</span>
+                </div>
+            </div>
+
+            <!-- Pływający pasek Miarki gdy aktywna -->
+            <div id="rulerBanner" class="hidden absolute bottom-5 left-1/2 -translate-x-1/2 bg-amber-500 text-slate-950 font-semibold text-xs px-4 py-2.5 rounded-full shadow-2xl flex items-center gap-3 z-30 pointer-events-auto">
+                <i class="fa-solid fa-ruler-combined text-sm"></i>
+                <span>Tryb Miarki: Przeciągnij LPM na siatce, aby zmierzyć przejście (PPM lub Esc kończy pomiar)</span>
+                <button type="button" onclick="activateEditMode()" class="bg-slate-950 text-amber-400 hover:bg-slate-800 px-3 py-1 rounded-full text-[11px] font-bold transition cursor-pointer shadow">
+                    <i class="fa-solid fa-arrow-pointer mr-1"></i> Wróć do edycji mebli
+                </button>
+            </div>
+        </main>
+
+        <!-- PRAWY PANEL: WŁAŚCIWOŚCI WYBRANEGO OBIEKTU -->
+        <aside class="w-80 bg-slate-900 border-l border-slate-800 flex flex-col shrink-0 z-10">
+            <div class="p-3.5 border-b border-slate-800 flex items-center justify-between">
+                <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+                    <i class="fa-solid fa-Sliders text-blue-400"></i> Właściwości Obiektu
+                </h2>
+                <span id="selectedBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400">Brak wyboru</span>
+            </div>
+
+            <!-- Stan pusty (gdy nic nie zaznaczono) -->
+            <div id="inspectorEmpty" class="flex-1 flex flex-col items-center justify-center p-6 text-center">
+                <div class="w-14 h-14 rounded-2xl bg-slate-800/70 border border-slate-700/50 flex items-center justify-center text-slate-500 mb-3">
+                    <i class="fa-solid fa-hand-pointer text-xl"></i>
+                </div>
+                <p class="text-sm font-medium text-slate-300 mb-1">Nie wybrano żadnego obiektu</p>
+                <p class="text-xs text-slate-500 leading-relaxed">Kliknij dowolny mebel, sprzęt warsztatowy, drzwi lub okno na rzucie, aby zmienić jego dokładne wymiary co do centymetra, kąt obrotu lub kolor.</p>
+
+                <div class="mt-6 w-full bg-slate-950/70 border border-slate-800/80 rounded-xl p-3.5 text-left space-y-2">
+                    <div class="text-[11px] font-semibold text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-person-walking"></i> Normy ergonomii przejść:
+                    </div>
+                    <div class="text-[11px] text-slate-400 space-y-1">
+                        <p class="flex justify-between"><span>• Wąskie przejście boczne:</span> <span class="font-mono text-amber-400">min. 55 cm</span></p>
+                        <p class="flex justify-between"><span>• Wygodne przejście główne:</span> <span class="font-mono text-emerald-400">min. 80 cm</span></p>
+                        <p class="flex justify-between"><span>• Miejsce na krzesło biurowe:</span> <span class="font-mono text-emerald-400">min. 90 cm</span></p>
+                        <p class="flex justify-between"><span>• Przestrzeń przy stole warszt.:</span> <span class="font-mono text-blue-400">100 - 120 cm</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formularz edycji wybranego obiektu -->
+            <div id="inspectorContent" class="hidden flex-1 overflow-y-auto p-4 space-y-4">
+                
+                <!-- Nazwa i Kolor -->
+                <div class="space-y-3 bg-slate-950/60 p-3 rounded-xl border border-slate-800">
+                    <div>
+                        <label class="text-[11px] text-slate-400 block mb-1">Nazwa elementu na planie:</label>
+                        <input type="text" id="propName" oninput="updateSelectedProp('name', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-medium focus:outline-none focus:border-blue-500">
+                    </div>
+
+                    <div class="flex items-center justify-between pt-1">
+                        <label class="text-xs text-slate-300">Kolor główny:</label>
+                        <div class="flex items-center gap-2">
+                            <input type="color" id="propColor" oninput="updateSelectedProp('color', this.value)" class="w-8 h-7 rounded cursor-pointer bg-transparent border-0">
+                            <div class="flex gap-1">
+                                <button onclick="updateSelectedProp('color', '#cbd5e1')" class="w-4 h-4 rounded-full bg-[#cbd5e1] border border-slate-600" title="Biały/Jasny"></button>
+                                <button onclick="updateSelectedProp('color', '#b48352')" class="w-4 h-4 rounded-full bg-[#b48352] border border-slate-600" title="Drewno Dąb"></button>
+                                <button onclick="updateSelectedProp('color', '#334155')" class="w-4 h-4 rounded-full bg-[#334155] border border-slate-600" title="Antracyt"></button>
+                                <button onclick="updateSelectedProp('color', '#dc2626')" class="w-4 h-4 rounded-full bg-[#dc2626] border border-slate-600" title="Czerwony warsztatowy"></button>
+                                <button onclick="updateSelectedProp('color', '#2563eb')" class="w-4 h-4 rounded-full bg-[#2563eb] border border-slate-600" title="Niebieski warsztatowy"></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wymiary (Szerokość, Głębokość, Wysokość) -->
+                <div class="space-y-3 bg-slate-950/60 p-3 rounded-xl border border-slate-800">
+                    <h4 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-maximize text-blue-400"></i> Wymiary obiektu (cm)
+                    </h4>
+
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <label class="text-[10px] text-slate-400 block mb-1">Szerokość (W)</label>
+                            <input type="number" id="propW" min="10" max="1000" step="1" oninput="updateSelectedProp('w', parseFloat(this.value))" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs font-mono text-white">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-400 block mb-1">Głębokość (D)</label>
+                            <input type="number" id="propD" min="10" max="1000" step="1" oninput="updateSelectedProp('d', parseFloat(this.value))" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs font-mono text-white">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-400 block mb-1">Wysokość (H)</label>
+                            <input type="number" id="propH" min="2" max="400" step="1" oninput="updateSelectedProp('h', parseFloat(this.value))" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs font-mono text-white">
+                        </div>
+                    </div>
+
+                    <!-- Wysokość nad podłogą (elewacja) -->
+                    <div class="pt-2 border-t border-slate-800/80">
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-300">Wysokość nad podłogą:</span>
+                            <span id="propElevationLabel" class="font-mono text-blue-400">0 cm</span>
+                        </div>
+                        <div class="flex gap-2 items-center">
+                            <input type="range" id="propElevationRange" min="0" max="240" step="5" value="0" oninput="updateSelectedProp('elevation', parseFloat(this.value))" class="flex-1">
+                            <input type="number" id="propElevation" min="0" max="300" step="1" oninput="updateSelectedProp('elevation', parseFloat(this.value))" class="w-16 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs font-mono text-right">
+                        </div>
+                        <p class="text-[10px] text-slate-500 mt-1">Przydatne dla szafek wiszących, półek lub okien (np. 90 cm).</p>
+                    </div>
+                </div>
+
+                <!-- Pozycja i Kąt Obrotu -->
+                <div class="space-y-3 bg-slate-950/60 p-3 rounded-xl border border-slate-800">
+                    <h4 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-rotate text-amber-400"></i> Obrót i Pozycja
+                    </h4>
+
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-300">Kąt obrotu:</span>
+                            <span id="propRotLabel" class="font-mono text-amber-400 font-semibold">0°</span>
+                        </div>
+                        <input type="range" id="propRotRange" min="0" max="359" step="1" value="0" oninput="updateSelectedProp('rotation', parseFloat(this.value))" class="w-full mb-2">
+                        
+                        <div class="grid grid-cols-5 gap-1">
+                            <button onclick="rotateSelectedBy(-90)" class="py-1 bg-slate-800 hover:bg-slate-700 rounded text-[11px] font-mono text-slate-200">-90°</button>
+                            <button onclick="rotateSelectedBy(-45)" class="py-1 bg-slate-800 hover:bg-slate-700 rounded text-[11px] font-mono text-slate-200">-45°</button>
+                            <button onclick="updateSelectedProp('rotation', 0)" class="py-1 bg-slate-800 hover:bg-slate-700 rounded text-[11px] font-mono text-amber-400">0°</button>
+                            <button onclick="rotateSelectedBy(45)" class="py-1 bg-slate-800 hover:bg-slate-700 rounded text-[11px] font-mono text-slate-200">+45°</button>
+                            <button onclick="rotateSelectedBy(90)" class="py-1 bg-slate-800 hover:bg-slate-700 rounded text-[11px] font-mono text-slate-200">+90°</button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800/80">
+                        <div>
+                            <label class="text-[10px] text-slate-400 block mb-1">Od lewej ściany (cm)</label>
+                            <input type="number" id="propPosX" step="1" oninput="updateSelectedWallDist('left', parseFloat(this.value))" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-emerald-400">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-400 block mb-1">Od górnej ściany (cm)</label>
+                            <input type="number" id="propPosZ" step="1" oninput="updateSelectedWallDist('top', parseFloat(this.value))" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-emerald-400">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analiza wolnego miejsca wokół wybranego mebla -->
+                <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800 space-y-2">
+                    <h4 class="text-[11px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-arrows-to-dot"></i> Odległości i Przejścia
+                    </h4>
+                    <div id="clearanceStats" class="grid grid-cols-2 gap-1.5 text-xs font-mono">
+                        <!-- Wypełniane dynamicznie -->
+                    </div>
+                </div>
+
+                <!-- Akcje (Duplikuj / Usuń) -->
+                <div class="grid grid-cols-2 gap-2 pt-1">
+                    <button onclick="duplicateSelected()" class="py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-100 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 border border-slate-700 transition">
+                        <i class="fa-solid fa-copy text-blue-400"></i> Duplikuj
+                    </button>
+                    <button onclick="deleteSelected()" class="py-2 px-3 bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 border border-rose-500/30 transition">
+                        <i class="fa-solid fa-trash-can"></i> Usuń (Del)
+                    </button>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- POWIADOMIENIE TOAST -->
+    <div id="toastNotice" class="fixed bottom-5 right-5 bg-slate-800 border border-slate-700 text-white px-4 py-2.5 rounded-xl shadow-2xl text-xs font-medium flex items-center gap-2.5 transition-all duration-300 opacity-0 pointer-events-none translate-y-2 z-50">
+        <i class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>
+        <span id="toastText">Zapisano projekt</span>
+    </div>
+
+    <!-- GŁÓWNY SKRYPT APLIKACJI -->
+    <script>
+        // ============================================================================
+        // 1. BAZA KATALOGU OBIEKTÓW (MEBLE, WARSZTAT, ARCHITEKTURA)
+        // ============================================================================
+        const CATALOG_ITEMS = [
+            // POKÓJ / MIESZKANIE
+            { id: 'desk_std', category: 'Pokój i Biuro', name: 'Biurko Komputerowe', w: 140, d: 70, h: 75, elevation: 0, color: '#d4a373', type: 'desk', icon: 'fa-desktop' },
+            { id: 'desk_corner', category: 'Pokój i Biuro', name: 'Duże Biurko Gamingowe', w: 160, d: 80, h: 75, elevation: 0, color: '#1e293b', type: 'desk_gamer', icon: 'fa-gamepad' },
+            { id: 'chair_office', category: 'Pokój i Biuro', name: 'Fotel Biurowy / Obrotowy', w: 65, d: 65, h: 110, elevation: 0, color: '#334155', type: 'chair', icon: 'fa-chair' },
+            { id: 'bed_double', category: 'Pokój i Biuro', name: 'Łóżko Małżeńskie 160x200', w: 168, d: 208, h: 85, elevation: 0, color: '#64748b', type: 'bed', icon: 'fa-bed' },
+            { id: 'bed_single', category: 'Pokój i Biuro', name: 'Łóżko Pojedyncze 90x200', w: 98, d: 208, h: 80, elevation: 0, color: '#94a3b8', type: 'bed_single', icon: 'fa-bed' },
+            { id: 'wardrobe_lg', category: 'Pokój i Biuro', name: 'Szafa Ubraniowa Trzydrzwiowa', w: 180, d: 60, h: 210, elevation: 0, color: '#e2e8f0', type: 'wardrobe', icon: 'fa-door-closed' },
+            { id: 'sofa_3', category: 'Pokój i Biuro', name: 'Sofa 3-osobowa', w: 210, d: 92, h: 82, elevation: 0, color: '#475569', type: 'sofa', icon: 'fa-couch' },
+            { id: 'table_dining', category: 'Pokój i Biuro', name: 'Stół Jadalniany / Konferencyjny', w: 160, d: 90, h: 76, elevation: 0, color: '#b48352', type: 'table', icon: 'fa-table' },
+            { id: 'bookshelf', category: 'Pokój i Biuro', name: 'Regał na Książki / Kallax', w: 120, d: 38, h: 185, elevation: 0, color: '#cbd5e1', type: 'shelf', icon: 'fa-book-open' },
+            { id: 'wall_cabinet', category: 'Pokój i Biuro', name: 'Szafka Wisząca Ścienna', w: 120, d: 35, h: 60, elevation: 140, color: '#f1f5f9', type: 'cabinet_wall', icon: 'fa-box-archive' },
+
+            // WARSZTAT I GARAŻ
+            { id: 'workbench_pro', category: 'Warsztat i Garaż', name: 'Stół Warsztatowy z Imadłem', w: 180, d: 75, h: 88, elevation: 0, color: '#2563eb', type: 'workbench', icon: 'fa-screwdriver-wrench' },
+            { id: 'rack_heavy', category: 'Warsztat i Garaż', name: 'Regał Magazynowy Stalowy', w: 120, d: 50, h: 200, elevation: 0, color: '#475569', type: 'rack', icon: 'fa-boxes-stacked' },
+            { id: 'tool_cart', category: 'Warsztat i Garaż', name: 'Wózek / Szafka Narzędziowa', w: 78, d: 48, h: 95, elevation: 0, color: '#dc2626', type: 'toolcart', icon: 'fa-toolbox' },
+            { id: 'lathe_machine', category: 'Warsztat i Garaż', name: 'Tokarka / Frezarka Stołowa', w: 140, d: 70, h: 135, elevation: 0, color: '#0d9488', type: 'lathe', icon: 'fa-gears' },
+            { id: 'table_saw', category: 'Warsztat i Garaż', name: 'Piła Stołowa Stolarska', w: 100, d: 90, h: 90, elevation: 0, color: '#eab308', type: 'saw', icon: 'fa-compact-disc' },
+            { id: 'car_zone', category: 'Warsztat i Garaż', name: 'Samochód Osobowy / Stanowisko', w: 185, d: 440, h: 145, elevation: 0, color: '#3b82f6', type: 'car', icon: 'fa-car' },
+            { id: 'compressor', category: 'Warsztat i Garaż', name: 'Kompresor Powietrza 100L', w: 95, d: 45, h: 82, elevation: 0, color: '#ef4444', type: 'compressor', icon: 'fa-wind' },
+
+            // ARCHITEKTURA (DRZWI, OKNA, SŁUPY)
+            { id: 'door_90', category: 'Architektura', name: 'Drzwi Pokojowe 90 cm (Skrzydło)', w: 90, d: 15, h: 205, elevation: 0, color: '#f8fafc', type: 'door', icon: 'fa-door-open' },
+            { id: 'door_garage', category: 'Architektura', name: 'Brama Garażowa 250 cm', w: 250, d: 18, h: 215, elevation: 0, color: '#64748b', type: 'garage_door', icon: 'fa-warehouse' },
+            { id: 'window_150', category: 'Architektura', name: 'Okno Dwuskrzydłowe 150 cm', w: 150, d: 18, h: 140, elevation: 85, color: '#38bdf8', type: 'window', icon: 'fa-border-all' },
+            { id: 'radiator', category: 'Architektura', name: 'Grzejnik Ścienny', w: 110, d: 14, h: 60, elevation: 15, color: '#ffffff', type: 'radiator', icon: 'fa-temperature-half' },
+            { id: 'pillar', category: 'Architektura', name: 'Słup Nośny / Komin', w: 40, d: 40, h: 260, elevation: 0, color: '#94a3b8', type: 'pillar', icon: 'fa-square' }
+        ];
+
+        // ============================================================================
+        // 2. STAN APLIKACJI (STATE)
+        // ============================================================================
+        let appState = {
+            viewMode: '2d', // '2d' lub '3d'
+            room: {
+                width: 550,    // cm (oś X)
+                length: 420,   // cm (oś Z)
+                height: 260,   // cm (oś Y)
+                wallColor: '#e2e8f0',
+                floorType: 'concrete',
+                floorColor: '#64748b',
+                autoHideWalls: true
+            },
+            grid: {
+                snap: true,
+                snapStep: 5 // cm
+            },
+            tools: {
+                rulerActive: false,
+                rulerStart: null,
+                rulerEnd: null,
+                autoClearance: true
+            },
+            objects: [],
+            selectedId: null,
+            camera2D: {
+                x: 0,
+                y: 0,
+                zoom: 1.2 // piksele na 1 cm
+            }
+        };
+
+        // Zmienne interakcji 2D
+        let canvas2D, ctx2D;
+        let isDraggingObj = false;
+        let isPanning2D = false;
+        let isDrawingRuler = false;
+        let dragOffset = { x: 0, z: 0 };
+        let panStart = { x: 0, y: 0 };
+        let hoveredObjId = null;
+
+        // Zmienne Three.js (3D)
+        let scene3D, camera3D, renderer3D, controls3D;
+        let roomGroup3D, objectsGroup3D, clearanceGroup3D;
+        let wallMeshes3D = [];
+        let floorTextureCache = {};
+
+        // ============================================================================
+        // 3. INICJALIZACJA APLIKACJI
+        // ============================================================================
+        window.onload = function () {
+            canvas2D = document.getElementById('canvas2D');
+            ctx2D = canvas2D.getContext('2d');
+
+            renderCatalog();
+            init2DEvents();
+            init3DEngine();
+
+            // Wczytaj zapisany stan z LocalStorage lub załaduj domyślny szablon warsztatu
+            const saved = localStorage.getItem('architektpro_project_v1');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    if (parsed && parsed.room && Array.isArray(parsed.objects)) {
+                        appState.room = { ...appState.room, ...parsed.room };
+                        appState.objects = parsed.objects;
+                        syncRoomUIFromState();
+                    } else {
+                        loadTemplate('workshop', false);
+                    }
+                } catch (e) {
+                    loadTemplate('workshop', false);
+                }
+            } else {
+                loadTemplate('workshop', false);
+            }
+
+            handleResize();
+            resetCameraView();
+            window.addEventListener('resize', handleResize);
+            requestAnimationFrame(renderLoop);
+        };
+
+        // ============================================================================
+        // 4. GOTOWE SZABLONY PROJEKTÓW
+        // ============================================================================
+        function loadTemplate(templateName, notify = true) {
+            appState.selectedId = null;
+            appState.tools.rulerStart = null;
+            appState.tools.rulerEnd = null;
+
+            if (templateName === 'workshop') {
+                appState.room = {
+                    width: 600,
+                    length: 450,
+                    height: 270,
+                    wallColor: '#cbd5e1',
+                    floorType: 'concrete',
+                    floorColor: '#64748b',
+                    autoHideWalls: true
+                };
+                appState.objects = [
+                    { uid: 'w1', name: 'Brama Garażowa 250 cm', type: 'garage_door', w: 250, d: 18, h: 215, elevation: 0, x: 185, z: 441, rotation: 0, color: '#475569' },
+                    { uid: 'w2', name: 'Drzwi Boczne 90 cm', type: 'door', w: 90, d: 15, h: 205, elevation: 0, x: 520, z: 7, rotation: 0, color: '#f8fafc' },
+                    { uid: 'w3', name: 'Okno Warsztatowe', type: 'window', w: 150, d: 18, h: 110, elevation: 110, x: 220, z: 9, rotation: 0, color: '#38bdf8' },
+                    { uid: 'w4', name: 'Stół Warsztatowy Główny', type: 'workbench', w: 200, d: 75, h: 88, elevation: 0, x: 210, z: 40, rotation: 0, color: '#2563eb' },
+                    { uid: 'w5', name: 'Wózek Narzędziowy', type: 'toolcart', w: 78, d: 48, h: 95, elevation: 0, x: 360, z: 38, rotation: 0, color: '#dc2626' },
+                    { uid: 'w6', name: 'Regał Magazynowy 1', type: 'rack', w: 120, d: 50, h: 200, elevation: 0, x: 28, z: 80, rotation: 90, color: '#475569' },
+                    { uid: 'w7', name: 'Regał Magazynowy 2', type: 'rack', w: 120, d: 50, h: 200, elevation: 0, x: 28, z: 210, rotation: 90, color: '#475569' },
+                    { uid: 'w8', name: 'Tokarka Stołowa', type: 'lathe', w: 140, d: 70, h: 135, elevation: 0, x: 560, z: 180, rotation: 270, color: '#0d9488' },
+                    { uid: 'w9', name: 'Piła Stołowa (Stolarnia)', type: 'saw', w: 100, d: 90, h: 90, elevation: 0, x: 430, z: 260, rotation: 0, color: '#eab308' },
+                    { uid: 'w10', name: 'Samochód / Miejsce Robocze', type: 'car', w: 180, d: 390, h: 142, elevation: 0, x: 185, z: 240, rotation: 0, color: '#3b82f6' }
+                ];
+            } else if (templateName === 'gamer') {
+                appState.room = {
+                    width: 420,
+                    length: 360,
+                    height: 260,
+                    wallColor: '#e2e8f0',
+                    floorType: 'wood_oak',
+                    floorColor: '#c89f72',
+                    autoHideWalls: true
+                };
+                appState.objects = [
+                    { uid: 'g1', name: 'Drzwi Pokojowe 90', type: 'door', w: 90, d: 15, h: 205, elevation: 0, x: 340, z: 352, rotation: 180, color: '#f8fafc' },
+                    { uid: 'g2', name: 'Okno 150 cm', type: 'window', w: 150, d: 18, h: 140, elevation: 85, x: 210, z: 9, rotation: 0, color: '#38bdf8' },
+                    { uid: 'g3', name: 'Biurko Gamingowe', type: 'desk_gamer', w: 160, d: 80, h: 75, elevation: 0, x: 100, z: 45, rotation: 0, color: '#1e293b' },
+                    { uid: 'g4', name: 'Fotel Ergonomiczny', type: 'chair', w: 65, d: 65, h: 115, elevation: 0, x: 100, z: 120, rotation: 180, color: '#dc2626' },
+                    { uid: 'g5', name: 'Łóżko 120x200', type: 'bed_single', w: 125, d: 208, h: 80, elevation: 0, x: 68, z: 250, rotation: 0, color: '#475569' },
+                    { uid: 'g6', name: 'Szafa Ubraniowa', type: 'wardrobe', w: 160, d: 60, h: 210, elevation: 0, x: 385, z: 110, rotation: 270, color: '#f1f5f9' },
+                    { uid: 'g7', name: 'Regał na Sprzęt i Gry', type: 'shelf', w: 110, d: 38, h: 185, elevation: 0, x: 395, z: 255, rotation: 270, color: '#cbd5e1' }
+                ];
+            } else if (templateName === 'living') {
+                appState.room = {
+                    width: 550,
+                    length: 420,
+                    height: 265,
+                    wallColor: '#f1f5f9',
+                    floorType: 'wood_walnut',
+                    floorColor: '#8d5b4c',
+                    autoHideWalls: true
+                };
+                appState.objects = [
+                    { uid: 'l1', name: 'Drzwi Wejściowe', type: 'door', w: 90, d: 15, h: 205, elevation: 0, x: 470, z: 412, rotation: 180, color: '#f8fafc' },
+                    { uid: 'l2', name: 'Okno Balkonowe Duże', type: 'window', w: 200, d: 18, h: 210, elevation: 15, x: 180, z: 9, rotation: 0, color: '#38bdf8' },
+                    { uid: 'l3', name: 'Sofa 3-osobowa', type: 'sofa', w: 220, d: 95, h: 82, elevation: 0, x: 160, z: 200, rotation: 0, color: '#334155' },
+                    { uid: 'l4', name: 'Stół Jadalniany', type: 'table', w: 160, d: 90, h: 76, elevation: 0, x: 420, z: 140, rotation: 90, color: '#d4a373' },
+                    { uid: 'l5', name: 'Szafa w Wnęce', type: 'wardrobe', w: 180, d: 60, h: 220, elevation: 0, x: 110, z: 385, rotation: 180, color: '#e2e8f0' }
+                ];
+            } else if (templateName === 'empty') {
+                appState.room = {
+                    width: 500,
+                    length: 400,
+                    height: 260,
+                    wallColor: '#e2e8f0',
+                    floorType: 'wood_oak',
+                    floorColor: '#c89f72',
+                    autoHideWalls: true
+                };
+                appState.objects = [
+                    { uid: 'e1', name: 'Drzwi 90 cm', type: 'door', w: 90, d: 15, h: 205, elevation: 0, x: 80, z: 392, rotation: 180, color: '#f8fafc' },
+                    { uid: 'e2', name: 'Okno 150 cm', type: 'window', w: 150, d: 18, h: 140, elevation: 85, x: 250, z: 9, rotation: 0, color: '#38bdf8' }
+                ];
+            }
+
+            syncRoomUIFromState();
+            updateInspectorUI();
+            updateAreaSummary();
+            rebuild3DScene();
+            resetCameraView();
+            saveToLocalStorage(false);
+            if (notify) showToast('Wczytano szablon projektu');
+        }
+
+        // ============================================================================
+        // 5. OBSŁUGA INTERFEJSU LEWEGO I PRAWEGO PANELU
+        // ============================================================================
+        function switchLeftTab(tab) {
+            const isCat = tab === 'catalog';
+            document.getElementById('tabCatalog').classList.toggle('hidden', !isCat);
+            document.getElementById('tabRoom').classList.toggle('hidden', isCat);
+
+            document.getElementById('tabCatalogBtn').className = isCat
+                ? 'py-1.5 text-xs font-semibold rounded-md bg-slate-800 text-white shadow'
+                : 'py-1.5 text-xs font-semibold rounded-md text-slate-400 hover:text-white';
+            document.getElementById('tabRoomBtn').className = !isCat
+                ? 'py-1.5 text-xs font-semibold rounded-md bg-slate-800 text-white shadow'
+                : 'py-1.5 text-xs font-semibold rounded-md text-slate-400 hover:text-white';
+        }
+
+        function renderCatalog() {
+            const container = document.getElementById('catalogContainer');
+            const query = (document.getElementById('catalogSearch').value || '').toLowerCase();
+            container.innerHTML = '';
+
+            const categories = ['Pokój i Biuro', 'Warsztat i Garaż', 'Architektura'];
+
+            categories.forEach(cat => {
+                const items = CATALOG_ITEMS.filter(item =>
+                    item.category === cat &&
+                    (item.name.toLowerCase().includes(query) || item.category.toLowerCase().includes(query))
+                );
+                if (items.length === 0) return;
+
+                const section = document.createElement('div');
+                section.className = 'space-y-2';
+                section.innerHTML = `
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-1 flex items-center justify-between">
+                        <span>${cat}</span>
+                        <span class="text-[10px] font-mono text-slate-500">${items.length}</span>
+                    </div>
+                `;
+
+                const grid = document.createElement('div');
+                grid.className = 'grid grid-cols-1 gap-1.5';
+
+                items.forEach(item => {
+                    const card = document.createElement('button');
+                    card.onclick = () => addObjectFromCatalog(item);
+                    card.className = 'w-full text-left bg-slate-950/70 hover:bg-slate-800/90 border border-slate-800/90 hover:border-blue-500/50 rounded-xl p-2.5 transition-all flex items-center justify-between group';
+                    card.innerHTML = `
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-9 h-9 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center shrink-0 group-hover:border-blue-500/40" style="color: ${item.color}">
+                                <i class="fa-solid ${item.icon} text-sm"></i>
+                            </div>
+                            <div class="truncate">
+                                <div class="text-xs font-semibold text-slate-200 group-hover:text-white truncate">${item.name}</div>
+                                <div class="text-[10px] font-mono text-slate-400">${item.w} × ${item.d} cm • wys. ${item.h} cm</div>
+                            </div>
+                        </div>
+                        <div class="w-6 h-6 rounded-full bg-blue-500/10 text-blue-400 group-hover:bg-blue-600 group-hover:text-white flex items-center justify-center shrink-0 transition">
+                            <i class="fa-solid fa-plus text-[10px]"></i>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+
+                section.appendChild(grid);
+                container.appendChild(section);
+            });
+        }
+
+        function addObjectFromCatalog(itemTemplate) {
+            // Jeśli jesteśmy w widoku 3D lub w trybie miarki, automatycznie przełącz na edycję mebli, aby od razu można było przesuwać dodany obiekt
+            if (appState.tools.rulerActive) {
+                toggleRulerTool(false);
+            }
+            const uid = 'obj_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+            // Domyślnie na środku pokoju z lekkim przesunięciem
+            const offset = (appState.objects.length % 5) * 15 - 30;
+            const newObj = {
+                uid: uid,
+                name: itemTemplate.name,
+                type: itemTemplate.type,
+                w: itemTemplate.w,
+                d: itemTemplate.d,
+                h: itemTemplate.h,
+                elevation: itemTemplate.elevation || 0,
+                x: Math.round(appState.room.width / 2 + offset),
+                z: Math.round(appState.room.length / 2 + offset),
+                rotation: 0,
+                color: itemTemplate.color
+            };
+
+            clampObjectToRoom(newObj);
+            appState.objects.push(newObj);
+            appState.selectedId = uid;
+
+            updateInspectorUI();
+            updateAreaSummary();
+            rebuild3DScene();
+            if (appState.viewMode === '2d') draw2DPlan();
+            saveToLocalStorage(false);
+            showToast(`Dodano: ${newObj.name}`);
+        }
+
+        function syncRoomUIFromState() {
+            const r = appState.room;
+            document.getElementById('roomWidthRange').value = r.width;
+            document.getElementById('roomWidthInput').value = r.width;
+            document.getElementById('roomWidthVal').textContent = `${r.width} cm (${(r.width / 100).toFixed(2)} m)`;
+
+            document.getElementById('roomLengthRange').value = r.length;
+            document.getElementById('roomLengthInput').value = r.length;
+            document.getElementById('roomLengthVal').textContent = `${r.length} cm (${(r.length / 100).toFixed(2)} m)`;
+
+            document.getElementById('roomHeightRange').value = r.height;
+            document.getElementById('roomHeightInput').value = r.height;
+            document.getElementById('roomHeightVal').textContent = `${r.height} cm (${(r.height / 100).toFixed(2)} m)`;
+
+            document.getElementById('wallColorPicker').value = r.wallColor;
+            document.getElementById('wallColorHex').textContent = r.wallColor;
+            document.getElementById('floorTypeSelect').value = r.floorType;
+            document.getElementById('floorColorPicker').value = r.floorColor;
+            document.getElementById('wallOpacityToggle').checked = r.autoHideWalls;
+        }
+
+        function updateRoomSetting(key, val) {
+            if (key === 'width' || key === 'length' || key === 'height') {
+                val = Math.max(150, Math.min(2000, parseFloat(val) || 400));
+            }
+            appState.room[key] = val;
+
+            if (key === 'floorType') {
+                const defaultFloorColors = {
+                    wood_oak: '#c89f72',
+                    wood_walnut: '#7f5539',
+                    concrete: '#64748b',
+                    tiles_gray: '#94a3b8',
+                    carpet_dark: '#334155'
+                };
+                if (defaultFloorColors[val]) {
+                    appState.room.floorColor = defaultFloorColors[val];
+                }
+            }
+
+            syncRoomUIFromState();
+            updateAreaSummary();
+            rebuild3DScene();
+            saveToLocalStorage(false);
+        }
+
+        // ============================================================================
+        // 6. GEOMETRIA, BOUNDING BOX I POMIARY WOLNEJ PRZESTRZENI (CLEARANCE)
+        // ============================================================================
+        // Zwraca efektywne wymiary AABB (Axis-Aligned Bounding Box) obiektu z uwzględnieniem obrotu
+        function getObjectAABB(obj) {
+            const rad = (obj.rotation || 0) * Math.PI / 180;
+            const cos = Math.abs(Math.cos(rad));
+            const sin = Math.abs(Math.sin(rad));
+            const effW = obj.w * cos + obj.d * sin;
+            const effD = obj.w * sin + obj.d * cos;
+            return {
+                minX: obj.x - effW / 2,
+                maxX: obj.x + effW / 2,
+                minZ: obj.z - effD / 2,
+                maxZ: obj.z + effD / 2,
+                effW,
+                effD
+            };
+        }
+
+        function clampObjectToRoom(obj) {
+            const aabb = getObjectAABB(obj);
+            const halfW = aabb.effW / 2;
+            const halfD = aabb.effD / 2;
+
+            // Drzwi i okna mogą przylegać bezpośrednio do osi ściany
+            if (obj.type === 'door' || obj.type === 'window' || obj.type === 'garage_door') {
+                obj.x = Math.max(0, Math.min(appState.room.width, obj.x));
+                obj.z = Math.max(0, Math.min(appState.room.length, obj.z));
+                return;
+            }
+
+            obj.x = Math.max(halfW, Math.min(appState.room.width - halfW, obj.x));
+            obj.z = Math.max(halfD, Math.min(appState.room.length - halfD, obj.z));
+        }
+
+        // Oblicza najbliższe odległości w 4 kierunkach (Lewo, Prawo, Góra, Dół) od wybranego obiektu do ścian lub innych mebli
+        function computeClearances(targetObj) {
+            const box = getObjectAABB(targetObj);
+            // Domyślnie odległość do ścian pokoju
+            let left = { dist: Math.max(0, box.minX), x1: box.minX, z1: targetObj.z, x2: 0, z2: targetObj.z, to: 'Ściana L' };
+            let right = { dist: Math.max(0, appState.room.width - box.maxX), x1: box.maxX, z1: targetObj.z, x2: appState.room.width, z2: targetObj.z, to: 'Ściana P' };
+            let top = { dist: Math.max(0, box.minZ), x1: targetObj.x, z1: box.minZ, x2: targetObj.x, z2: 0, to: 'Ściana G' };
+            let bottom = { dist: Math.max(0, appState.room.length - box.maxZ), x1: targetObj.x, z1: box.maxZ, x2: targetObj.x, z2: appState.room.length, to: 'Ściana D' };
+
+            appState.objects.forEach(other => {
+                if (other.uid === targetObj.uid) return;
+                // Ignoruj obiekty zawieszone na zupełnie innej wysokości (np. szafka wisząca nad biurkiem)
+                const tBottom = targetObj.elevation || 0;
+                const tTop = tBottom + targetObj.h;
+                const oBottom = other.elevation || 0;
+                const oTop = oBottom + other.h;
+                if (tTop <= oBottom || oTop <= tBottom) return;
+
+                const oBox = getObjectAABB(other);
+
+                // Sprawdzamy nakładanie w osi Z (dla pomiaru Lewo / Prawo)
+                const overlapZ = Math.min(box.maxZ, oBox.maxZ) - Math.max(box.minZ, oBox.minZ);
+                if (overlapZ > 5) {
+                    const midZ = (Math.max(box.minZ, oBox.minZ) + Math.min(box.maxZ, oBox.maxZ)) / 2;
+                    // Obiekt po lewej stronie
+                    if (oBox.maxX <= box.minX) {
+                        const d = box.minX - oBox.maxX;
+                        if (d < left.dist) {
+                            left = { dist: d, x1: box.minX, z1: midZ, x2: oBox.maxX, z2: midZ, to: other.name };
+                        }
+                    }
+                    // Obiekt po prawej stronie
+                    if (oBox.minX >= box.maxX) {
+                        const d = oBox.minX - box.maxX;
+                        if (d < right.dist) {
+                            right = { dist: d, x1: box.maxX, z1: midZ, x2: oBox.minX, z2: midZ, to: other.name };
+                        }
+                    }
+                }
+
+                // Sprawdzamy nakładanie w osi X (dla pomiaru Góra / Dół)
+                const overlapX = Math.min(box.maxX, oBox.maxX) - Math.max(box.minX, oBox.minX);
+                if (overlapX > 5) {
+                    const midX = (Math.max(box.minX, oBox.minX) + Math.min(box.maxX, oBox.maxX)) / 2;
+                    // Obiekt powyżej (mniejsze Z)
+                    if (oBox.maxZ <= box.minZ) {
+                        const d = box.minZ - oBox.maxZ;
+                        if (d < top.dist) {
+                            top = { dist: d, x1: midX, z1: box.minZ, x2: midX, z2: oBox.maxZ, to: other.name };
+                        }
+                    }
+                    // Obiekt poniżej (większe Z)
+                    if (oBox.minZ >= box.maxZ) {
+                        const d = oBox.minZ - box.maxZ;
+                        if (d < bottom.dist) {
+                            bottom = { dist: d, x1: midX, z1: box.maxZ, x2: midX, z2: oBox.minZ, to: other.name };
+                        }
+                    }
+                }
+            });
+
+            return { left, right, top, bottom };
+        }
+
+        function updateAreaSummary() {
+            const totalM2 = (appState.room.width * appState.room.length) / 10000;
+            let occupiedCm2 = 0;
+
+            appState.objects.forEach(obj => {
+                // Liczymy tylko obiekty stojące na podłodze (elevation < 40cm) i nie będące oknami/drzwiami
+                if ((obj.elevation || 0) < 40 && obj.type !== 'window' && obj.type !== 'door' && obj.type !== 'garage_door') {
+                    occupiedCm2 += (obj.w * obj.d);
+                }
+            });
+
+            const freeM2 = Math.max(0, totalM2 - (occupiedCm2 / 10000));
+            const pct = Math.round((freeM2 / totalM2) * 100);
+
+            document.getElementById('statTotalArea').textContent = `${totalM2.toFixed(1)} m²`;
+            document.getElementById('statFreeArea').textContent = `${freeM2.toFixed(1)} m² (${pct}%)`;
+        }
+
+        // ============================================================================
+        // 7. INSPEKTOR WŁAŚCIWOŚCI WYBRANEGO OBIEKTU
+        // ============================================================================
+        function getSelectedObject() {
+            return appState.objects.find(o => o.uid === appState.selectedId) || null;
+        }
+
+        function updateInspectorUI() {
+            const obj = getSelectedObject();
+            const emptyEl = document.getElementById('inspectorEmpty');
+            const contentEl = document.getElementById('inspectorContent');
+            const badgeEl = document.getElementById('selectedBadge');
+
+            if (!obj) {
+                emptyEl.classList.remove('hidden');
+                contentEl.classList.add('hidden');
+                badgeEl.textContent = 'Brak wyboru';
+                badgeEl.className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400';
+                return;
+            }
+
+            emptyEl.classList.add('hidden');
+            contentEl.classList.remove('hidden');
+            badgeEl.textContent = `${obj.w}×${obj.d} cm`;
+            badgeEl.className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30';
+
+            document.getElementById('propName').value = obj.name;
+            document.getElementById('propColor').value = obj.color;
+            document.getElementById('propW').value = Math.round(obj.w);
+            document.getElementById('propD').value = Math.round(obj.d);
+            document.getElementById('propH').value = Math.round(obj.h);
+
+            const elev = Math.round(obj.elevation || 0);
+            document.getElementById('propElevation').value = elev;
+            document.getElementById('propElevationRange').value = elev;
+            document.getElementById('propElevationLabel').textContent = `${elev} cm`;
+
+            const rot = Math.round(obj.rotation || 0);
+            document.getElementById('propRotRange').value = rot;
+            document.getElementById('propRotLabel').textContent = `${rot}°`;
+
+            const aabb = getObjectAABB(obj);
+            document.getElementById('propPosX').value = Math.round(aabb.minX);
+            document.getElementById('propPosZ').value = Math.round(aabb.minZ);
+
+            updateClearanceInspectorStats(obj);
+        }
+
+        function updateClearanceInspectorStats(obj) {
+            const cl = computeClearances(obj);
+            const container = document.getElementById('clearanceStats');
+
+            const formatBadge = (label, item) => {
+                const d = Math.round(item.dist);
+                let colorClass = 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10';
+                if (d > 0 && d < 55) colorClass = 'text-rose-400 border-rose-500/30 bg-rose-500/10';
+                else if (d >= 55 && d < 80) colorClass = 'text-amber-400 border-amber-500/30 bg-amber-500/10';
+
+                return `
+                    <div class="p-2 rounded-lg border ${colorClass} flex flex-col">
+                        <span class="text-[10px] text-slate-400">${label} (${item.to.slice(0, 12)})</span>
+                        <span class="text-xs font-bold">${d} cm <span class="text-[10px] font-normal opacity-80">(${(d/100).toFixed(2)}m)</span></span>
+                    </div>
+                `;
+            };
+
+            container.innerHTML =
+                formatBadge('⬅ Lewo', cl.left) +
+                formatBadge('Prawo ➡', cl.right) +
+                formatBadge('⬆ Góra', cl.top) +
+                formatBadge('Dół ⬇', cl.bottom);
+        }
+
+        function updateSelectedProp(prop, val) {
+            const obj = getSelectedObject();
+            if (!obj) return;
+
+            if (prop === 'w' || prop === 'd' || prop === 'h') {
+                if (isNaN(val) || val < 5) return;
+            }
+            if (prop === 'elevation') {
+                val = Math.max(0, Math.min(350, val || 0));
+            }
+            if (prop === 'rotation') {
+                val = ((val % 360) + 360) % 360;
+            }
+
+            obj[prop] = val;
+            clampObjectToRoom(obj);
+            updateInspectorUI();
+            updateAreaSummary();
+            rebuild3DScene();
+            saveToLocalStorage(false);
+        }
+
+        function updateSelectedWallDist(side, distCm) {
+            const obj = getSelectedObject();
+            if (!obj || isNaN(distCm)) return;
+            const aabb = getObjectAABB(obj);
+            if (side === 'left') {
+                obj.x = distCm + aabb.effW / 2;
+            } else if (side === 'top') {
+                obj.z = distCm + aabb.effD / 2;
+            }
+            clampObjectToRoom(obj);
+            updateInspectorUI();
+            rebuild3DScene();
+            saveToLocalStorage(false);
+        }
+
+        function rotateSelectedBy(deltaDeg) {
+            const obj = getSelectedObject();
+            if (!obj) return;
+            const nextRot = (((obj.rotation || 0) + deltaDeg) % 360 + 360) % 360;
+            updateSelectedProp('rotation', nextRot);
+        }
+
+        function duplicateSelected() {
+            const obj = getSelectedObject();
+            if (!obj) return;
+            const copy = JSON.parse(JSON.stringify(obj));
+            copy.uid = 'obj_' + Date.now();
+            copy.name = obj.name + ' (Kopia)';
+            copy.x += 25;
+            copy.z += 25;
+            clampObjectToRoom(copy);
+            appState.objects.push(copy);
+            appState.selectedId = copy.uid;
+            updateInspectorUI();
+            updateAreaSummary();
+            rebuild3DScene();
+            saveToLocalStorage(false);
+            showToast('Zduplikowano obiekt');
+        }
+
+        function deleteSelected() {
+            if (!appState.selectedId) return;
+            appState.objects = appState.objects.filter(o => o.uid !== appState.selectedId);
+            appState.selectedId = null;
+            updateInspectorUI();
+            updateAreaSummary();
+            rebuild3DScene();
+            saveToLocalStorage(false);
+            showToast('Usunięto obiekt');
+        }
+
+        // ============================================================================
+        // 8. SILNIK 2D (CANVAS CAD Z SIATKĄ, MEBLAMI I MIARKĄ PRZEJŚĆ)
+        // ============================================================================
+        function worldToScreen(wx, wz) {
+            return {
+                x: appState.camera2D.x + wx * appState.camera2D.zoom,
+                y: appState.camera2D.y + wz * appState.camera2D.zoom
+            };
+        }
+
+        function screenToWorld(sx, sy) {
+            return {
+                x: (sx - appState.camera2D.x) / appState.camera2D.zoom,
+                z: (sy - appState.camera2D.y) / appState.camera2D.zoom
+            };
+        }
+
+        function resetCameraView() {
+            if (appState.viewMode === '2d') {
+                const pad = 120;
+                const availW = canvas2D.width - pad * 2;
+                const availH = canvas2D.height - pad * 2;
+                const zoomX = availW / appState.room.width;
+                const zoomY = availH / appState.room.length;
+                appState.camera2D.zoom = Math.max(0.4, Math.min(2.5, Math.min(zoomX, zoomY)));
+                appState.camera2D.x = (canvas2D.width - appState.room.width * appState.camera2D.zoom) / 2;
+                appState.camera2D.y = (canvas2D.height - appState.room.length * appState.camera2D.zoom) / 2;
+            } else {
+                set3DCameraPreset('iso');
+            }
+        }
+
+        function zoomCanvas(factor) {
+            if (appState.viewMode === '2d') {
+                const centerScreen = { x: canvas2D.width / 2, y: canvas2D.height / 2 };
+                const beforeWorld = screenToWorld(centerScreen.x, centerScreen.y);
+                appState.camera2D.zoom = Math.max(0.3, Math.min(4.5, appState.camera2D.zoom * factor));
+                const afterScreen = worldToScreen(beforeWorld.x, beforeWorld.z);
+                appState.camera2D.x += centerScreen.x - afterScreen.x;
+                appState.camera2D.y += centerScreen.y - afterScreen.y;
+            } else if (camera3D && controls3D) {
+                camera3D.position.multiplyScalar(1 / factor);
+                controls3D.update();
+            }
+        }
+
+        function draw2DPlan() {
+            const ctx = ctx2D;
+            const W = canvas2D.width;
+            const H = canvas2D.height;
+            ctx.clearRect(0, 0, W, H);
+
+            const zoom = appState.camera2D.zoom;
+            const roomPos = worldToScreen(0, 0);
+            const roomPxW = appState.room.width * zoom;
+            const roomPxL = appState.room.length * zoom;
+
+            // 1. Tło podłogi pomieszczenia
+            ctx.save();
+            ctx.fillStyle = appState.room.floorColor || '#334155';
+            ctx.globalAlpha = 0.22;
+            ctx.fillRect(roomPos.x, roomPos.y, roomPxW, roomPxL);
+            ctx.restore();
+
+            // 2. Siatka pomocnicza wewnątrz pomieszczenia (co 10 cm, 50 cm, 100 cm)
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(roomPos.x, roomPos.y, roomPxW, roomPxL);
+            ctx.clip();
+
+            // Drobna siatka 10cm (gdy wystarczający zoom)
+            if (zoom >= 0.85) {
+                ctx.strokeStyle = 'rgba(148, 163, 184, 0.08)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                for (let x = 0; x <= appState.room.width; x += 10) {
+                    const sx = roomPos.x + x * zoom;
+                    ctx.moveTo(sx, roomPos.y);
+                    ctx.lineTo(sx, roomPos.y + roomPxL);
+                }
+                for (let z = 0; z <= appState.room.length; z += 10) {
+                    const sy = roomPos.y + z * zoom;
+                    ctx.moveTo(roomPos.x, sy);
+                    ctx.lineTo(roomPos.x + roomPxW, sy);
+                }
+                ctx.stroke();
+            }
+
+            // Siatka 50cm
+            ctx.strokeStyle = 'rgba(148, 163, 184, 0.16)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            for (let x = 0; x <= appState.room.width; x += 50) {
+                const sx = roomPos.x + x * zoom;
+                ctx.moveTo(sx, roomPos.y);
+                ctx.lineTo(sx, roomPos.y + roomPxL);
+            }
+            for (let z = 0; z <= appState.room.length; z += 50) {
+                const sy = roomPos.y + z * zoom;
+                ctx.moveTo(roomPos.x, sy);
+                ctx.lineTo(roomPos.x + roomPxW, sy);
+            }
+            ctx.stroke();
+
+            // Siatka główna co 100cm (1 metr)
+            ctx.strokeStyle = 'rgba(56, 189, 248, 0.28)';
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            for (let x = 0; x <= appState.room.width; x += 100) {
+                const sx = roomPos.x + x * zoom;
+                ctx.moveTo(sx, roomPos.y);
+                ctx.lineTo(sx, roomPos.y + roomPxL);
+            }
+            for (let z = 0; z <= appState.room.length; z += 100) {
+                const sy = roomPos.y + z * zoom;
+                ctx.moveTo(roomPos.x, sy);
+                ctx.lineTo(roomPos.x + roomPxW, sy);
+            }
+            ctx.stroke();
+            ctx.restore();
+
+            // 3. Mury / Ściany zewnętrzne z podziałką wymiarową
+            const wallThicknessPx = Math.max(8, 14 * zoom);
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = wallThicknessPx;
+            ctx.strokeRect(
+                roomPos.x - wallThicknessPx / 2,
+                roomPos.y - wallThicknessPx / 2,
+                roomPxW + wallThicknessPx,
+                roomPxL + wallThicknessPx
+            );
+
+            ctx.strokeStyle = '#0f172a';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(roomPos.x, roomPos.y, roomPxW, roomPxL);
+
+            // Etykiety wymiarów zewnętrznych ścian (Góra i Lewo)
+            drawWallDimensionLabels(ctx, roomPos, roomPxW, roomPxL, zoom);
+
+            // 4. Rysowanie obiektów (najpierw na podłodze, potem wiszące)
+            const sortedObjects = [...appState.objects].sort((a, b) => (a.elevation || 0) - (b.elevation || 0));
+            sortedObjects.forEach(obj => {
+                draw2DObject(ctx, obj, zoom);
+            });
+
+            // 5. Automatyczne linie wymiarowe przejść dla zaznaczonego obiektu
+            const selectedObj = getSelectedObject();
+            if (selectedObj && appState.tools.autoClearance) {
+                drawSelectedClearanceLines(ctx, selectedObj, zoom);
+            }
+
+            // 6. Ręczna Miarka Przejścia (jeśli narysowana)
+            if (appState.tools.rulerStart && appState.tools.rulerEnd) {
+                drawManualRuler(ctx, appState.tools.rulerStart, appState.tools.rulerEnd);
+            }
+        }
+
+        function drawWallDimensionLabels(ctx, roomPos, roomPxW, roomPxL, zoom) {
+            ctx.save();
+            ctx.font = '600 11px "JetBrains Mono", monospace';
+            ctx.fillStyle = '#94a3b8';
+            ctx.textAlign = 'center';
+
+            // Podziałka metrowa na górnej krawędzi
+            for (let x = 0; x <= appState.room.width; x += 100) {
+                const sx = roomPos.x + x * zoom;
+                ctx.fillText(`${(x / 100).toFixed(0)}m`, sx, roomPos.y - 18);
+            }
+            for (let z = 0; z <= appState.room.length; z += 100) {
+                const sy = roomPos.y + z * zoom;
+                ctx.textAlign = 'right';
+                ctx.fillText(`${(z / 100).toFixed(0)}m`, roomPos.x - 18, sy + 4);
+            }
+
+            // Całkowita szerokość i długość
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#38bdf8';
+            ctx.font = 'bold 12px "JetBrains Mono", monospace';
+            ctx.fillText(`⬅ ${appState.room.width} cm (${(appState.room.width / 100).toFixed(2)} m) ➡`, roomPos.x + roomPxW / 2, roomPos.y - 34);
+
+            ctx.save();
+            ctx.translate(roomPos.x - 42, roomPos.y + roomPxL / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText(`⬅ ${appState.room.length} cm (${(appState.room.length / 100).toFixed(2)} m) ➡`, 0, 0);
+            ctx.restore();
+            ctx.restore();
+        }
+
+        function draw2DObject(ctx, obj, zoom) {
+            const pos = worldToScreen(obj.x, obj.z);
+            const pw = obj.w * zoom;
+            const pd = obj.d * zoom;
+            const isSelected = obj.uid === appState.selectedId;
+            const isHovered = obj.uid === hoveredObjId;
+
+            ctx.save();
+            ctx.translate(pos.x, pos.y);
+            ctx.rotate((obj.rotation || 0) * Math.PI / 180);
+
+            // Cień pod obiektem
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+            ctx.shadowBlur = isSelected ? 14 : 6;
+            ctx.shadowOffsetY = 2;
+
+            // Tło bryły obiektu
+            ctx.fillStyle = obj.color || '#64748b';
+            if ((obj.elevation || 0) > 80 && obj.type !== 'window') {
+                // Obiekt wiszący (np. szafka ścienna) rysowany z lekką przezroczystością i przerywanym obrysem
+                ctx.globalAlpha = 0.78;
+            }
+
+            ctx.beginPath();
+            ctx.roundRect(-pw / 2, -pd / 2, pw, pd, Math.min(6, pw * 0.08));
+            ctx.fill();
+
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetY = 0;
+
+            // Specyficzne detale architektoniczne i meblowe na rzucie 2D
+            draw2DObjectDetails(ctx, obj, pw, pd, zoom);
+
+            // Obrys zaznaczenia / hovera
+            if (isSelected) {
+                ctx.strokeStyle = '#38bdf8';
+                ctx.lineWidth = 2.5;
+                ctx.strokeRect(-pw / 2 - 2, -pd / 2 - 2, pw + 4, pd + 4);
+
+                // Strzałka frontu obiektu
+                ctx.fillStyle = '#38bdf8';
+                ctx.beginPath();
+                ctx.moveTo(0, pd / 2 + 10);
+                ctx.lineTo(-6, pd / 2 + 2);
+                ctx.lineTo(6, pd / 2 + 2);
+                ctx.closePath();
+                ctx.fill();
+            } else if (isHovered) {
+                ctx.strokeStyle = '#93c5fd';
+                ctx.lineWidth = 1.5;
+                ctx.strokeRect(-pw / 2, -pd / 2, pw, pd);
+            } else {
+                ctx.strokeStyle = 'rgba(15, 23, 42, 0.8)';
+                ctx.lineWidth = 1.2;
+                ctx.strokeRect(-pw / 2, -pd / 2, pw, pd);
+            }
+
+            // Podpis i wymiary wewnątrz obiektu
+            if (pw > 36 && pd > 22) {
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = 'rgba(0,0,0,0.85)';
+                ctx.shadowBlur = 4;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                const fontSize = Math.max(9, Math.min(12, pw / 9));
+                ctx.font = `600 ${fontSize}px Inter, sans-serif`;
+                const shortName = obj.name.length > 18 ? obj.name.slice(0, 16) + '…' : obj.name;
+                ctx.fillText(shortName, 0, -5);
+
+                ctx.font = `500 ${Math.max(8, fontSize - 1)}px "JetBrains Mono", monospace`;
+                ctx.fillStyle = '#e2e8f0';
+                ctx.fillText(`${Math.round(obj.w)}×${Math.round(obj.d)} cm`, 0, 8);
+            }
+
+            ctx.restore();
+        }
+
+        function draw2DObjectDetails(ctx, obj, pw, pd, zoom) {
+            ctx.save();
+            ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+            ctx.lineWidth = 1.2;
+
+            if (obj.type === 'door') {
+                // Łuk otwierania drzwi w 2D
+                ctx.strokeStyle = '#38bdf8';
+                ctx.setLineDash([4, 4]);
+                ctx.beginPath();
+                ctx.arc(-pw / 2, pd / 2, pw, 0, Math.PI / 2);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.beginPath();
+                ctx.moveTo(-pw / 2, pd / 2);
+                ctx.lineTo(-pw / 2, pd / 2 + pw);
+                ctx.stroke();
+            } else if (obj.type === 'window') {
+                // Podwójna linia szyby okiennej
+                ctx.strokeStyle = '#0284c7';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(-pw / 2, 0);
+                ctx.lineTo(pw / 2, 0);
+                ctx.stroke();
+            } else if (obj.type === 'bed' || obj.type === 'bed_single') {
+                // Poduszki na łóżku
+                ctx.fillStyle = 'rgba(255,255,255,0.4)';
+                const pillowW = pw * 0.36;
+                const pillowH = pd * 0.16;
+                if (obj.type === 'bed') {
+                    ctx.fillRect(-pw * 0.42, -pd / 2 + 6, pillowW, pillowH);
+                    ctx.fillRect(pw * 0.06, -pd / 2 + 6, pillowW, pillowH);
+                } else {
+                    ctx.fillRect(-pillowW / 2, -pd / 2 + 6, pillowW, pillowH);
+                }
+            } else if (obj.type === 'workbench' || obj.type === 'desk' || obj.type === 'desk_gamer') {
+                // Zarys monitora lub imadła na blacie
+                ctx.fillStyle = 'rgba(15, 23, 42, 0.45)';
+                ctx.fillRect(-pw * 0.25, -pd / 2 + 4, pw * 0.5, pd * 0.18);
+            } else if (obj.type === 'car') {
+                // Zarys przedniej i tylnej szyby samochodu
+                ctx.fillStyle = 'rgba(15, 23, 42, 0.5)';
+                ctx.fillRect(-pw * 0.38, -pd * 0.22, pw * 0.76, pd * 0.15);
+                ctx.fillRect(-pw * 0.35, pd * 0.22, pw * 0.70, pd * 0.12);
+            }
+            ctx.restore();
+        }
+
+        function drawSelectedClearanceLines(ctx, obj, zoom) {
+            const cl = computeClearances(obj);
+            const dirs = [cl.left, cl.right, cl.top, cl.bottom];
+
+            dirs.forEach(item => {
+                if (item.dist < 2) return;
+                const p1 = worldToScreen(item.x1, item.z1);
+                const p2 = worldToScreen(item.x2, item.z2);
+
+                // Kolor zależny od ergonomii przejścia (<55cm wąsko, 55-80cm średnio, >80cm wygodne przejście)
+                let color = '#10b981'; // Zielony
+                if (item.dist < 55) color = '#f43f5e'; // Czerwony (za wąsko)
+                else if (item.dist < 80) color = '#f59e0b'; // Pomarańczowy
+
+                ctx.save();
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 4]);
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Punkty końcowe
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(p1.x, p1.y, 3.5, 0, Math.PI * 2);
+                ctx.arc(p2.x, p2.y, 3.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Etykieta z odległością na środku linii
+                const midX = (p1.x + p2.x) / 2;
+                const midY = (p1.y + p2.y) / 2;
+                const label = `${Math.round(item.dist)} cm`;
+
+                ctx.font = 'bold 11px "JetBrains Mono", monospace';
+                const textW = ctx.measureText(label).width + 12;
+                ctx.fillStyle = '#0f172a';
+                ctx.beginPath();
+                ctx.roundRect(midX - textW / 2, midY - 10, textW, 20, 6);
+                ctx.fill();
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                ctx.fillStyle = color;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(label, midX, midY);
+                ctx.restore();
+            });
+        }
+
+        function drawManualRuler(ctx, startW, endW) {
+            const p1 = worldToScreen(startW.x, startW.z);
+            const p2 = worldToScreen(endW.x, endW.z);
+            const distCm = Math.hypot(endW.x - startW.x, endW.z - startW.z);
+
+            ctx.save();
+            ctx.strokeStyle = '#fbbf24';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(p1.x, p1.y, 5, 0, Math.PI * 2);
+            ctx.arc(p2.x, p2.y, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            const midX = (p1.x + p2.x) / 2;
+            const midY = (p1.y + p2.y) / 2;
+            let statusTxt = distCm >= 80 ? 'Wygodne przejście' : (distCm >= 55 ? 'Wąskie przejście' : 'Brak przejścia');
+            const label = `📏 ${Math.round(distCm)} cm (${statusTxt})`;
+
+            ctx.font = 'bold 12px "JetBrains Mono", monospace';
+            const boxW = ctx.measureText(label).width + 18;
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.roundRect(midX - boxW / 2, midY - 14, boxW, 26, 8);
+            ctx.fill();
+
+            ctx.fillStyle = '#0f172a';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(label, midX, midY - 1);
+            ctx.restore();
+        }
+
+        // ============================================================================
+        // 9. ZDARZENIA MYSZY I KLAWIATURY W WIDOKU 2D
+        // ============================================================================
+        function getObjectAtWorldPos(wx, wz) {
+            // Przeszukujemy od najwyżej położonych (ostatnich na liście)
+            for (let i = appState.objects.length - 1; i >= 0; i--) {
+                const obj = appState.objects[i];
+                const dx = wx - obj.x;
+                const dz = wz - obj.z;
+                const rad = -(obj.rotation || 0) * Math.PI / 180;
+                const localX = dx * Math.cos(rad) - dz * Math.sin(rad);
+                const localZ = dx * Math.sin(rad) + dz * Math.cos(rad);
+
+                if (Math.abs(localX) <= obj.w / 2 && Math.abs(localZ) <= obj.d / 2) {
+                    return obj;
+                }
+            }
+            return null;
+        }
+
+        function init2DEvents() {
+            canvas2D.addEventListener('mousedown', (e) => {
+                if (appState.viewMode !== '2d') return;
+                const rect = canvas2D.getBoundingClientRect();
+                const sx = e.clientX - rect.left;
+                const sy = e.clientY - rect.top;
+                const world = screenToWorld(sx, sy);
+
+                // Prawy przycisk myszy w trybie miarki natychmiast wyłącza miarkę i wraca do edycji mebli
+                if (e.button === 2 && appState.tools.rulerActive) {
+                    activateEditMode();
+                    return;
+                }
+
+                // Prawy przycisk myszy lub Środkowy -> Przesuwanie widoku (Pan)
+                if (e.button === 1 || e.button === 2 || e.spaceKey) {
+                    isPanning2D = true;
+                    panStart = { x: sx - appState.camera2D.x, y: sy - appState.camera2D.y };
+                    return;
+                }
+
+                // Tryb Miarki
+                if (appState.tools.rulerActive) {
+                    isDrawingRuler = true;
+                    appState.tools.rulerStart = { x: world.x, z: world.z };
+                    appState.tools.rulerEnd = { x: world.x, z: world.z };
+                    draw2DPlan();
+                    return;
+                }
+
+                // Sprawdź, czy kliknięto obiekt
+                const hit = getObjectAtWorldPos(world.x, world.z);
+                if (hit) {
+                    appState.selectedId = hit.uid;
+                    isDraggingObj = true;
+                    dragOffset = { x: world.x - hit.x, z: world.z - hit.z };
+                    updateInspectorUI();
+                    draw2DPlan();
+                } else {
+                    appState.selectedId = null;
+                    updateInspectorUI();
+                    isPanning2D = true;
+                    panStart = { x: sx - appState.camera2D.x, y: sy - appState.camera2D.y };
+                    draw2DPlan();
+                }
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (appState.viewMode !== '2d') return;
+                const rect = canvas2D.getBoundingClientRect();
+                const sx = e.clientX - rect.left;
+                const sy = e.clientY - rect.top;
+                const world = screenToWorld(sx, sy);
+
+                if (isDrawingRuler && appState.tools.rulerActive) {
+                    appState.tools.rulerEnd = { x: world.x, z: world.z };
+                    return;
+                }
+
+                if (isDraggingObj && appState.selectedId) {
+                    const obj = getSelectedObject();
+                    if (!obj) return;
+                    let nx = world.x - dragOffset.x;
+                    let nz = world.z - dragOffset.z;
+
+                    if (appState.grid.snap) {
+                        const step = appState.grid.snapStep;
+                        const aabb = getObjectAABB(obj);
+                        const halfW = aabb.effW / 2;
+                        const halfD = aabb.effD / 2;
+                        const snappedMinX = Math.round((nx - halfW) / step) * step;
+                        const snappedMinZ = Math.round((nz - halfD) / step) * step;
+                        nx = snappedMinX + halfW;
+                        nz = snappedMinZ + halfD;
+                    }
+
+                    obj.x = nx;
+                    obj.z = nz;
+                    clampObjectToRoom(obj);
+                    updateInspectorUI();
+                    return;
+                }
+
+                if (isPanning2D) {
+                    appState.camera2D.x = sx - panStart.x;
+                    appState.camera2D.y = sy - panStart.y;
+                    return;
+                }
+
+                // Hover efekt
+                const hit = getObjectAtWorldPos(world.x, world.z);
+                hoveredObjId = hit ? hit.uid : null;
+                canvas2D.style.cursor = appState.tools.rulerActive
+                    ? 'crosshair'
+                    : (hit ? 'move' : 'grab');
+            });
+
+            window.addEventListener('mouseup', () => {
+                if (isDraggingObj) {
+                    isDraggingObj = false;
+                    rebuild3DScene();
+                    saveToLocalStorage(false);
+                }
+                isPanning2D = false;
+                isDrawingRuler = false;
+            });
+
+            canvas2D.addEventListener('wheel', (e) => {
+                if (appState.viewMode !== '2d') return;
+                e.preventDefault();
+                const rect = canvas2D.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                const beforeWorld = screenToWorld(mouseX, mouseY);
+
+                const factor = e.deltaY < 0 ? 1.1 : 0.9;
+                appState.camera2D.zoom = Math.max(0.3, Math.min(4.5, appState.camera2D.zoom * factor));
+
+                const afterScreen = worldToScreen(beforeWorld.x, beforeWorld.z);
+                appState.camera2D.x += mouseX - afterScreen.x;
+                appState.camera2D.y += mouseY - afterScreen.y;
+            }, { passive: false });
+
+            canvas2D.addEventListener('contextmenu', e => e.preventDefault());
+
+            // Skróty klawiszowe (R - obrót, Delete - usuń, Esc - wyłącz miarkę i wróć do edycji)
+            window.addEventListener('keydown', (e) => {
+                if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+
+                if (e.key === 'r' || e.key === 'R') {
+                    rotateSelectedBy(45);
+                } else if (e.key === 'Delete' || e.key === 'Backspace') {
+                    deleteSelected();
+                } else if (e.key === 'Escape') {
+                    if (appState.tools.rulerActive) {
+                        activateEditMode();
+                    } else {
+                        appState.selectedId = null;
+                        updateInspectorUI();
+                    }
+                }
+            });
+        }
+
+        function activateEditMode() {
+            toggleRulerTool(false);
+            if (appState.viewMode !== '2d') {
+                switchView('2d');
+            }
+            showToast('Tryb edycji i przesuwania mebli aktywny');
+        }
+
+        function updateToolButtonsUI() {
+            const btnRuler = document.getElementById('btnRuler');
+            const btnSelect = document.getElementById('btnSelectTool');
+            const banner = document.getElementById('rulerBanner');
+
+            if (appState.tools.rulerActive) {
+                btnRuler.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 bg-amber-500 text-slate-950 shadow cursor-pointer';
+                if (btnSelect) {
+                    btnSelect.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 text-slate-300 hover:bg-slate-800 cursor-pointer';
+                }
+                banner.classList.remove('hidden');
+                if (canvas2D) canvas2D.style.cursor = 'crosshair';
+            } else {
+                btnRuler.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 text-slate-300 hover:bg-slate-800 cursor-pointer';
+                if (btnSelect) {
+                    btnSelect.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 bg-indigo-600 text-white shadow cursor-pointer';
+                }
+                banner.classList.add('hidden');
+                if (canvas2D) canvas2D.style.cursor = 'grab';
+            }
+        }
+
+        function toggleRulerTool(forceState) {
+            const nextState = typeof forceState === 'boolean' ? forceState : !appState.tools.rulerActive;
+            appState.tools.rulerActive = nextState;
+            isDrawingRuler = false;
+            isDraggingObj = false;
+            isPanning2D = false;
+
+            if (!appState.tools.rulerActive) {
+                appState.tools.rulerStart = null;
+                appState.tools.rulerEnd = null;
+            } else if (appState.viewMode === '3d') {
+                switchView('2d', true);
+            }
+
+            updateToolButtonsUI();
+            if (appState.viewMode === '2d') {
+                draw2DPlan();
+            }
+        }
+
+        function toggleAutoClearance() {
+            appState.tools.autoClearance = !appState.tools.autoClearance;
+            const btn = document.getElementById('btnClearance');
+            btn.className = appState.tools.autoClearance
+                ? 'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                : 'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 text-slate-400 hover:bg-slate-800';
+            rebuild3DScene();
+        }
+
+        // ============================================================================
+        // 10. SILNIK 3D (THREE.JS + PROCEDURALNE MODELE MEBLI I MASZYN WARSZTATOWYCH)
+        // ============================================================================
+        function init3DEngine() {
+            const mount = document.getElementById('threeCanvasMount');
+            scene3D = new THREE.Scene();
+            scene3D.background = new THREE.Color('#090d16');
+
+            camera3D = new THREE.PerspectiveCamera(48, 1, 5, 6000);
+            camera3D.position.set(650, 520, 720);
+
+            renderer3D = new THREE.WebGLRenderer({ antialias: true });
+            renderer3D.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer3D.shadowMap.enabled = true;
+            renderer3D.shadowMap.type = THREE.PCFSoftShadowMap;
+            mount.appendChild(renderer3D.domElement);
+
+            controls3D = new THREE.OrbitControls(camera3D, renderer3D.domElement);
+            controls3D.enableDamping = true;
+            controls3D.dampingFactor = 0.07;
+            controls3D.maxPolarAngle = Math.PI / 2 - 0.02; // Nie schodź poniżej poziomu podłogi
+            controls3D.minDistance = 80;
+            controls3D.maxDistance = 2500;
+
+            // Oświetlenie sceny 3D
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
+            scene3D.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0xfffbeb, 0.75);
+            dirLight.position.set(450, 800, 550);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 2048;
+            dirLight.shadow.mapSize.height = 2048;
+            dirLight.shadow.camera.near = 100;
+            dirLight.shadow.camera.far = 2500;
+            const d = 900;
+            dirLight.shadow.camera.left = -d;
+            dirLight.shadow.camera.right = d;
+            dirLight.shadow.camera.top = d;
+            dirLight.shadow.camera.bottom = -d;
+            scene3D.add(dirLight);
+
+            const hemiLight = new THREE.HemisphereLight(0x93c5fd, 0x1e293b, 0.25);
+            scene3D.add(hemiLight);
+
+            roomGroup3D = new THREE.Group();
+            objectsGroup3D = new THREE.Group();
+            clearanceGroup3D = new THREE.Group();
+            scene3D.add(roomGroup3D);
+            scene3D.add(objectsGroup3D);
+            scene3D.add(clearanceGroup3D);
+
+            // Klikanie obiektów bezpośrednio w widoku 3D (Raycasting)
+            let downTime = 0;
+            renderer3D.domElement.addEventListener('pointerdown', () => { downTime = Date.now(); });
+            renderer3D.domElement.addEventListener('pointerup', (e) => {
+                if (Date.now() - downTime > 220) return; // Ignoruj obrót kamery
+                const rect = renderer3D.domElement.getBoundingClientRect();
+                const mouse = new THREE.Vector2(
+                    ((e.clientX - rect.left) / rect.width) * 2 - 1,
+                    -((e.clientY - rect.top) / rect.height) * 2 + 1
+                );
+                const raycaster = new THREE.Raycaster();
+                raycaster.setFromCamera(mouse, camera3D);
+                const intersects = raycaster.intersectObjects(objectsGroup3D.children, true);
+                if (intersects.length > 0) {
+                    let node = intersects[0].object;
+                    while (node && !node.userData.uid && node.parent) {
+                        node = node.parent;
+                    }
+                    if (node && node.userData.uid) {
+                        appState.selectedId = node.userData.uid;
+                        updateInspectorUI();
+                        rebuild3DScene();
+                    }
+                }
+            });
+        }
+
+        // Generuje proceduralną teksturę podłogi na Canvasie (panele, płytki, beton z siatką)
+        function createFloorTexture(type, baseColor) {
+            const c = document.createElement('canvas');
+            c.width = 512;
+            c.height = 512;
+            const ctx = c.getContext('2d');
+
+            ctx.fillStyle = baseColor;
+            ctx.fillRect(0, 0, 512, 512);
+
+            if (type === 'wood_oak' || type === 'wood_walnut') {
+                ctx.strokeStyle = 'rgba(0,0,0,0.18)';
+                ctx.lineWidth = 2;
+                const planks = 8;
+                const step = 512 / planks;
+                for (let i = 0; i <= planks; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, i * step);
+                    ctx.lineTo(512, i * step);
+                    ctx.stroke();
+
+                    const jointX = (i * 170) % 512;
+                    ctx.beginPath();
+                    ctx.moveTo(jointX, i * step);
+                    ctx.lineTo(jointX, (i + 1) * step);
+                    ctx.stroke();
+                }
+            } else if (type === 'tiles_gray') {
+                ctx.strokeStyle = 'rgba(255,255,255,0.22)';
+                ctx.lineWidth = 3;
+                for (let i = 0; i <= 4; i++) {
+                    const p = i * 128;
+                    ctx.beginPath();
+                    ctx.moveTo(p, 0); ctx.lineTo(p, 512);
+                    ctx.moveTo(0, p); ctx.lineTo(512, p);
+                    ctx.stroke();
+                }
+            } else if (type === 'concrete') {
+                // Dylatacje posadzki warsztatowej co metr
+                ctx.strokeStyle = 'rgba(15, 23, 42, 0.28)';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(2, 2, 508, 508);
+            }
+
+            const tex = new THREE.CanvasTexture(c);
+            tex.wrapS = THREE.RepeatWrapping;
+            tex.wrapT = THREE.RepeatWrapping;
+            tex.repeat.set(appState.room.width / 100, appState.room.length / 100);
+            return tex;
+        }
+
+        function rebuild3DScene() {
+            if (!scene3D) return;
+
+            // Wyczyść poprzednie grupy
+            while (roomGroup3D.children.length) roomGroup3D.remove(roomGroup3D.children[0]);
+            while (objectsGroup3D.children.length) objectsGroup3D.remove(objectsGroup3D.children[0]);
+            while (clearanceGroup3D.children.length) clearanceGroup3D.remove(clearanceGroup3D.children[0]);
+            wallMeshes3D = [];
+
+            const rw = appState.room.width;
+            const rl = appState.room.length;
+            const rh = appState.room.height;
+
+            // Środek pokoju w 3D ustawiamy w (0, 0, 0), aby łatwo obracać kamerą wokół centrum
+            const offsetX = -rw / 2;
+            const offsetZ = -rl / 2;
+
+            // 1. Podłoga
+            const floorTex = createFloorTexture(appState.room.floorType, appState.room.floorColor);
+            const floorGeo = new THREE.BoxGeometry(rw + 24, 6, rl + 24);
+            const floorMat = new THREE.MeshStandardMaterial({
+                map: floorTex,
+                roughness: appState.room.floorType === 'concrete' ? 0.6 : 0.4,
+                metalness: 0.05
+            });
+            const floorMesh = new THREE.Mesh(floorGeo, floorMat);
+            floorMesh.position.set(0, -3, 0);
+            floorMesh.receiveShadow = true;
+            roomGroup3D.add(floorMesh);
+
+            // Delikatna siatka metrowa na podłodze w 3D
+            const gridHelper = new THREE.GridHelper(Math.max(rw, rl) + 200, Math.round((Math.max(rw, rl) + 200) / 50), 0x334155, 0x1e293b);
+            gridHelper.position.y = -5.8;
+            roomGroup3D.add(gridHelper);
+
+            // 2. Cztery Ściany (z obsługą dynamicznego ukrywania ścian zasłaniających kamerę)
+            const wallThickness = 12;
+            const createWall = (w, h, d, x, y, z, normalVec) => {
+                const mat = new THREE.MeshStandardMaterial({
+                    color: appState.room.wallColor,
+                    roughness: 0.85,
+                    transparent: true,
+                    opacity: 1.0
+                });
+                const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+                mesh.position.set(x, y, z);
+                mesh.receiveShadow = true;
+                mesh.userData.normal = normalVec;
+                roomGroup3D.add(mesh);
+                wallMeshes3D.push(mesh);
+            };
+
+            // Północna (Góra z=0 w 2D)
+            createWall(rw + wallThickness * 2, rh, wallThickness, 0, rh / 2, offsetZ - wallThickness / 2, new THREE.Vector3(0, 0, 1));
+            // Południowa (Dół z=length w 2D)
+            createWall(rw + wallThickness * 2, rh, wallThickness, 0, rh / 2, -offsetZ + wallThickness / 2, new THREE.Vector3(0, 0, -1));
+            // Zachodnia (Lewo x=0 w 2D)
+            createWall(wallThickness, rh, rl, offsetX - wallThickness / 2, rh / 2, 0, new THREE.Vector3(1, 0, 0));
+            // Wschodnia (Prawo x=width w 2D)
+            createWall(wallThickness, rh, rl, -offsetX + wallThickness / 2, rh / 2, 0, new THREE.Vector3(-1, 0, 0));
+
+            // 3. Budowanie trójwymiarowych modeli wszystkich obiektów na planie
+            appState.objects.forEach(obj => {
+                const meshGroup = build3DFurnitureModel(obj);
+                meshGroup.position.set(
+                    offsetX + obj.x,
+                    obj.elevation || 0,
+                    offsetZ + obj.z
+                );
+                meshGroup.rotation.y = -(obj.rotation || 0) * Math.PI / 180;
+                meshGroup.userData.uid = obj.uid;
+
+                // Podświetlenie obrysu jeśli obiekt jest aktualnie wybrany
+                if (obj.uid === appState.selectedId) {
+                    const boxGeo = new THREE.BoxGeometry(obj.w + 3, obj.h + 3, obj.d + 3);
+                    const edges = new THREE.EdgesGeometry(boxGeo);
+                    const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x38bdf8 }));
+                    line.position.y = obj.h / 2;
+                    meshGroup.add(line);
+                }
+
+                objectsGroup3D.add(meshGroup);
+            });
+
+            // 4. Wizualizacja wolnego przejścia w 3D (dla zaznaczonego obiektu)
+            const sel = getSelectedObject();
+            if (sel && appState.tools.autoClearance) {
+                const cl = computeClearances(sel);
+                [cl.left, cl.right, cl.top, cl.bottom].forEach(item => {
+                    if (item.dist < 5) return;
+                    const colorHex = item.dist < 55 ? 0xf43f5e : (item.dist < 80 ? 0xf59e0b : 0x10b981);
+                    const p1 = new THREE.Vector3(offsetX + item.x1, 3, offsetZ + item.z1);
+                    const p2 = new THREE.Vector3(offsetX + item.x2, 3, offsetZ + item.z2);
+
+                    const lineGeo = new THREE.BufferGeometry().setFromPoints([p1, p2]);
+                    const lineMat = new THREE.LineBasicMaterial({ color: colorHex });
+                    clearanceGroup3D.add(new THREE.Line(lineGeo, lineMat));
+                });
+            }
+        }
+
+        // Tworzy realistyczny model 3D złożony z części (blaty, nogi, koła, oparcia, szyby) w zależności od typu
+        function build3DFurnitureModel(obj) {
+            const group = new THREE.Group();
+            const w = obj.w;
+            const d = obj.d;
+            const h = obj.h;
+
+            const mainMat = new THREE.MeshStandardMaterial({ color: obj.color || '#64748b', roughness: 0.55, metalness: 0.1 });
+            const darkMetalMat = new THREE.MeshStandardMaterial({ color: '#1e293b', roughness: 0.4, metalness: 0.6 });
+            const steelMat = new THREE.MeshStandardMaterial({ color: '#94a3b8', roughness: 0.3, metalness: 0.7 });
+            const woodTopMat = new THREE.MeshStandardMaterial({ color: '#d4a373', roughness: 0.5 });
+
+            const addBox = (bw, bh, bd, x, y, z, mat) => {
+                const m = new THREE.Mesh(new THREE.BoxGeometry(bw, bh, bd), mat);
+                m.position.set(x, y, z);
+                m.castShadow = true;
+                m.receiveShadow = true;
+                group.add(m);
+                return m;
+            };
+
+            if (obj.type === 'desk' || obj.type === 'desk_gamer' || obj.type === 'table') {
+                // Blat
+                const topThick = 4;
+                addBox(w, topThick, d, 0, h - topThick / 2, 0, mainMat);
+                // 4 nogi
+                const legW = 5;
+                const legH = h - topThick;
+                const ox = w / 2 - legW;
+                const oz = d / 2 - legW;
+                addBox(legW, legH, legW, -ox, legH / 2, -oz, darkMetalMat);
+                addBox(legW, legH, legW, ox, legH / 2, -oz, darkMetalMat);
+                addBox(legW, legH, legW, -ox, legH / 2, oz, darkMetalMat);
+                addBox(legW, legH, legW, ox, legH / 2, oz, darkMetalMat);
+
+                if (obj.type === 'desk' || obj.type === 'desk_gamer') {
+                    // Monitor na biurku
+                    addBox(Math.min(60, w * 0.45), 34, 4, 0, h + 22, -d / 2 + 14, darkMetalMat);
+                    addBox(14, 8, 12, 0, h + 4, -d / 2 + 14, darkMetalMat);
+                }
+            } else if (obj.type === 'workbench') {
+                // Stół warsztatowy: gruby drewniany blat, stalowe nogi, dolna półka i ścianka narzędziowa
+                addBox(w, 6, d, 0, h - 3, 0, woodTopMat);
+                addBox(w - 8, 32, d - 6, 0, h - 22, 0, mainMat); // Szafka podblatowa
+                const legW = 6;
+                const ox = w / 2 - legW / 2;
+                const oz = d / 2 - legW / 2;
+                addBox(legW, h - 6, legW, -ox, (h - 6) / 2, -oz, darkMetalMat);
+                addBox(legW, h - 6, legW, ox, (h - 6) / 2, -oz, darkMetalMat);
+                addBox(legW, h - 6, legW, -ox, (h - 6) / 2, oz, darkMetalMat);
+                addBox(legW, h - 6, legW, ox, (h - 6) / 2, oz, darkMetalMat);
+                // Imadło warsztatowe na rogu
+                addBox(16, 14, 22, w / 3, h + 7, d / 2 - 10, steelMat);
+            } else if (obj.type === 'rack' || obj.type === 'shelf') {
+                // Regał z 4-5 półkami i słupkami narożnymi
+                const post = 4;
+                const ox = w / 2 - post / 2;
+                const oz = d / 2 - post / 2;
+                addBox(post, h, post, -ox, h / 2, -oz, darkMetalMat);
+                addBox(post, h, post, ox, h / 2, -oz, darkMetalMat);
+                addBox(post, h, post, -ox, h / 2, oz, darkMetalMat);
+                addBox(post, h, post, ox, h / 2, oz, darkMetalMat);
+
+                const shelves = 5;
+                for (let i = 0; i < shelves; i++) {
+                    const sy = 8 + (i * (h - 12)) / (shelves - 1);
+                    addBox(w, 3, d, 0, sy, 0, mainMat);
+                }
+            } else if (obj.type === 'bed' || obj.type === 'bed_single') {
+                // Rama łóżka, materac i zagłówek
+                addBox(w, 28, d, 0, 14, 0, mainMat);
+                const matWhite = new THREE.MeshStandardMaterial({ color: '#f8fafc', roughness: 0.8 });
+                addBox(w - 8, 18, d - 12, 0, 34, 4, matWhite); // Materac
+                addBox(w, h, 10, 0, h / 2, -d / 2 + 5, mainMat); // Zagłówek
+            } else if (obj.type === 'sofa') {
+                addBox(w, 42, d, 0, 21, 0, mainMat); // Siedzisko
+                addBox(w, h, 22, 0, h / 2, -d / 2 + 11, mainMat); // Oparcie
+                addBox(18, 58, d, -w / 2 + 9, 29, 0, mainMat); // Podłokietnik L
+                addBox(18, 58, d, w / 2 - 9, 29, 0, mainMat); // Podłokietnik P
+            } else if (obj.type === 'chair') {
+                addBox(w * 0.8, 8, d * 0.8, 0, 46, 0, mainMat); // Siedzisko
+                addBox(w * 0.75, h - 46, 8, 0, 46 + (h - 46) / 2, -d * 0.35, mainMat); // Oparcie
+                addBox(8, 44, 8, 0, 22, 0, darkMetalMat); // Kolumna
+                addBox(w * 0.7, 4, d * 0.7, 0, 4, 0, darkMetalMat); // Krzyżak
+            } else if (obj.type === 'car') {
+                // Bryła samochodu warsztatowego
+                addBox(w, h * 0.48, d, 0, h * 0.28, 0, mainMat); // Nadwozie dolne
+                addBox(w * 0.86, h * 0.42, d * 0.52, 0, h * 0.72, -d * 0.05, mainMat); // Kabina
+                // Koła
+                const wheelW = 18, wheelH = 62;
+                addBox(wheelW, wheelH, wheelH, -w / 2 + 4, wheelH / 2, -d * 0.3, darkMetalMat);
+                addBox(wheelW, wheelH, wheelH, w / 2 - 4, wheelH / 2, -d * 0.3, darkMetalMat);
+                addBox(wheelW, wheelH, wheelH, -w / 2 + 4, wheelH / 2, d * 0.3, darkMetalMat);
+                addBox(wheelW, wheelH, wheelH, w / 2 - 4, wheelH / 2, d * 0.3, darkMetalMat);
+            } else if (obj.type === 'window') {
+                const glassMat = new THREE.MeshStandardMaterial({ color: '#38bdf8', transparent: true, opacity: 0.45, roughness: 0.1 });
+                addBox(w, h, d, 0, h / 2, 0, glassMat);
+                addBox(w + 4, 6, d + 4, 0, 3, 0, darkMetalMat); // Parapet
+            } else {
+                // Domyślna bryła (szafy, wózki narzędziowe, maszyny, drzwi)
+                addBox(w, h, d, 0, h / 2, 0, mainMat);
+                // Subtelny detal frontu
+                addBox(w * 0.85, h * 0.85, 2, 0, h / 2, d / 2 + 0.5, steelMat);
+            }
+
+            return group;
+        }
+
+        function set3DCameraPreset(preset) {
+            if (!camera3D || !controls3D) return;
+            const maxDim = Math.max(appState.room.width, appState.room.length);
+            if (preset === 'top') {
+                camera3D.position.set(0, maxDim * 1.35, 10);
+                controls3D.target.set(0, 0, 0);
+            } else if (preset === 'iso') {
+                camera3D.position.set(maxDim * 0.85, maxDim * 0.75, maxDim * 0.95);
+                controls3D.target.set(0, 40, 0);
+            } else if (preset === 'human') {
+                // Kamera na wysokości wzroku człowieka (170 cm) przy wejściu do pomieszczenia
+                camera3D.position.set(0, 170, appState.room.length * 0.42);
+                controls3D.target.set(0, 120, -appState.room.length * 0.25);
+            }
+            controls3D.update();
+        }
+
+        // ============================================================================
+        // 11. PRZEŁĄCZANIE WIDOKU 2D / 3D I PĘTLA RENDEROWANIA
+        // ============================================================================
+        function switchView(mode, keepRuler = false) {
+            appState.viewMode = mode;
+            const is2D = mode === '2d';
+
+            // Zresetuj stany przeciągania, aby nic się nie zablokowało przy zmianie widoku
+            isDraggingObj = false;
+            isPanning2D = false;
+            isDrawingRuler = false;
+
+            // Przy powrocie do 2D automatycznie przywróć tryb edycji mebli (chyba że przełączono celowo z przycisku miarki)
+            if (is2D && !keepRuler && appState.tools.rulerActive) {
+                appState.tools.rulerActive = false;
+                appState.tools.rulerStart = null;
+                appState.tools.rulerEnd = null;
+            }
+            updateToolButtonsUI();
+
+            const c2d = document.getElementById('view2DContainer');
+            const c3d = document.getElementById('view3DContainer');
+            const backBtn = document.getElementById('btnFloatingBack2D');
+
+            if (is2D) {
+                c2d.classList.remove('hidden');
+                c2d.style.display = 'block';
+                c2d.style.pointerEvents = 'auto';
+
+                c3d.classList.add('hidden');
+                c3d.style.display = 'none';
+                c3d.style.pointerEvents = 'none';
+
+                if (controls3D) controls3D.enabled = false;
+                if (backBtn) {
+                    backBtn.classList.add('hidden');
+                    backBtn.classList.remove('flex');
+                }
+            } else {
+                c2d.classList.add('hidden');
+                c2d.style.display = 'none';
+                c2d.style.pointerEvents = 'none';
+
+                c3d.classList.remove('hidden');
+                c3d.style.display = 'block';
+                c3d.style.pointerEvents = 'auto';
+
+                if (controls3D) controls3D.enabled = true;
+                if (backBtn) {
+                    backBtn.classList.remove('hidden');
+                    backBtn.classList.add('flex');
+                }
+            }
+
+            document.getElementById('controls3DExtra').classList.toggle('hidden', is2D);
+            document.getElementById('controls3DExtra').classList.toggle('flex', !is2D);
+
+            document.getElementById('btnView2D').className = is2D
+                ? 'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 bg-blue-600 text-white shadow cursor-pointer'
+                : 'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 text-slate-400 hover:text-white cursor-pointer';
+
+            document.getElementById('btnView3D').className = !is2D
+                ? 'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 bg-blue-600 text-white shadow cursor-pointer'
+                : 'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 text-slate-400 hover:text-white cursor-pointer';
+
+            const hintText = document.getElementById('hintText');
+            if (is2D) {
+                hintText.innerHTML = '<strong>Widok 2D:</strong> Przeciągaj meble LPM. <kbd class="px-1.5 py-0.5 bg-slate-800 rounded text-[10px] font-mono">R</kbd> obraca o 45°, <kbd class="px-1.5 py-0.5 bg-slate-800 rounded text-[10px] font-mono">Del</kbd> usuwa, kółko myszy przybliża.';
+                handleResize();
+                // Jeśli kamera 2D nie była jeszcze poprawnie zainicjalizowana, wycentruj widok
+                if (!appState.camera2D.zoom || canvas2D.width === 0) {
+                    resetCameraView();
+                }
+                draw2DPlan();
+            } else {
+                hintText.innerHTML = '<strong>Wizualizacja 3D:</strong> Obracaj kamerę LPM, aby ocenić realną ilość miejsca i wysokość mebli. Kliknij obiekt, aby go edytować.';
+                handleResize();
+                rebuild3DScene();
+            }
+        }
+
+        function handleResize() {
+            const container2D = document.getElementById('view2DContainer');
+            if (container2D && canvas2D && container2D.clientWidth > 0 && container2D.clientHeight > 0) {
+                canvas2D.width = container2D.clientWidth;
+                canvas2D.height = container2D.clientHeight;
+            }
+
+            const container3D = document.getElementById('view3DContainer');
+            if (container3D && renderer3D && camera3D && container3D.clientWidth > 0 && container3D.clientHeight > 0) {
+                const w = container3D.clientWidth;
+                const h = container3D.clientHeight;
+                camera3D.aspect = w / h;
+                camera3D.updateProjectionMatrix();
+                renderer3D.setSize(w, h);
+            }
+        }
+
+        function renderLoop() {
+            if (appState.viewMode === '2d') {
+                draw2DPlan();
+            } else if (renderer3D && scene3D && camera3D) {
+                controls3D.update();
+
+                // Automatyczne przygaszanie ścian zasłaniających widok kamery w 3D
+                if (appState.room.autoHideWalls) {
+                    const camDir = new THREE.Vector3();
+                    camera3D.getWorldDirection(camDir);
+                    wallMeshes3D.forEach(wall => {
+                        const dot = camDir.dot(wall.userData.normal);
+                        // Jeśli ściana jest po stronie kamery (patrzymy przez nią do środka), zmniejsz jej krycie
+                        wall.material.opacity = dot > 0.15 ? 0.12 : 0.95;
+                    });
+                } else {
+                    wallMeshes3D.forEach(wall => { wall.material.opacity = 1.0; });
+                }
+
+                renderer3D.render(scene3D, camera3D);
+            }
+            requestAnimationFrame(renderLoop);
+        }
+
+        // ============================================================================
+        // 12. ZAPIS I EKSPORT / IMPORT PROJEKTU (LOCALSTORAGE + JSON)
+        // ============================================================================
+        function saveToLocalStorage(showNotification = true) {
+            try {
+                const payload = {
+                    room: appState.room,
+                    objects: appState.objects
+                };
+                localStorage.setItem('architektpro_project_v1', JSON.stringify(payload));
+                if (showNotification) showToast('Zapisano projekt w pamięci przeglądarki');
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function exportJSON() {
+            const payload = {
+                app: 'ArchitektPro 2D/3D',
+                timestamp: new Date().toISOString(),
+                room: appState.room,
+                objects: appState.objects
+            };
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `plan_pomieszczenia_${appState.room.width}x${appState.room.length}cm.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Pobrano plik projektu (.json)');
+        }
+
+        function importJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data && data.room && Array.isArray(data.objects)) {
+                        appState.room = { ...appState.room, ...data.room };
+                        appState.objects = data.objects;
+                        appState.selectedId = null;
+                        syncRoomUIFromState();
+                        updateInspectorUI();
+                        updateAreaSummary();
+                        rebuild3DScene();
+                        resetCameraView();
+                        saveToLocalStorage(false);
+                        showToast('Pomyślnie wczytano projekt z pliku!');
+                    }
+                } catch (err) {
+                    showToast('Błąd formatu pliku JSON');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        let toastTimer = null;
+        function showToast(msg) {
+            const el = document.getElementById('toastNotice');
+            document.getElementById('toastText').textContent = msg;
+            el.classList.remove('opacity-0', 'translate-y-2');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                el.classList.add('opacity-0', 'translate-y-2');
+            }, 2600);
+        }
+    </script>
+</body>
+</html>

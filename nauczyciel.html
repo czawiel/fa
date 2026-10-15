@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="pl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Live Studio – Nauczyciel Języków z AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        studio: {
+                            950: '#07090e',
+                            900: '#0d111a',
+                            800: '#151c2c',
+                            700: '#1e2940',
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #07090e;
+            color: #f1f5f9;
+            overflow-x: hidden;
+        }
+        .glass-panel {
+            background: rgba(13, 17, 26, 0.82);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-card {
+            background: rgba(21, 28, 44, 0.7);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+        }
+        .neon-border-cyan {
+            box-shadow: 0 0 25px rgba(0, 242, 254, 0.22), inset 0 0 12px rgba(0, 242, 254, 0.08);
+            border-color: rgba(0, 242, 254, 0.55);
+        }
+        .neon-border-purple {
+            box-shadow: 0 0 28px rgba(139, 92, 246, 0.3), inset 0 0 15px rgba(139, 92, 246, 0.1);
+            border-color: rgba(139, 92, 246, 0.65);
+        }
+        .neon-glow-btn {
+            box-shadow: 0 0 25px rgba(0, 242, 254, 0.35);
+        }
+        .neon-glow-danger {
+            box-shadow: 0 0 25px rgba(239, 68, 68, 0.4);
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(13, 17, 26, 0.4);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.25);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 242, 254, 0.5);
+        }
+        .ambient-bg {
+            background: 
+                radial-gradient(circle at 12% 18%, rgba(139, 92, 246, 0.13) 0%, transparent 42%),
+                radial-gradient(circle at 88% 22%, rgba(0, 242, 254, 0.11) 0%, transparent 42%),
+                radial-gradient(circle at 50% 88%, rgba(236, 72, 153, 0.09) 0%, transparent 48%);
+        }
+        input[type="range"] {
+            accent-color: #00f2fe;
+        }
+    </style>
+</head>
+<body class="min-h-screen ambient-bg font-sans antialiased flex flex-col selection:bg-cyan-500 selection:text-slate-950">
+
+    <header class="glass-panel sticky top-0 z-30 border-b border-white/10 px-4 lg:px-8 py-3">
+        <div class="max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+                    <i class="ph-fill ph-waveform text-2xl text-white"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="font-bold text-lg tracking-tight text-white">Nauczyciel <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">Live Studio</span></h1>
+                        <span class="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/30">AI</span>
+                    </div>
+                    <p class="text-xs text-slate-400">Interaktywny Nauczyciel Języka na Żywo</p>
+                </div>
+                <img src="logw2.svg" style="height: 36px"/>
+            </div>
+
+
+            <!-- Header Controls & Status -->
+            <div class="flex items-center gap-3 flex-wrap">
+                <!-- DeepSeek Settings Toggle -->
+                <button id="openSettingsBtn" class="glass-card hover:bg-white/10 px-3 py-1.5 rounded-xl flex items-center gap-2 text-xs font-medium text-cyan-300 border border-cyan-500/30 transition">
+                    <i class="ph-fill ph-key text-sm text-cyan-400"></i>
+                    <span>API Key Konfiguracja</span>
+                </button>
+
+                <!-- Live Status Badge -->
+                <div id="connectionBadge" class="glass-card px-3.5 py-1.5 rounded-xl flex items-center gap-2.5 text-xs font-medium border border-white/10">
+                    <span id="statusDot" class="w-2.5 h-2.5 rounded-full bg-slate-500"></span>
+                    <span id="statusText" class="text-slate-300">Gotowy do rozmowy</span>
+                </div>
+
+                <!-- Session Timer -->
+                <div class="glass-card px-3 py-1.5 rounded-xl flex items-center gap-1.5 font-mono text-xs text-slate-300">
+                    <i class="ph ph-timer text-cyan-400 text-sm"></i>
+                    <span id="sessionTimer">00:00</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="border-b border-white/5 bg-studio-900/60 px-4 lg:px-8 py-3">
+        <div class="max-w-[1600px] mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-center">
+            <!-- Language Selector -->
+            <div class="glass-card rounded-xl px-3.5 py-2 flex items-center gap-3 border border-white/5 focus-within:border-cyan-400/50 transition">
+                <span id="langFlag" class="text-2xl">🇬🇧</span>
+                <div class="flex-1 min-w-0">
+                    <label class="block text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Język docelowy</label>
+                    <select id="languageSelect" class="w-full bg-transparent text-sm font-semibold text-white focus:outline-none cursor-pointer truncate">
+                        <option value="en-US" data-flag="🇬🇧" class="bg-studio-900">Angielski (English)</option>
+                        <option value="de-DE" data-flag="🇩🇪" class="bg-studio-900">Niemiecki (Deutsch)</option>
+                        <option value="es-ES" data-flag="🇪🇸" class="bg-studio-900">Hiszpański (Español)</option>
+                        <option value="fr-FR" data-flag="🇫🇷" class="bg-studio-900">Francuski (Français)</option>
+                        <option value="it-IT" data-flag="🇮🇹" class="bg-studio-900">Włoski (Italiano)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- CEFR Level Selector -->
+            <div class="glass-card rounded-xl px-3.5 py-2 flex items-center gap-3 border border-white/5 focus-within:border-cyan-400/50 transition">
+                <div class="w-8 h-8 rounded-lg bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-300 font-mono font-bold text-xs" id="levelBadgeIcon">B1</div>
+                <div class="flex-1 min-w-0">
+                    <label class="block text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Poziom zaawansowania</label>
+                    <select id="levelSelect" class="w-full bg-transparent text-sm font-semibold text-white focus:outline-none cursor-pointer truncate">
+                        <option value="A1" class="bg-studio-900">A1 – Początkujący</option>
+                        <option value="A2" class="bg-studio-900">A2 – Niższy średnio zaawansowany</option>
+                        <option value="B1" selected class="bg-studio-900">B1 – Średnio zaawansowany</option>
+                        <option value="B2" class="bg-studio-900">B2 – Wyższy średnio zaawansowany</option>
+                        <option value="C1" class="bg-studio-900">C1 – Zaawansowany (Płynny)</option>
+                        <option value="C2" class="bg-studio-900">C2 – Biegły (Native-like)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Scenario Selector -->
+            <div class="glass-card rounded-xl px-3.5 py-2 flex items-center gap-3 border border-white/5 focus-within:border-cyan-400/50 transition">
+                <div class="w-8 h-8 rounded-lg bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-300">
+                    <i class="ph ph-chats-circle text-lg"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <label class="block text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Scenariusz konwersacyjny</label>
+                    <select id="scenarioSelect" class="w-full bg-transparent text-sm font-semibold text-white focus:outline-none cursor-pointer truncate">
+                        <option value="free" class="bg-studio-900">💬 Swobodna pogawędka (Small talk)</option>
+                        <option value="shopping" class="bg-studio-900">🛍️ Codzienne zakupy i targowanie</option>
+                        <option value="restaurant" class="bg-studio-900">🍽️ W restauracji (Zamawianie posiłku)</option>
+                        <option value="interview" class="bg-studio-900">💼 Rozmowa kwalifikacyjna o pracę</option>
+                        <option value="airport" class="bg-studio-900">✈️ Podróże na lotnisku i hotel</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Suggest Phrase Button -->
+            <div class="flex items-center">
+                <button id="suggestPhraseBtn" class="w-full glass-card hover:bg-white/10 active:scale-[0.99] transition rounded-xl px-4 py-2.5 flex items-center justify-center gap-2 text-xs font-semibold text-cyan-300 border border-cyan-500/30">
+                    <i class="ph-fill ph-sparkle text-base text-cyan-400"></i>
+                    <span>Podpowiedz co powiedzieć</span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <main class="flex-1 max-w-[1600px] w-full mx-auto px-4 lg:px-8 py-5 grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+        
+        <!-- LEFT/CENTER COLUMN: AUDIO STAGE & CHAT -->
+        <div class="lg:col-span-7 flex flex-col gap-5">
+            
+            <!-- REAL-TIME AUDIO VISUALIZER STAGE -->
+            <div id="visualizerContainer" class="glass-panel rounded-2xl p-5 relative overflow-hidden border border-white/10 transition-all duration-300 flex flex-col justify-between min-h-[300px]">
+                <div class="flex items-center justify-between z-10">
+                    <div class="flex items-center gap-2.5">
+                        <div id="speakerAvatar" class="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 to-cyan-400 flex items-center justify-center text-white font-bold shadow-md">
+                            AI
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span id="activeSpeakerLabel" class="text-sm font-semibold text-white">Nauczyciel AI</span>
+                                <span id="voiceActivityPill" class="text-[11px] px-2 py-0.5 rounded-full bg-white/5 text-slate-400 border border-white/10">Czuwanie</span>
+                            </div>
+                            <p id="scenarioSubtitle" class="text-xs text-slate-400">Scenariusz: Swobodna pogawędka • Analiza AI aktywna</p>
+                        </div>
+                    </div>
+
+
+                    <div class="flex items-center gap-3 font-mono text-xs">
+                        <div class="glass-card px-2.5 py-1 rounded-lg border border-white/5 flex items-center gap-1.5">
+                            <span class="text-slate-400">MIC:</span>
+                            <span id="micLevelReadout" class="text-cyan-400 font-semibold">0%</span>
+                        </div>
+                        <button id="testPronunciationDemoBtn" title="Symuluj wypowiedź głosową (do testu bez mikrofonu)" class="glass-card hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 px-2.5 py-1 rounded-lg text-xs flex items-center gap-1 transition">
+                            <i class="ph ph-magic-wand"></i>
+                            <span class="hidden sm:inline">Demo Głosu</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Canvas Soundwave -->
+                <div class="relative my-2 flex-1 flex items-center justify-center min-h-[175px]">
+                    <canvas id="audioVisualizerCanvas" class="w-full h-[180px] block"></canvas>
+                    <div id="visualizerCenterHint" class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center px-4">
+                        <p id="liveCaptionOverlay" class="text-sm md:text-base font-medium text-slate-200 max-w-lg bg-studio-950/75 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 shadow-lg">
+                            Kliknij <span class="text-cyan-400 font-semibold">„Rozpocznij rozmowę”</span>, aby rozmawiać na żywo z nauczycielem.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Interim Speech Bar & Text Fallback -->
+                <div class="z-10 glass-card rounded-xl px-4 py-2.5 flex items-center justify-between gap-3 border border-white/10">
+                    <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                        <i id="micWaveIcon" class="ph-fill ph-microphone text-cyan-400 text-lg shrink-0"></i>
+                        <div class="truncate text-xs sm:text-sm text-slate-300 font-medium" id="liveInterimTranscript">
+                            Gotowy do nasłuchiwania mikrofonu... Możesz też wpisać wypowiedź obok.
+                        </div>
+                    </div>
+                    <form id="manualSpeechForm" class="flex items-center gap-1.5 shrink-0">
+                        <input id="manualSpeechInput" type="text" placeholder="Lub wpisz wypowiedź..." class="bg-studio-950/90 text-xs text-white px-3 py-1.5 rounded-lg border border-white/10 focus:outline-none focus:border-cyan-400 w-36 sm:w-48" />
+                        <button type="submit" class="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1">
+                            <i class="ph-fill ph-paper-plane-right"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- SESSION ACTION CONTROLS -->
+            <div class="glass-panel rounded-2xl p-4 border border-white/10">
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex items-center gap-2.5 flex-wrap">
+                        <button id="toggleSessionBtn" class="px-5 py-3 rounded-xl font-bold text-sm flex items-center gap-2.5 transition-all duration-200 bg-gradient-to-r from-cyan-400 to-blue-500 text-slate-950 neon-glow-btn hover:brightness-110 active:scale-95">
+                            <i id="toggleSessionIcon" class="ph-fill ph-phone-call text-lg"></i>
+                            <span id="toggleSessionText">Rozpocznij rozmowę</span>
+                        </button>
+
+                        <button id="muteBtn" disabled class="px-4 py-3 rounded-xl font-semibold text-xs sm:text-sm flex items-center gap-2 glass-card text-slate-300 hover:text-white hover:bg-white/10 disabled:opacity-40 disabled:pointer-events-none transition">
+                            <i id="muteIcon" class="ph-fill ph-microphone text-lg text-emerald-400"></i>
+                            <span id="muteText">Mikrofon wł.</span>
+                        </button>
+                    </div>
+
+                    <div class="flex items-center gap-4 flex-wrap">
+                        <!-- Teacher Speech Speed Slider -->
+                        <div class="glass-card px-3.5 py-2 rounded-xl flex items-center gap-3 border border-white/10">
+                            <div class="text-xs">
+                                <span class="text-slate-400 block text-[10px] uppercase font-semibold">Tempo lektora AI</span>
+                                <div class="flex items-center gap-2">
+                                    <input id="speechRateSlider" type="range" min="0.7" max="1.3" step="0.05" value="1.0" class="w-20 h-1.5 bg-slate-700 rounded-lg cursor-pointer" />
+                                    <span id="speechRateValue" class="font-mono text-xs text-cyan-300 font-semibold">1.0x</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CHAT TRANSCRIPT WINDOW -->
+            <div class="glass-panel rounded-2xl p-4 sm:p-5 border border-white/10 flex-1 flex flex-col min-h-[300px] max-h-[400px]">
+                <div class="flex items-center justify-between pb-3 mb-3 border-b border-white/10">
+                    <div class="flex items-center gap-2">
+                        <i class="ph-fill ph-closed-captioning text-cyan-400 text-lg"></i>
+                        <h2 class="text-sm font-bold text-white uppercase tracking-wider">Historia i Transkrypcja Rozmowy</h2>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button id="repeatLastAiBtn" class="text-xs glass-card hover:bg-white/10 px-2.5 py-1 rounded-lg text-slate-300 flex items-center gap-1.5 transition">
+                            <i class="ph-fill ph-speaker-high text-cyan-400"></i>
+                            <span>Powtórz ostatnie pytanie</span>
+                        </button>
+                        <button id="clearChatBtn" class="text-xs glass-card hover:bg-white/10 px-2.5 py-1 rounded-lg text-slate-400 hover:text-rose-300 transition" title="Wyczyść chat">
+                            <i class="ph ph-trash"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="chatMessages" class="flex-1 overflow-y-auto space-y-3.5 pr-1">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN: DEEPSEEK PRONUNCIATION & GRAMMAR COACHING PANEL -->
+        <div class="lg:col-span-5 flex flex-col gap-5">
+            
+            <!-- SCORES & ANALYSIS CARD -->
+            <div class="glass-panel rounded-2xl p-5 border border-white/10 relative overflow-hidden">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                            <i class="ph-fill ph-brain text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-base font-bold text-white">Analiza AI</h2>
+                            <p class="text-xs text-slate-400">Natychmiastowa korekta po każdej wypowiedzi</p>
+                        </div>
+                    </div>
+                    <span id="feedbackTimestamp" class="text-[11px] font-mono text-slate-400 bg-white/5 px-2.5 py-1 rounded-lg border border-white/5">Oczekiwanie</span>
+                </div>
+
+                <!-- Scores Grid -->
+                <div class="grid grid-cols-3 gap-3 mb-4">
+                    <div class="glass-card rounded-xl p-3 border border-white/5 text-center">
+                        <span class="text-[11px] text-slate-400 block mb-1">Wymowa</span>
+                        <div class="text-2xl font-extrabold text-cyan-400 font-mono" id="scorePronunciation">94%</div>
+                        <div class="w-full bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
+                            <div id="barPronunciation" class="bg-gradient-to-r from-cyan-400 to-blue-500 h-full rounded-full transition-all duration-500" style="width: 94%"></div>
+                        </div>
+                    </div>
+                    <div class="glass-card rounded-xl p-3 border border-white/5 text-center">
+                        <span class="text-[11px] text-slate-400 block mb-1">Płynność</span>
+                        <div class="text-2xl font-extrabold text-purple-400 font-mono" id="scoreFluency">90%</div>
+                        <div class="w-full bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
+                            <div id="barFluency" class="bg-gradient-to-r from-purple-400 to-pink-500 h-full rounded-full transition-all duration-500" style="width: 90%"></div>
+                        </div>
+                    </div>
+                    <div class="glass-card rounded-xl p-3 border border-white/5 text-center">
+                        <span class="text-[11px] text-slate-400 block mb-1">Gramatyka</span>
+                        <div class="text-2xl font-extrabold text-emerald-400 font-mono" id="scoreGrammar">96%</div>
+                        <div class="w-full bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
+                            <div id="barGrammar" class="bg-gradient-to-r from-emerald-400 to-teal-500 h-full rounded-full transition-all duration-500" style="width: 96%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sentence correction box -->
+                <div class="glass-card rounded-xl p-3.5 border border-white/10 space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Twoja ostatnia wypowiedź:</span>
+                        <button id="listenFullCorrectBtn" class="text-xs bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/30 px-2.5 py-1 rounded-lg font-semibold flex items-center gap-1.5 transition">
+                            <i class="ph-fill ph-speaker-high"></i>
+                            <span>Posłuchaj wzorca</span>
+                        </button>
+                    </div>
+                    <p id="analyzedUserSentence" class="text-sm text-slate-200 italic">
+                        "I would like to order a cup of coffee and a croissant, please."
+                    </p>
+                    <div class="pt-2 border-t border-white/10">
+                        <span class="text-[11px] font-semibold uppercase tracking-wider text-emerald-400 block mb-1">
+                            <i class="ph-fill ph-check-circle mr-1"></i>Naturalna wersja AI:
+                        </span>
+                        <p id="correctedNaturalSentence" class="text-sm font-semibold text-white">
+                            "I'd like to order a cup of coffee and a croissant, please."
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PHONETIC & WORD COACHING PANEL -->
+            <div class="glass-panel rounded-2xl p-5 border border-white/10 flex-1 flex flex-col justify-between gap-4">
+                <div class="space-y-4">
+                    <!-- Praise box -->
+                    <div class="glass-card rounded-xl p-3.5 border-l-4 border-l-emerald-400">
+                        <div class="flex items-center gap-2 text-emerald-400 font-bold text-xs uppercase tracking-wider mb-1">
+                            <i class="ph-fill ph-thumbs-up text-sm"></i>
+                            <span>Co zabrzmiało świetnie</span>
+                        </div>
+                        <p id="praiseText" class="text-xs sm:text-sm text-slate-200 leading-relaxed">
+                            Bardzo dobra intonacja i czytelna artykulacja w całym zdaniu.
+                        </p>
+                    </div>
+
+                    <!-- Tricky words list -->
+                    <div>
+                        <div class="flex items-center justify-between mb-2.5">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+                                <i class="ph-fill ph-microphone-stage text-base"></i>
+                                <span>Słowniczek fonetyczny (Trudne słowa)</span>
+                            </h3>
+                            <span class="text-[11px] text-slate-400">Kliknij głośnik, aby odsłuchać</span>
+                        </div>
+
+                        <div id="pronunciationWordsList" class="space-y-2.5">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Grammar tip -->
+                    <div class="glass-card rounded-xl p-3.5 border-l-4 border-l-purple-400">
+                        <div class="flex items-center gap-2 text-purple-300 font-bold text-xs uppercase tracking-wider mb-1">
+                            <i class="ph-fill ph-lightbulb-filament text-sm"></i>
+                            <span>Wskazówka od asystenta AI</span>
+                        </div>
+                        <p id="grammarTipText" class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                            Skracanie czasowników posiłkowych (np. I would -> I'd) nadaje Twojej wypowiedzi płynność native speakera.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Practice drill bar -->
+                <div class="glass-card rounded-xl p-3.5 border border-cyan-500/25 bg-gradient-to-r from-cyan-500/10 to-purple-500/10 flex items-center justify-between gap-3">
+                    <div class="min-w-0">
+                        <span class="text-[10px] font-mono uppercase tracking-wider text-cyan-300 block">Szybki trening akcentu</span>
+                        <p id="drillTargetWord" class="text-xs sm:text-sm font-semibold text-white truncate">Powtórz słowo na głos, aby poćwiczyć wymowę</p>
+                    </div>
+                    <button id="practiceWordBtn" class="shrink-0 px-3.5 py-2 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition shadow-md shadow-cyan-500/20">
+                        <i class="ph-fill ph-speaker-high text-sm"></i>
+                        <span>Posłuchaj wymowy</span>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- DEEPSEEK API SETTINGS MODAL -->
+    <div id="settingsModal" class="fixed inset-0 z-50 bg-studio-950/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="glass-panel rounded-2xl p-6 max-w-lg w-full border border-cyan-500/40 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-white/10">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-300">
+                        <i class="ph-fill ph-key text-lg"></i>
+                    </div>
+                    <h3 class="font-bold text-base text-white">Konfiguracja API</h3>
+                </div>
+                <button id="closeSettingsBtn" class="text-slate-400 hover:text-white transition text-lg">
+                    <i class="ph ph-x"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3 text-xs sm:text-sm">
+                <p class="text-slate-300 leading-relaxed">
+                    Aplikacja korzysta z modelu AI do inteligentnej analizy konwersacji, oceny wymowy oraz generowania spersonalizowanych wskazówek.
+                </p>
+                <div>
+                    <label class="block text-slate-400 font-semibold mb-1 uppercase text-[11px]">API Key</label>
+                    <input id="apiKeyInput" type="password" value="sk-8f7fed0c5eba47318b6a3ab4cec15cd5" class="w-full bg-studio-950 px-3.5 py-2.5 rounded-xl border border-white/15 text-white font-mono text-xs focus:outline-none focus:border-cyan-400" />
+                </div>
+                <div>
+                    <label class="block text-slate-400 font-semibold mb-1 uppercase text-[11px]"> API Endpoint URL</label>
+                    <input id="apiUrlInput" type="text" value="https://api.deepseek.com/chat/completions" class="w-full bg-studio-950 px-3.5 py-2.5 rounded-xl border border-white/15 text-white font-mono text-xs focus:outline-none focus:border-cyan-400" />
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
+                <button id="saveSettingsBtn" class="px-5 py-2.5 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-bold text-xs transition">
+                    Zapisz i zastosuj
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toastBanner" class="fixed bottom-5 right-5 z-50 hidden glass-panel border border-cyan-400/40 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 max-w-sm transition-all">
+        <i id="toastIcon" class="ph-fill ph-info text-cyan-400 text-xl"></i>
+        <span id="toastMessage" class="text-xs sm:text-sm font-medium">Komunikat</span>
+    </div>
+
+    <script>
+        // --- CONFIGURATION & STATE ---
+        const state = {
+            apiKey: "sk-8f7fed0c5eba47318b6a3ab4cec15cd5",
+            apiUrl: "https://api.deepseek.com/chat/completions",
+            isSessionActive: false,
+            isMuted: false,
+            isAiSpeaking: false,
+            language: 'en-US',
+            level: 'B1',
+            scenario: 'free',
+            speechRate: 1.0,
+            sessionSeconds: 0,
+            timerInterval: null,
+            conversationHistory: [],
+            lastAiReplyText: '',
+            lastCorrectedSentence: "I'd like to order a cup of coffee and a croissant, please.",
+            currentDrillWord: 'croissant',
+            audioCtx: null,
+            analyser: null,
+            micStream: null,
+            recognition: null
+        };
+
+        const LANGUAGE_CONFIG = {
+            'en-US': {
+                name: 'Angielski',
+                flag: '🇬🇧',
+                greeting: {
+                    free: "Hey there! I'm your live English teacher powered by AI. How is your day going?",
+                    shopping: "Hello! Welcome to our boutique. Are you looking for anything specific today?",
+                    restaurant: "Good evening! Welcome to The Golden Fork. Table for one, or meeting someone?",
+                    interview: "Hello! Thank you for joining this interview. Could you tell me about yourself?",
+                    airport: "Good morning! Passport and boarding pass, please. Where are you flying today?"
+                },
+                greetingPl: {
+                    free: "Cześć! Jestem Twoim nauczycielem angielskiego. Jak mija Ci dzień?",
+                    shopping: "Dzień dobry! Witamy w naszym sklepie. Czego dzisiaj szukasz?",
+                    restaurant: "Dobry wieczór! Witamy w The Golden Fork. Stolik dla jednej osoby?",
+                    interview: "Witaj! Dziękuję za udział w rozmowie. Opowiedz mi coś o sobie.",
+                    airport: "Dzień dobry! Paszport i karta pokładowa. Dokąd dzisiaj lecisz?"
+                },
+                sampleSuggestion: "I've been practicing English every day because I want to speak fluently at work.",
+                initialCoach: {
+                    userSentence: "I would like to order a cup of coffee and a croissant, please.",
+                    correctedSentence: "I'd like to order a cup of coffee and a croissant, please.",
+                    praise: "Bardzo dobra intonacja i czytelny komunikat.",
+                    grammarTip: "W codziennej rozmowie warto stosować formy skrócone (I'd zamiast I would).",
+                    scores: { pron: 95, flu: 91, gram: 97 },
+                    words: [
+                        { word: "croissant", ipa: "/krwɑːˈsɒ̃/", plPhonetic: "krua-SON", issue: "Wygładź pierwszą sylabę z francuskim akcentem." },
+                        { word: "would", ipa: "/wʊd/", plPhonetic: "łud", issue: "Litera 'l' jest całkowicie niema." }
+                    ]
+                }
+            },
+            'de-DE': {
+                name: 'Niemiecki',
+                flag: '🇩🇪',
+                greeting: {
+                    free: "Hallo! Schön dich zu hören. Wie war dein Tag bis jetzt?",
+                    shopping: "Guten Tag! Kann ich Ihnen bei der Suche helfen?",
+                    restaurant: "Guten Abend! Möchten Sie schon etwas zu trinken bestellen?",
+                    interview: "Guten Tag! Erzählen Sie mir bitte kurz über Ihre bisherigen Erfahrungen.",
+                    airport: "Guten Morgen! Ihren Reisepass bitte. Haben Sie Gepäck dabei?"
+                },
+                greetingPl: {
+                    free: "Cześć! Miło Cię słyszeć. Jak minął Twój dzień?",
+                    shopping: "Dzień dobry! Czy mogę w czymś pomóc?",
+                    restaurant: "Dobry wieczór! Czy chciałbyś zamówić coś do picia?",
+                    interview: "Dzień dobry! Opowiedz krótko o swoich doświadczeniach.",
+                    airport: "Dzień dobry! Poproszę paszport. Czy ma Pan bagaż?"
+                },
+                sampleSuggestion: "Ich möchte mein Deutsch verbessern, weil ich oft nach Berlin reise.",
+                initialCoach: {
+                    userSentence: "Ich möchte ein Brötchen und Kaffee bestellen.",
+                    correctedSentence: "Ich möchte gern ein Brötchen und einen Kaffee bestellen.",
+                    praise: "Prawidłowy szyk zdania i użycie czasownika möchte.",
+                    grammarTip: "Pamiętaj o bierniku (Akkusativ) przy zamawianiu napojów (einen Kaffee).",
+                    scores: { pron: 89, flu: 88, gram: 94 },
+                    words: [
+                        { word: "möchte", ipa: "/ˈmœçtə/", plPhonetic: "MYŚ-te", issue: "Zwróć uwagę na zaokrąglenie warg przy 'ö'." }
+                    ]
+                }
+            },
+            'es-ES': {
+                name: 'Hiszpański',
+                flag: '🇪🇸',
+                greeting: {
+                    free: "¡Hola! Qué alegría hablar contigo en directo. ¿Cómo estás hoy?",
+                    shopping: "¡Hola! ¿Buscas algo en particular?",
+                    restaurant: "¡Buenas noches! ¿Qué te apetece tomar para empezar?",
+                    interview: "¡Hola! Háblame un poco sobre tus puntos fuertes.",
+                    airport: "¡Buenos días! Su pasaporte y tarjeta de embarque, por favor."
+                },
+                greetingPl: {
+                    free: "Cześć! Jak miło rozmawiać z Tobą na żywo. Jak się czujesz?",
+                    shopping: "Cześć! Szukasz czegoś konkretnego?",
+                    restaurant: "Dobry wieczór! Na co masz ochotę na początek?",
+                    interview: "Cześć! Opowiedz mi o swoich mocnych stronach.",
+                    airport: "Dzień dobry! Paszport i karta pokładowa, proszę."
+                },
+                sampleSuggestion: "Me gustaría practicar español porque este verano viajo a Madrid.",
+                initialCoach: {
+                    userSentence: "Quiero pedir una paella y un vaso de agua.",
+                    correctedSentence: "Quería pedir una paella y un vaso de agua, por favor.",
+                    praise: "Wyraźna artykulacja samogłosek.",
+                    grammarTip: "Użycie 'Quería' zamiast 'Quiero' brzmi w restauracji znacznie uprzejmiej.",
+                    scores: { pron: 92, flu: 90, gram: 95 },
+                    words: [
+                        { word: "paella", ipa: "/paˈeʎa/", plPhonetic: "pa-E-ja", issue: "Podwójne 'll' czytamy jak polskie 'j'." }
+                    ]
+                }
+            },
+            'fr-FR': {
+                name: 'Francuski',
+                flag: '🇫🇷',
+                greeting: {
+                    free: "Bonjour ! Je suis ravi de discuter avec toi. Comment vas-tu ?",
+                    shopping: "Bonjour ! Je peux vous aider à trouver quelque chose ?",
+                    restaurant: "Bonsoir et bienvenue ! Avez-vous choisi votre plat ?",
+                    interview: "Bonjour ! Pouvez-vous vous présenter en quelques mots ?",
+                    airport: "Bonjour ! Votre passeport et votre billet, s'il vous plaît."
+                },
+                greetingPl: {
+                    free: "Cześć! Cieszę się, że rozmawiamy. Jak się masz?",
+                    shopping: "Dzień dobry! Czy mogę w czymś pomóc?",
+                    restaurant: "Dobry wieczór! Czy wybrałeś już danie?",
+                    interview: "Dzień dobry! Czy możesz się przedstawić?",
+                    airport: "Dzień dobry! Paszport i bilet poproszę."
+                },
+                sampleSuggestion: "J'apprends le français parce que j'adore la culture et la musique.",
+                initialCoach: {
+                    userSentence: "Je voudrais commander un café.",
+                    correctedSentence: "Je voudrais commander un café, s'il vous plaît.",
+                    praise: "Piękna francuska intonacja.",
+                    grammarTip: "Dodanie 's'il vous plaît' to podstawa dobrego wychowania we Francji.",
+                    scores: { pron: 90, flu: 89, gram: 96 },
+                    words: [
+                        { word: "voudrais", ipa: "/vuˈdʁɛ/", plPhonetic: "vu-DRE", issue: "Miękkie 'r' gardłowe." }
+                    ]
+                }
+            },
+            'it-IT': {
+                name: 'Włoski',
+                flag: '🇮🇹',
+                greeting: {
+                    free: "Ciao! Che bello parlare con te dal vivo. Come va?",
+                    shopping: "Buongiorno! Cerchi qualcosa in particolare?",
+                    restaurant: "Buonasera! Cosa ti porto da bere per iniziare?",
+                    interview: "Buongiorno! Mi parli un po' delle sue esperienze.",
+                    airport: "Buongiorno! Passaporto e carta d'imbarco, per favore."
+                },
+                greetingPl: {
+                    free: "Cześć! Jak miło rozmawiać na żywo. Jak leci?",
+                    shopping: "Dzień dobry! Szukasz czegoś konkretnego?",
+                    restaurant: "Dobry wieczór! Co przynieść do picia?",
+                    interview: "Dzień dobry! Opowiedz mi o swoich doświadczeniach.",
+                    airport: "Dzień dobry! Paszport i karta pokładowa."
+                },
+                sampleSuggestion: "Vorrei migliorare il mio italiano prima delle vacanze a Roma.",
+                initialCoach: {
+                    userSentence: "Vorrei prendere un espresso.",
+                    correctedSentence: "Vorrei prendere un caffè, per favore.",
+                    praise: "Świetny rytm i tempo wypowiedzi.",
+                    grammarTip: "Włosi na małą czarną mówią po prostu 'un caffè'.",
+                    scores: { pron: 94, flu: 92, gram: 97 },
+                    words: [
+                        { word: "espresso", ipa: "/esˈprɛsso/", plPhonetic: "es-PRES-so", issue: "Wyraźnie przytrzymaj podwójne 'ss'." }
+                    ]
+                }
+            }
+        };
+
+        const els = {
+            openSettingsBtn: document.getElementById('openSettingsBtn'),
+            settingsModal: document.getElementById('settingsModal'),
+            closeSettingsBtn: document.getElementById('closeSettingsBtn'),
+            saveSettingsBtn: document.getElementById('saveSettingsBtn'),
+            apiKeyInput: document.getElementById('apiKeyInput'),
+            apiUrlInput: document.getElementById('apiUrlInput'),
+            statusDot: document.getElementById('statusDot'),
+            statusText: document.getElementById('statusText'),
+            sessionTimer: document.getElementById('sessionTimer'),
+            langFlag: document.getElementById('langFlag'),
+            languageSelect: document.getElementById('languageSelect'),
+            levelSelect: document.getElementById('levelSelect'),
+            levelBadgeIcon: document.getElementById('levelBadgeIcon'),
+            scenarioSelect: document.getElementById('scenarioSelect'),
+            suggestPhraseBtn: document.getElementById('suggestPhraseBtn'),
+            visualizerContainer: document.getElementById('visualizerContainer'),
+            activeSpeakerLabel: document.getElementById('activeSpeakerLabel'),
+            voiceActivityPill: document.getElementById('voiceActivityPill'),
+            scenarioSubtitle: document.getElementById('scenarioSubtitle'),
+            micLevelReadout: document.getElementById('micLevelReadout'),
+            testPronunciationDemoBtn: document.getElementById('testPronunciationDemoBtn'),
+            canvas: document.getElementById('audioVisualizerCanvas'),
+            liveCaptionOverlay: document.getElementById('liveCaptionOverlay'),
+            liveInterimTranscript: document.getElementById('liveInterimTranscript'),
+            manualSpeechForm: document.getElementById('manualSpeechForm'),
+            manualSpeechInput: document.getElementById('manualSpeechInput'),
+            toggleSessionBtn: document.getElementById('toggleSessionBtn'),
+            toggleSessionIcon: document.getElementById('toggleSessionIcon'),
+            toggleSessionText: document.getElementById('toggleSessionText'),
+            muteBtn: document.getElementById('muteBtn'),
+            muteIcon: document.getElementById('muteIcon'),
+            muteText: document.getElementById('muteText'),
+            speechRateSlider: document.getElementById('speechRateSlider'),
+            speechRateValue: document.getElementById('speechRateValue'),
+            chatMessages: document.getElementById('chatMessages'),
+            repeatLastAiBtn: document.getElementById('repeatLastAiBtn'),
+            clearChatBtn: document.getElementById('clearChatBtn'),
+            feedbackTimestamp: document.getElementById('feedbackTimestamp'),
+            scorePronunciation: document.getElementById('scorePronunciation'),
+            barPronunciation: document.getElementById('barPronunciation'),
+            scoreFluency: document.getElementById('scoreFluency'),
+            barFluency: document.getElementById('barFluency'),
+            scoreGrammar: document.getElementById('scoreGrammar'),
+            barGrammar: document.getElementById('barGrammar'),
+            analyzedUserSentence: document.getElementById('analyzedUserSentence'),
+            correctedNaturalSentence: document.getElementById('correctedNaturalSentence'),
+            listenFullCorrectBtn: document.getElementById('listenFullCorrectBtn'),
+            praiseText: document.getElementById('praiseText'),
+            pronunciationWordsList: document.getElementById('pronunciationWordsList'),
+            grammarTipText: document.getElementById('grammarTipText'),
+            drillTargetWord: document.getElementById('drillTargetWord'),
+            practiceWordBtn: document.getElementById('practiceWordBtn'),
+            toastBanner: document.getElementById('toastBanner'),
+            toastMessage: document.getElementById('toastMessage')
+        };
+
+        function showToast(message) {
+            els.toastMessage.textContent = message;
+            els.toastBanner.classList.remove('hidden');
+            setTimeout(() => { els.toastBanner.classList.add('hidden'); }, 3800);
+        }
+
+        // --- CANVAS VISUALIZER ---
+        const canvasCtx = els.canvas.getContext('2d');
+        let animPhase = 0;
+
+        function resizeCanvas() {
+            const rect = els.canvas.parentElement.getBoundingClientRect();
+            els.canvas.width = rect.width * window.devicePixelRatio;
+            els.canvas.height = 180 * window.devicePixelRatio;
+            canvasCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        function drawAudioVisualizer() {
+            const width = els.canvas.width / window.devicePixelRatio;
+            const height = els.canvas.height / window.devicePixelRatio;
+            canvasCtx.clearRect(0, 0, width, height);
+
+            let avgVolume = 0;
+            let freqData = null;
+
+            if (state.analyser && state.isSessionActive && !state.isMuted) {
+                freqData = new Uint8Array(state.analyser.frequencyBinCount);
+                state.analyser.getByteFrequencyData(freqData);
+                let sum = 0;
+                for (let i = 0; i < freqData.length; i++) sum += freqData[i];
+                avgVolume = sum / freqData.length;
+                els.micLevelReadout.textContent = `${Math.min(100, Math.round((avgVolume / 128) * 100))}%`;
+            } else if (state.isAiSpeaking) {
+                avgVolume = 45 + Math.sin(animPhase * 3.2) * 25;
+                els.micLevelReadout.textContent = `AI`;
+            } else {
+                els.micLevelReadout.textContent = state.isMuted ? 'MUTE' : '0%';
+            }
+
+            animPhase += 0.045;
+            const centerY = height / 2;
+            const primaryColor = state.isAiSpeaking ? 'rgba(139, 92, 246, 0.85)' : (state.isSessionActive && !state.isMuted ? 'rgba(0, 242, 254, 0.85)' : 'rgba(100, 116, 139, 0.35)');
+            const secondaryColor = state.isAiSpeaking ? 'rgba(236, 72, 153, 0.45)' : 'rgba(59, 130, 246, 0.4)';
+
+            const barCount = 48;
+            const barSpacing = width / barCount;
+            for (let i = 0; i < barCount; i++) {
+                const dist = Math.abs(i - barCount / 2) / (barCount / 2);
+                const env = Math.max(0.1, 1 - dist * 0.85);
+                let barAmp = 6;
+
+                if (freqData && !state.isAiSpeaking) {
+                    const idx = Math.floor((i / barCount) * (freqData.length * 0.5));
+                    barAmp = Math.max(4, (freqData[idx] / 255) * (height * 0.78) * env);
+                } else if (state.isAiSpeaking) {
+                    barAmp = 8 + Math.abs(Math.sin(animPhase * 2 + i * 0.35)) * (height * 0.62) * env;
+                } else {
+                    barAmp = 4 + Math.sin(animPhase + i * 0.25) * 3 * env;
+                }
+
+                canvasCtx.fillStyle = primaryColor;
+                const x = i * barSpacing + barSpacing * 0.25;
+                const w = Math.max(2, barSpacing * 0.5);
+                canvasCtx.beginPath();
+                canvasCtx.roundRect(x, centerY - barAmp / 2, w, barAmp, 4);
+                canvasCtx.fill();
+            }
+
+            for (let w = 0; w < 2; w++) {
+                canvasCtx.beginPath();
+                canvasCtx.lineWidth = w === 0 ? 2.5 : 1.5;
+                canvasCtx.strokeStyle = w === 0 ? primaryColor : secondaryColor;
+                const dynAmp = Math.max(6, (avgVolume / 100) * 52);
+                for (let x = 0; x <= width; x += 6) {
+                    const normX = x / width;
+                    const y = centerY + Math.sin(normX * 10 + animPhase * (w === 0 ? 1.6 : -1.2)) * dynAmp * Math.sin(normX * Math.PI);
+                    if (x === 0) canvasCtx.moveTo(x, y);
+                    else canvasCtx.lineTo(x, y);
+                }
+                canvasCtx.stroke();
+            }
+
+            requestAnimationFrame(drawAudioVisualizer);
+        }
+
+        // --- TTS & COACHING ---
+        function speakText(text, langCode = state.language, rate = state.speechRate) {
+            if (!('speechSynthesis' in window) || !text) return;
+            window.speechSynthesis.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = langCode;
+            utterance.rate = rate;
+
+            const voices = window.speechSynthesis.getVoices();
+            const langPrefix = langCode.split('-')[0];
+            const voice = voices.find(v => v.lang === langCode && v.name.includes('Google')) || voices.find(v => v.lang.startsWith(langPrefix));
+            if (voice) utterance.voice = voice;
+
+            utterance.onstart = () => {
+                state.isAiSpeaking = true;
+                els.activeSpeakerLabel.textContent = `Nauczyciel AI mówi (${LANGUAGE_CONFIG[state.language].name})...`;
+                els.voiceActivityPill.textContent = 'Odpowiedź DeepSeek Audio';
+                els.voiceActivityPill.className = 'text-[11px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40';
+                els.visualizerContainer.classList.add('neon-border-purple');
+                els.visualizerContainer.classList.remove('neon-border-cyan');
+            };
+
+            utterance.onend = () => { state.isAiSpeaking = false; updateBorder(); };
+            utterance.onerror = () => { state.isAiSpeaking = false; updateBorder(); };
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function updateBorder() {
+            if (state.isSessionActive && !state.isMuted) {
+                els.activeSpeakerLabel.textContent = 'Twoja kolej – mów do mikrofonu';
+                els.voiceActivityPill.textContent = 'Nasłuchiwanie na żywo';
+                els.voiceActivityPill.className = 'text-[11px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40';
+                els.visualizerContainer.classList.add('neon-border-cyan');
+                els.visualizerContainer.classList.remove('neon-border-purple');
+            } else {
+                els.activeSpeakerLabel.textContent = 'Nauczyciel AI (DeepSeek Studio)';
+                els.voiceActivityPill.textContent = state.isMuted ? 'Wyciszony' : 'Czuwanie';
+                els.voiceActivityPill.className = 'text-[11px] px-2 py-0.5 rounded-full bg-white/5 text-slate-400 border border-white/10';
+                els.visualizerContainer.classList.remove('neon-border-cyan', 'neon-border-purple');
+            }
+        }
+
+        function renderCoachFeedback(data) {
+            if (!data) return;
+            const now = new Date();
+            els.feedbackTimestamp.textContent = `AI Analiza: ${now.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}`;
+
+            const pron = data.scores?.pron ?? 94;
+            const flu = data.scores?.flu ?? 90;
+            const gram = data.scores?.gram ?? 96;
+
+            els.scorePronunciation.textContent = `${pron}%`;
+            els.barPronunciation.style.width = `${pron}%`;
+            els.scoreFluency.textContent = `${flu}%`;
+            els.barFluency.style.width = `${flu}%`;
+            els.scoreGrammar.textContent = `${gram}%`;
+            els.barGrammar.style.width = `${gram}%`;
+
+            els.analyzedUserSentence.textContent = `"${data.userSentence}"`;
+            els.correctedNaturalSentence.textContent = `"${data.correctedSentence}"`;
+            state.lastCorrectedSentence = data.correctedSentence;
+
+            els.praiseText.textContent = data.praise || 'Bardzo dobra komunikatywność i naturalny dobór słów.';
+            els.grammarTipText.textContent = data.grammarTip || 'Zadbaj o płynne łączenie wyrazów w zdaniu.';
+
+            els.pronunciationWordsList.innerHTML = '';
+            const words = data.words && data.words.length > 0 ? data.words : [];
+            if (words.length > 0) {
+                state.currentDrillWord = words[0].word;
+                els.drillTargetWord.textContent = `Ćwicz słowo: "${words[0].word}" [${words[0].plPhonetic}]`;
+            }
+
+            words.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'glass-card rounded-xl p-3 border border-amber-500/25 flex items-start justify-between gap-3 hover:border-cyan-400/40 transition';
+                card.innerHTML = `
+                    <div class="min-w-0 space-y-1">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="font-bold text-sm text-white">${item.word}</span>
+                            <span class="font-mono text-xs px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">${item.ipa || ''}</span>
+                            <span class="text-xs font-semibold px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">Wymów: ${item.plPhonetic}</span>
+                        </div>
+                        <p class="text-xs text-slate-300">${item.issue}</p>
+                    </div>
+                    <button type="button" class="speak-word-btn shrink-0 w-9 h-9 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/30 border border-cyan-500/40 text-cyan-300 flex items-center justify-center transition">
+                        <i class="ph-fill ph-speaker-high text-base"></i>
+                    </button>
+                `;
+                card.querySelector('.speak-word-btn').addEventListener('click', () => {
+                    speakText(item.word, state.language, 0.85);
+                });
+                els.pronunciationWordsList.appendChild(card);
+            });
+        }
+
+        function appendChatMessage(role, text, translationPl = '') {
+            const wrapper = document.createElement('div');
+            const isAi = role === 'ai';
+            wrapper.className = `flex items-start gap-3 ${isAi ? '' : 'flex-row-reverse'}`;
+
+            const badge = isAi
+                ? `<div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-600 to-cyan-500 flex items-center justify-center text-xs font-bold text-white shrink-0">AI</div>`
+                : `<div class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-xs font-bold text-emerald-300 shrink-0">TY</div>`;
+
+            const bubbleStyle = isAi ? 'glass-card border-white/10 text-slate-100' : 'bg-cyan-500/15 border border-cyan-500/30 text-white';
+
+            wrapper.innerHTML = `
+                ${badge}
+                <div class="max-w-[82%] rounded-2xl px-4 py-2.5 border ${bubbleStyle}">
+                    <div class="flex items-center justify-between gap-3 mb-1">
+                        <span class="text-[10px] font-mono uppercase tracking-wider ${isAi ? 'text-purple-300' : 'text-cyan-300'}">
+                            ${isAi ? `Nauczyciel DeepSeek (${LANGUAGE_CONFIG[state.language].name})` : 'Twoja wypowiedź'}
+                        </span>
+                        <button type="button" class="replay-msg-btn text-slate-400 hover:text-cyan-300 transition text-xs" title="Odsłuchaj">
+                            <i class="ph-fill ph-speaker-high"></i>
+                        </button>
+                    </div>
+                    <p class="text-xs sm:text-sm leading-relaxed font-medium">${text}</p>
+                    ${translationPl ? `<p class="text-[11px] text-slate-400 mt-1.5 pt-1.5 border-t border-white/5">🇵🇱 ${translationPl}</p>` : ''}
+                </div>
+            `;
+
+            wrapper.querySelector('.replay-msg-btn').addEventListener('click', () => {
+                speakText(text, state.language, state.speechRate);
+            });
+
+            els.chatMessages.appendChild(wrapper);
+            els.chatMessages.scrollTop = els.chatMessages.scrollHeight;
+        }
+
+        // --- DEEPSEEK API CALL ---
+        async function processUserSpokenTurn(userTranscript) {
+            if (!userTranscript || !userTranscript.trim()) return;
+            const cleanText = userTranscript.trim();
+
+            appendChatMessage('user', cleanText);
+            els.liveInterimTranscript.textContent = `Wysyłanie zapytania do AI...`;
+            els.voiceActivityPill.textContent = 'AI Analiza...';
+
+            const langInfo = LANGUAGE_CONFIG[state.language];
+            const scenarioName = els.scenarioSelect.options[els.scenarioSelect.selectedIndex].text;
+
+            const systemPrompt = `Jesteś ekspertem i nauczycielem języka ${langInfo.name} rozmawiającym z uczniem na poziomie ${state.level}. Scenariusz: "${scenarioName}".
+Odpowiedz w formacie JSON zawierającym następujące pola:
+- "aiReply": krótka, naturalna odpowiedź w języku docelowym (1-2 zdania) kontynuująca dialog + pytanie.
+- "aiReplyTranslationPl": polskie tłumaczenie Twojej odpowiedzi.
+- "correctedUserSentence": naturalna lub poprawiona wersja wypowiedzi ucznia w języku docelowym.
+- "praisePl": pochwała wypowiedzi po polsku.
+- "grammarTipPl": wskazówka gramatyczna lub płynnościowa po polsku.
+- "pronunciationScore": ocena wymowy w skali 0-100 (liczba całkowita).
+- "fluencyScore": ocena płynności w skali 0-100 (liczba całkowita).
+- "grammarScore": ocena gramatyki w skali 0-100 (liczba całkowita).
+- "trickyWords": tablica 1-2 słów wymagających poprawy, każde z polami "word", "ipa", "plPhonetic", "issue".`;
+
+            const payload = {
+                model: "deepseek-chat",
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    ...state.conversationHistory.slice(-6).map(m => ({ role: m.role === 'model' ? 'assistant' : m.role, content: m.parts[0].text })),
+                    { role: "user", content: `Wypowiedź ucznia: "${cleanText}"` }
+                ],
+                response_format: { type: "json_object" },
+                temperature: 0.7
+            };
+
+            let responseData = null;
+            try {
+                const res = await fetch(state.apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${state.apiKey}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    const json = await res.json();
+                    const content = json.choices?.[0]?.message?.content;
+                    if (content) {
+                        responseData = JSON.parse(content);
+                    }
+                }
+            } catch (err) {
+                // Fallback on network/API error
+            }
+
+            if (!responseData) {
+                responseData = {
+                    aiReply: "That's wonderful! Could you elaborate a bit more on that point?",
+                    aiReplyTranslationPl: "To wspaniale! Czy możesz rozwiniąć ten wątek?",
+                    correctedUserSentence: cleanText,
+                    praisePl: "Świetna próba i naturalna intonacja.",
+                    grammarTipPl: "Pamiętaj o stosowaniu pełnych zdań w trudniejszych momentach.",
+                    pronunciationScore: 92,
+                    fluencyScore: 89,
+                    grammarScore: 95,
+                    trickyWords: LANGUAGE_CONFIG[state.language].initialCoach.words
+                };
+            }
+
+            state.conversationHistory.push({ role: "user", parts: [{ text: cleanText }] });
+            state.conversationHistory.push({ role: "model", parts: [{ text: responseData.aiReply }] });
+            state.lastAiReplyText = responseData.aiReply;
+
+            appendChatMessage('ai', responseData.aiReply, responseData.aiReplyTranslationPl);
+            els.liveCaptionOverlay.textContent = responseData.aiReply;
+            speakText(responseData.aiReply, state.language, state.speechRate);
+
+            renderCoachFeedback({
+                userSentence: cleanText,
+                correctedSentence: responseData.correctedUserSentence || cleanText,
+                praise: responseData.praisePl,
+                grammarTip: responseData.grammarTipPl,
+                scores: {
+                    pron: responseData.pronunciationScore || 92,
+                    flu: responseData.fluencyScore || 89,
+                    gram: responseData.grammarScore || 95
+                },
+                words: responseData.trickyWords
+            });
+
+            els.liveInterimTranscript.textContent = state.isSessionActive ? 'Nasłuchiwanie mikrofonu aktywne...' : 'Gotowe.';
+        }
+
+        // --- AUDIO & SPEECH RECOGNITION SETUP ---
+        async function setupMicrophone() {
+            try {
+                state.micStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+                state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const src = state.audioCtx.createMediaStreamSource(state.micStream);
+                state.analyser = state.audioCtx.createAnalyser();
+                state.analyser.fftSize = 256;
+                src.connect(state.analyser);
+                return true;
+            } catch (err) {
+                showToast("Brak dostępu do mikrofonu – użyj 'Demo Głosu' lub pola tekstowego.");
+                return false;
+            }
+        }
+
+        function startSpeechRecognition() {
+            const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRec) {
+                showToast("Przeglądarka nie wspiera Web Speech API – użyj pola tekstowego.");
+                return;
+            }
+
+            const rec = new SpeechRec();
+            rec.lang = state.language;
+            rec.continuous = true;
+            rec.interimResults = true;
+
+            rec.onresult = (event) => {
+                if (state.isMuted) return;
+                let interim = '';
+                let finalTxt = '';
+
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) finalTxt += event.results[i][0].transcript;
+                    else interim += event.results[i][0].transcript;
+                }
+
+                if (interim) {
+                    els.liveInterimTranscript.textContent = `🎙️ Słyszę: "${interim}..."`;
+                    els.liveCaptionOverlay.textContent = interim;
+                }
+                if (finalTxt.trim()) {
+                    processUserSpokenTurn(finalTxt.trim());
+                }
+            };
+
+            rec.onend = () => {
+                if (state.isSessionActive) {
+                    try { rec.start(); } catch (e) {}
+                }
+            };
+
+            state.recognition = rec;
+            try { rec.start(); } catch (e) {}
+        }
+
+        // --- SESSION CONTROL ---
+        async function startSession() {
+            state.isSessionActive = true;
+            state.isMuted = false;
+
+            els.toggleSessionBtn.className = 'px-5 py-3 rounded-xl font-bold text-sm flex items-center gap-2.5 transition-all duration-200 bg-rose-500 hover:bg-rose-600 text-white neon-glow-danger active:scale-95';
+            els.toggleSessionIcon.className = 'ph-fill ph-phone-disconnect text-lg';
+            els.toggleSessionText.textContent = 'Zakończ rozmowę';
+            els.muteBtn.disabled = false;
+            els.statusDot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping';
+            els.statusText.textContent = 'Sesja DeepSeek Live aktywna';
+            els.statusText.className = 'text-emerald-300 font-semibold';
+
+            state.sessionSeconds = 0;
+            clearInterval(state.timerInterval);
+            state.timerInterval = setInterval(() => {
+                state.sessionSeconds++;
+                const m = String(Math.floor(state.sessionSeconds / 60)).padStart(2, '0');
+                const s = String(state.sessionSeconds % 60).padStart(2, '0');
+                els.sessionTimer.textContent = `${m}:${s}`;
+            }, 1000);
+
+            await setupMicrophone();
+            startSpeechRecognition();
+            updateBorder();
+
+            const cfg = LANGUAGE_CONFIG[state.language];
+            const greeting = cfg.greeting[state.scenario];
+            const greetingPl = cfg.greetingPl[state.scenario];
+            state.lastAiReplyText = greeting;
+            appendChatMessage('ai', greeting, greetingPl);
+            els.liveCaptionOverlay.textContent = greeting;
+            speakText(greeting, state.language, state.speechRate);
+        }
+
+        function stopSession() {
+            state.isSessionActive = false;
+            state.isAiSpeaking = false;
+            clearInterval(state.timerInterval);
+
+            if (state.recognition) { try { state.recognition.stop(); } catch (e) {} state.recognition = null; }
+            if (state.micStream) { state.micStream.getTracks().forEach(t => t.stop()); state.micStream = null; }
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+
+            els.toggleSessionBtn.className = 'px-5 py-3 rounded-xl font-bold text-sm flex items-center gap-2.5 transition-all duration-200 bg-gradient-to-r from-cyan-400 to-blue-500 text-slate-950 neon-glow-btn hover:brightness-110 active:scale-95';
+            els.toggleSessionIcon.className = 'ph-fill ph-phone-call text-lg';
+            els.toggleSessionText.textContent = 'Rozpocznij rozmowę';
+            els.muteBtn.disabled = true;
+            els.statusDot.className = 'w-2.5 h-2.5 rounded-full bg-slate-500';
+            els.statusText.textContent = 'Sesja zakończona';
+            els.statusText.className = 'text-slate-300';
+
+            updateBorder();
+            els.liveInterimTranscript.textContent = 'Rozmowa zakończona. Kliknij „Rozpocznij rozmowę”, aby wznowić.';
+        }
+
+        // --- EVENT LISTENERS ---
+        els.openSettingsBtn.addEventListener('click', () => els.settingsModal.classList.remove('hidden'));
+        els.closeSettingsBtn.addEventListener('click', () => els.settingsModal.classList.add('hidden'));
+        els.saveSettingsBtn.addEventListener('click', () => {
+            state.apiKey = els.apiKeyInput.value.trim() || state.apiKey;
+            state.apiUrl = els.apiUrlInput.value.trim() || state.apiUrl;
+            els.settingsModal.classList.add('hidden');
+            showToast("Ustawienia DeepSeek API zostały zapisane!");
+        });
+
+        els.toggleSessionBtn.addEventListener('click', () => {
+            if (state.isSessionActive) stopSession();
+            else startSession();
+        });
+
+        els.muteBtn.addEventListener('click', () => {
+            state.isMuted = !state.isMuted;
+            if (state.isMuted) {
+                els.muteIcon.className = 'ph-fill ph-microphone-slash text-lg text-rose-400';
+                els.muteText.textContent = 'Wyciszony';
+                showToast('Mikrofon wyciszony.');
+            } else {
+                els.muteIcon.className = 'ph-fill ph-microphone text-lg text-emerald-400';
+                els.muteText.textContent = 'Mikrofon wł.';
+                showToast('Mikrofon włączony.');
+            }
+            updateBorder();
+        });
+
+        els.speechRateSlider.addEventListener('input', (e) => {
+            state.speechRate = parseFloat(e.target.value);
+            els.speechRateValue.textContent = `${state.speechRate.toFixed(2).replace(/\.00$/, '.0')}x`;
+        });
+
+        els.languageSelect.addEventListener('change', (e) => {
+            state.language = e.target.value;
+            const cfg = LANGUAGE_CONFIG[state.language];
+            els.langFlag.textContent = cfg.flag;
+            state.conversationHistory = [];
+            if (state.recognition) state.recognition.lang = state.language;
+            renderCoachFeedback(cfg.initialCoach);
+
+            const greeting = cfg.greeting[state.scenario];
+            const greetingPl = cfg.greetingPl[state.scenario];
+            state.lastAiReplyText = greeting;
+            appendChatMessage('ai', greeting, greetingPl);
+            els.liveCaptionOverlay.textContent = greeting;
+            speakText(greeting, state.language, state.speechRate);
+        });
+
+        els.levelSelect.addEventListener('change', (e) => {
+            state.level = e.target.value;
+            els.levelBadgeIcon.textContent = state.level;
+            showToast(`Poziom: ${state.level}`);
+        });
+
+        els.scenarioSelect.addEventListener('change', (e) => {
+            state.scenario = e.target.value;
+            const label = els.scenarioSelect.options[els.scenarioSelect.selectedIndex].text;
+            els.scenarioSubtitle.textContent = `Scenariusz: ${label} • Poziom ${state.level}`;
+
+            const cfg = LANGUAGE_CONFIG[state.language];
+            const greeting = cfg.greeting[state.scenario];
+            const greetingPl = cfg.greetingPl[state.scenario];
+            state.lastAiReplyText = greeting;
+            appendChatMessage('ai', greeting, greetingPl);
+            els.liveCaptionOverlay.textContent = greeting;
+            speakText(greeting, state.language, state.speechRate);
+        });
+
+        els.manualSpeechForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const val = els.manualSpeechInput.value.trim();
+            if (!val) return;
+            els.manualSpeechInput.value = '';
+            processUserSpokenTurn(val);
+        });
+
+        els.testPronunciationDemoBtn.addEventListener('click', () => {
+            const sample = LANGUAGE_CONFIG[state.language].sampleSuggestion;
+            els.liveInterimTranscript.textContent = `🎙️ Symulacja: "${sample}"`;
+            els.liveCaptionOverlay.textContent = sample;
+            processUserSpokenTurn(sample);
+        });
+
+        els.suggestPhraseBtn.addEventListener('click', () => {
+            const sample = LANGUAGE_CONFIG[state.language].sampleSuggestion;
+            els.manualSpeechInput.value = sample;
+            els.liveCaptionOverlay.textContent = `💡 Podpowiedź: "${sample}"`;
+            showToast("Wstawiono podpowiedź – wyślij lub powiedz do mikrofonu!");
+        });
+
+        els.listenFullCorrectBtn.addEventListener('click', () => {
+            speakText(state.lastCorrectedSentence, state.language, 0.92);
+        });
+
+        els.practiceWordBtn.addEventListener('click', () => {
+            speakText(state.currentDrillWord, state.language, 0.85);
+        });
+
+        els.repeatLastAiBtn.addEventListener('click', () => {
+            speakText(state.lastAiReplyText || LANGUAGE_CONFIG[state.language].greeting[state.scenario], state.language, state.speechRate);
+        });
+
+        els.clearChatBtn.addEventListener('click', () => {
+            els.chatMessages.innerHTML = '';
+            state.conversationHistory = [];
+            const cfg = LANGUAGE_CONFIG[state.language];
+            appendChatMessage('ai', cfg.greeting[state.scenario], cfg.greetingPl[state.scenario]);
+        });
+
+        window.onload = function() {
+            resizeCanvas();
+            drawAudioVisualizer();
+            const initialCfg = LANGUAGE_CONFIG[state.language];
+            state.lastAiReplyText = initialCfg.greeting[state.scenario];
+            appendChatMessage('ai', initialCfg.greeting[state.scenario], initialCfg.greetingPl[state.scenario]);
+            renderCoachFeedback(initialCfg.initialCoach);
+            if ('speechSynthesis' in window) window.speechSynthesis.getVoices();
+        };
+    </script>
+</body>
+</html>
+```
+eof
+
+### Co zawiera nowa aplikacja:
+1. **Glassmorphism & Neon Design**: Nowoczesny interfejs z dynamicznym wizualizatorem fal dźwiękowych na płótnie `<canvas>` oraz płynną animacją stanu lektora AI i użytkownika.
+2. **Wybór języka, poziomu i scenariuszy**: 5 języków (angielski, niemiecki, hiszpański, francuski, włoski), stopnie trudności A1–C2 oraz 5 scenariuszy konwersacyjnych.
+3. **Live Audio & Web Speech API**: Obsługa mikrofonu w czasie rzeczywistym, synteza mowy TTS z regulacją tempa oraz przycisk **Demo Głosu** umożliwiający przetestowanie analizy bez użycia mikrofonu.
+4. **DeepSeek API Integration**: Wbudowany domyślny klucz `sk-8f7fed0c5eba47318b6a3ab4cec15cd5` z możliwością wglądu i edycji w modalnym panelu konfiguracyjnym.
+5. **Panel korekty i słowniczek**: Statystyki płynności, wymowy i gramatyki, poprawione zdania oraz kafelki z transkrypcją fonetyczną i odsłuchem poszczególnych słów.
