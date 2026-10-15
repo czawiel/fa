@@ -211,11 +211,64 @@
     /* CARD */
     .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; transition: transform .2s, box-shadow .2s, border-color .2s; }
     .card:hover { transform: translateY(-4px); box-shadow: 0 12px 36px rgba(0,0,0,.09); }
-    .card-img { position: relative; height: 176px; overflow: hidden; }
+    .card-img { position: relative; height: 176px; overflow: hidden; cursor: pointer; }
     .card-img img { height: 100%; object-fit: cover; transition: transform .5s; }
     .card:hover .card-img img { transform: scale(1.05); }
-    .card-img-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,.4)); }
-    .card-version { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,.95); color: var(--ink); font-family: var(--font-mono); font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 6px; }
+    .card-img-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(15,23,42,.15) 0%, rgba(15,23,42,.65) 100%); transition: background .25s; }
+    .card-img:hover .card-img-overlay { background: linear-gradient(to bottom, rgba(15,23,42,.35) 0%, rgba(15,23,42,.8) 100%); }
+    .card-version { position: absolute; top: 12px; right: 12px; z-index: 2; background: rgba(255,255,255,.95); color: var(--ink); font-family: var(--font-mono); font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 6px; }
+    
+    /* WSKAZÓWKA WIDEO NA ZDJĘCIU */
+    .video-hint {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .play-circle {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: rgba(15, 23, 42, 0.78);
+      backdrop-filter: blur(6px);
+      border: 1.5px solid rgba(255, 255, 255, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(0,0,0,.3);
+      transition: transform .25s ease, background .25s ease, border-color .25s ease;
+    }
+    .play-circle svg {
+      margin-left: 2px;
+    }
+    .video-badge-text {
+      background: rgba(15, 23, 42, 0.82);
+      backdrop-filter: blur(4px);
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 99px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      transition: background .25s ease, transform .25s ease;
+    }
+    .card-img:hover .play-circle {
+      transform: scale(1.12);
+      background: var(--accent);
+      border-color: #fff;
+    }
+    .card-img:hover .video-badge-text {
+      background: #0F172A;
+      transform: translateY(2px);
+    }
+
     .card-body { padding: 20px; display: flex; flex-direction: column; flex: 1; }
     .card-cat { font-family: var(--font-mono); font-size: 11px; font-weight: 600; margin-bottom: 4px; }
     .card-name { font-family: var(--font-display); font-size: 20px; font-weight: 600; color: var(--ink); margin-bottom: 10px; }
@@ -230,6 +283,98 @@
       transition: opacity .15s; border: none; cursor: pointer; text-decoration: none;
     }
     .btn-dl:hover { opacity: .85; }
+
+    /* MODAL WIDEO */
+    .video-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .25s ease, visibility .25s ease;
+    }
+    .video-modal.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    .video-modal-content {
+      position: relative;
+      width: 100%;
+      max-width: 900px;
+      background: #0F172A;
+      border: 1px solid #334155;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+      transform: scale(0.95);
+      transition: transform .25s ease;
+    }
+    .video-modal.active .video-modal-content {
+      transform: scale(1);
+    }
+    .video-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      background: #1E293B;
+      border-bottom: 1px solid #334155;
+    }
+    .video-modal-title {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 600;
+      color: #F8FAFC;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .video-modal-title::before {
+      content: "";
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+    .video-modal-close {
+      background: rgba(255, 255, 255, 0.08);
+      border: none;
+      color: #CBD5E1;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      transition: background .15s, color .15s;
+    }
+    .video-modal-close:hover {
+      background: #EF4444;
+      color: #fff;
+    }
+    .video-modal-body {
+      position: relative;
+      background: #000;
+      aspect-ratio: 16 / 9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .video-modal-body video {
+      width: 100%;
+      height: 100%;
+      display: block;
+      outline: none;
+    }
 
     /* CTA */
     .cta-wrap { max-width: 1100px; margin: 0 auto 80px; padding: 0 24px; }
@@ -333,9 +478,16 @@
 
       <!-- Card: Youtube Downloader Pro -->
       <article class="card">
-        <div class="card-img" style="background:#CFFAFE">
+        <div class="card-img" style="background:#CFFAFE" data-video="vid/yt-downloader.mp4" data-title="Youtube Downloader Pro — Film pokazowy" role="button" tabindex="0" aria-label="Obejrzyj film pokazowy Youtube Downloader Pro">
           <img src="img/yt-app.jpg" alt="Pobieranie plików MP3 z YouTube - Youtube Downloader Pro" loading="lazy" decoding="async" />
-          <div class="card-img-overlay"></div><span class="card-version">v2.4.1</span>
+          <div class="card-img-overlay"></div>
+          <span class="card-version">v2.4.1</span>
+          <div class="video-hint">
+            <div class="play-circle">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+            <span class="video-badge-text">Zobacz video</span>
+          </div>
         </div>
         <div class="card-body">
           <span class="card-cat" style="color:#06B6D4">Multimedia &amp; Narzędzia</span>
@@ -356,24 +508,31 @@
         </div>
       </article>
 
-      <!-- Card: Sniper OLX -->
+      <!-- Card: Kalkulator PRO -->
       <article class="card">
-        <div class="card-img" style="background:#EDE9FE">
-          <img src="img/sniper-olx.jfif" alt="Automatyczny monitor ogłoszeń - Sniper OLX" loading="lazy" decoding="async" />
-          <div class="card-img-overlay"></div><span class="card-version">v1.9.0</span>
+        <div class="card-img" style="background:#E0F2FE" data-video="vid/kalk.mp4" data-title="Kalkulator Inżynierski PRO — Prezentacja" role="button" tabindex="0" aria-label="Obejrzyj film pokazowy Kalkulator PRO">
+          <img src="img/kalk.jfif" alt="Przelicznik jednostek i kompendium gwintów - Kalkulator PRO" loading="lazy" decoding="async" />
+          <div class="card-img-overlay"></div>
+          <span class="card-version">v1.3.2</span>
+          <div class="video-hint">
+            <div class="play-circle">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+            <span class="video-badge-text">Zobacz video</span>
+          </div>
         </div>
         <div class="card-body">
-          <span class="card-cat" style="color:#8B5CF6">Zakupy &amp; Automatyzacja</span>
-          <h3 class="card-name">Sniper OLX</h3>
-          <p class="card-desc">Twój automatyczny monitor okazji cenowych. Skanuje ogłoszenia OLX w czasie rzeczywistym i natychmiast wysyła powiadomienie z bezpośrednim linkiem na Twój telefon i Discorda.</p>
+          <span class="card-cat" style="color:#0284C7">Inżynieria &amp; Warsztat</span>
+          <h3 class="card-name">Kalkulator Inżynierski PRO</h3>
+          <p class="card-desc">Kompleksowy przelicznik jednostek technicznych i kompendium warsztatowe. Błyskawicznie konwertuje jednostki ciśnienia, momentu, AWG oraz dobiera wiertła pod gwinty metryczne i calowe.</p>
           <div class="card-tags">
-            <span class="tag" style="background:#EDE9FE;color:#8B5CF6">Automatyzacja</span>
-            <span class="tag" style="background:#EDE9FE;color:#8B5CF6">Alerty</span>
-            <span class="tag" style="background:#EDE9FE;color:#8B5CF6">Konkurencja</span>
+            <span class="tag" style="background:#E0F2FE;color:#0284C7">Inżynieria</span>
+            <span class="tag" style="background:#E0F2FE;color:#0284C7">Przelicznik</span>
+            <span class="tag" style="background:#E0F2FE;color:#0284C7">Gwinty</span>
           </div>
           <div class="card-footer">
-            <span class="card-meta">11.7 MB · 1 900 pobrań</span>
-            <a target="_blank" rel="noopener noreferrer" class="btn-dl" href="https://atawu7bta3fsgr58hegrf6.streamlit.app/" aria-label="Uruchom aplikację Sniper OLX" style="background:#8B5CF6;box-shadow:0 2px 8px #8B5CF655">
+            <span class="card-meta">Web App · Gotowe do użycia</span>
+            <a target="_blank" rel="noopener noreferrer" class="btn-dl" href="https://fabryka.tech/kalkulator" aria-label="Uruchom Kalkulator Inżynierski PRO" style="background:#0284C7;box-shadow:0 2px 8px #0284C755">
               <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M6 1v7M3 5.5l3 3 3-3M1 10h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Otwórz
             </a>
           </div>
@@ -382,9 +541,16 @@
 
       <!-- Card: Stacja Pogodowa -->
       <article class="card">
-        <div class="card-img" style="background:#FEF3C7">
+        <div class="card-img" style="background:#FEF3C7" data-video="vid/pogoda.mp4" data-title="Twoja Stacja Pogodowa — Film pokazowy" role="button" tabindex="0" aria-label="Obejrzyj film pokazowy Twoja Stacja Pogodowa">
           <img src="img/pogoda.jpg" alt="Aplikacja pogodowa z prognozą - Twoja Stacja Pogodowa" loading="lazy" decoding="async" />
-          <div class="card-img-overlay"></div><span class="card-version">v1.1.0</span>
+          <div class="card-img-overlay"></div>
+          <span class="card-version">v1.1.0</span>
+          <div class="video-hint">
+            <div class="play-circle">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+            <span class="video-badge-text">Zobacz video</span>
+          </div>
         </div>
         <div class="card-body">
           <span class="card-cat" style="color:#F59E0B">Pogoda &amp; Wizualizacja danych</span>
@@ -406,9 +572,16 @@
 
       <!-- Card: OCR Skaner -->
       <article class="card">
-        <div class="card-img" style="background:#E0E7FF">
+        <div class="card-img" style="background:#E0E7FF" data-video="vid/pdf.mp4" data-title="Zaawansowany Skaner Dokumentów AI — Film pokazowy" role="button" tabindex="0" aria-label="Obejrzyj film pokazowy Zaawansowany Skaner Dokumentów AI">
           <img src="img/pdf.jfif" alt="OCR i rozpoznawanie tekstu - Zaawansowany Skaner Dokumentów AI" loading="lazy" decoding="async" />
-          <div class="card-img-overlay"></div><span class="card-version">v1.0</span>
+          <div class="card-img-overlay"></div>
+          <span class="card-version">v1.0</span>
+          <div class="video-hint">
+            <div class="play-circle">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+            <span class="video-badge-text">Zobacz video</span>
+          </div>
         </div>
         <div class="card-body">
           <span class="card-cat" style="color:#4F46E5">OCR &amp; Dokumenty</span>
@@ -431,9 +604,16 @@
 
       <!-- Card: Bramka SMS -->
       <article class="card">
-        <div class="card-img" style="background:#FFEDD5">
+        <div class="card-img" style="background:#FFEDD5" data-video="vid/sms.mp4" data-title="Prywatna Bramka SMS AI — Film pokazowy" role="button" tabindex="0" aria-label="Obejrzyj film pokazowy Prywatna Bramka SMS AI">
           <img src="img/sms.jfif" alt="Prywatna Bramka SMS z generowaniem treści AI" loading="lazy" decoding="async" />
-          <div class="card-img-overlay"></div><span class="card-version">v1.19</span>
+          <div class="card-img-overlay"></div>
+          <span class="card-version">v1.19</span>
+          <div class="video-hint">
+            <div class="play-circle">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+            <span class="video-badge-text">Zobacz video</span>
+          </div>
         </div>
         <div class="card-body">
           <span class="card-cat" style="color:#EA580C">Komunikacja &amp; AI</span>
@@ -456,9 +636,16 @@
 
       <!-- Card: Monitor Wiadomości -->
       <article class="card">
-        <div class="card-img" style="background:#E0F2FE">
+        <div class="card-img" style="background:#E0F2FE" data-video="vid/geo.mp4" data-title="Monitor wiadomości ze świata — Film pokazowy" role="button" tabindex="0" aria-label="Obejrzyj film pokazowy Monitor wiadomości ze świata">
           <img src="img/think-tank.jfif" alt="Monitor raportów i analiz geopolitycznych" loading="lazy" decoding="async" />
-          <div class="card-img-overlay"></div><span class="card-version">v3.0</span>
+          <div class="card-img-overlay"></div>
+          <span class="card-version">v3.0</span>
+          <div class="video-hint">
+            <div class="play-circle">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+            <span class="video-badge-text">Zobacz video</span>
+          </div>
         </div>
         <div class="card-body">
           <span class="card-cat" style="color:#0284C7">Geopolityka &amp; Analiza</span>
@@ -480,9 +667,16 @@
 
       <!-- Card: ShortsScanner -->
       <article class="card">
-        <div class="card-img" style="background:#FEE2E2">
+        <div class="card-img" style="background:#FEE2E2" data-video="vid/shorts.mp4" data-title="ShortsScanner PL — Film pokazowy" role="button" tabindex="0" aria-label="Obejrzyj film pokazowy ShortsScanner PL">
           <img src="img/shorts.jfif" alt="ShortsScanner PL - selekcjoner YouTube Shorts" loading="lazy" decoding="async" />
-          <div class="card-img-overlay"></div><span class="card-version">v1.0.0</span>
+          <div class="card-img-overlay"></div>
+          <span class="card-version">v1.0.0</span>
+          <div class="video-hint">
+            <div class="play-circle">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+            <span class="video-badge-text">Zobacz video</span>
+          </div>
         </div>
         <div class="card-body">
           <span class="card-cat" style="color:#EF4444">Wideo &amp; Narzędzia AI</span>
@@ -505,24 +699,30 @@
 
       <!-- Card: Monitoring cen Allegro -->
       <article class="card">
-        <div class="card-img" style="background:#D1FAE5">
-          <img src="img/allegro.jfif" alt="Monitoring cen i konkurencji Allegro" loading="lazy" decoding="async" />
-          <div class="card-img-overlay"></div><span class="card-version">v2.0.3</span>
+        <div class="card-img" style="background:#EEF2FF" data-video="vid/architekt.mp4" data-title="ArchitektPro 2D/3D — Film pokazowy" role="button" tabindex="0" aria-label="Obejrzyj film pokazowy ArchitektPro 2D/3D">
+          <img src="img/architekt.jfif" alt="Aplikacja CAD do aranżacji wnętrz - ArchitektPro 2D/3D" loading="lazy" decoding="async" />
+          <div class="card-img-overlay"></div>
+          <span class="card-version">v1.3.3</span>
+          <div class="video-hint">
+            <div class="play-circle">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+            <span class="video-badge-text">Zobacz video</span>
+          </div>
         </div>
         <div class="card-body">
-          <span class="card-cat" style="color:#10B981">E-commerce / Monitoring cen</span>
-          <h3 class="card-name">Monitoring cen Allegro.pl</h3>
-          <p class="card-desc">Wpisz nazwę lub kod kreskowy produktu, a aplikacja w kilka sekund prześwietli rynek, odsieje pomyłki i wskaże cenę, która da Ci pierwsze miejsce na liście ofert przy maksymalnym zysku ze sprzedaży.</p>
+          <span class="card-cat" style="color:#4F46E5">Projektowanie &amp; CAD 2D/3D</span>
+          <h3 class="card-name">ArchitektPro 2D/3D</h3>
+          <p class="card-desc">Zaawansowany planer wnętrz i warsztatów oparty na silniku 3D. Oferuje rzut 2D z siatką i auto-wymiarami ergonomii przejść, fotorealistyczny podgląd 3D, katalog mebli oraz eksport projektu.</p>
           <div class="card-tags">
-            <span class="tag" style="background:#D1FAE5;color:#10B981">Marża</span>
-            <span class="tag" style="background:#D1FAE5;color:#10B981">Szybkość</span>
-            <span class="tag" style="background:#D1FAE5;color:#10B981">Konkurencja</span>
-            <span class="tag" style="background:#D1FAE5;color:#10B981">Automat</span>
+            <span class="tag" style="background:#EEF2FF;color:#4F46E5">CAD 2D/3D</span>
+            <span class="tag" style="background:#EEF2FF;color:#4F46E5">Grafika 3D</span>
+            <span class="tag" style="background:#EEF2FF;color:#4F46E5">Planer wnętrz</span>
           </div>
           <div class="card-footer">
-            <span class="card-meta">189.4 MB · 1 100 pobrań</span>
-            <a target="_blank" rel="noopener noreferrer" href="https://drive.usercontent.google.com/download?id=1yh8B0giMW1AA3Pt5IrW531UZni-RMIYy&export=download&confirm=t" class="btn-dl" aria-label="Pobierz program Monitoring cen Allegro" style="background:#10B981;box-shadow:0 2px 8px #10B98155">
-              <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M6 1v7M3 5.5l3 3 3-3M1 10h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Pobierz
+            <span class="card-meta">HTML · 150 pobrań</span>
+            <a target="_blank" rel="noopener noreferrer" class="btn-dl" href="architekt.html" aria-label="Uruchom ArchitektPro 2D/3D" style="background:#4F46E5;box-shadow:0 2px 8px #4F46E555">
+              <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M6 1v7M3 5.5l3 3 3-3M1 10h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Otwórz
             </a>
           </div>
         </div>
@@ -530,107 +730,37 @@
 
       <!-- Card: Dyktafon AI -->
       <article class="card">
-        <div class="card-img" style="background:#FCE7F3">
-          <img src="img/mikrofon.jfif" alt="Lokalna transkrypcja mowy na tekst AI - Dyktafon AI" loading="lazy" decoding="async" />
-          <div class="card-img-overlay"></div><span class="card-version">v2.2.0</span>
+        <div class="card-img" style="background:#07140E" data-video="vid/nauczyciel.mp4" data-title="Nauczyciel Live Studio — Film pokazowy" role="button" tabindex="0" aria-label="Obejrzyj film pokazowy Nauczyciel Live Studio">
+          <img src="img/nauczyciel.jfif" alt="Interaktywny Nauczyciel Języka na Żywo - AI Live Studio" loading="lazy" decoding="async" />
+          <div class="card-img-overlay"></div>
+          <span class="card-version">v1.0.0</span>
+          <div class="video-hint">
+            <div class="play-circle">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+            <span class="video-badge-text">Zobacz video</span>
+          </div>
         </div>
         <div class="card-body">
-          <span class="card-cat" style="color:#EC4899">AI / Produktywność</span>
-          <h3 class="card-name">Dyktafon AI</h3>
-          <p class="card-desc">Mów swobodnie do mikrofonu, a sztuczna inteligencja na bieżąco zamieni mowę na czysty tekst z poprawną interpunkcją. Działa w 100% lokalnie na Twoim komputerze — bez wysyłania nagrań do sieci.</p>
+          <span class="card-cat" style="color:#34D399">Edukacja &amp; AI</span>
+          <h3 class="card-name">Nauczyciel Live Studio</h3>
+          <p class="card-desc">Twój inteligentny trener językowy w czasie rzeczywistym. Prowadzi interaktywne rozmowy głosowe w 5 językach, koryguje gramatykę i błyskawicznie ocenia wymowę oraz płynność akcentu.</p>
           <div class="card-tags">
-            <span class="tag" style="background:#FCE7F3;color:#EC4899">AI</span>
-            <span class="tag" style="background:#FCE7F3;color:#EC4899">Transkrypcja</span>
-            <span class="tag" style="background:#FCE7F3;color:#EC4899">Mowa</span>
-            <span class="tag" style="background:#FCE7F3;color:#EC4899">Tekst</span>
+            <span class="tag" style="background:rgba(6, 78, 59, 0.35);color:#A7F3D0">Rozmowa Głosowa</span>
+            <span class="tag" style="background:rgba(6, 78, 59, 0.35);color:#A7F3D0">Nauka Języków</span>
           </div>
           <div class="card-footer">
-            <span class="card-meta">11.6 MB · 1 500 pobrań</span>
-            <a target="_blank" rel="noopener noreferrer" class="btn-dl" href="https://nj82hswotcdj6mjq3z46ta.streamlit.app/" aria-label="Otwórz aplikację Dyktafon AI" style="background:#EC4899;box-shadow:0 2px 8px #EC489955">
-              <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M6 1v7M3 5.5l3 3 3-3M1 10h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Otwórz
+            <span class="card-meta">24.5 KB · Nowość</span>
+            <a target="_blank" rel="noopener noreferrer" class="btn-dl" href="nauczyciel.html" aria-label="Uruchom aplikację Nauczyciel Live Studio" style="background:#064E3B;color:#ECFDF5;box-shadow:0 2px 8px rgba(6, 78, 59, 0.5)">
+              <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M6 1v7M3 5.5l3 3 3-3M1 10h10" stroke="#ECFDF5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Otwórz
             </a>
           </div>
         </div>
       </article>
-<!--
-      <article class="card">
-        <div class="card-img" style="background:#EEF2FF">
-          <img src="img/wiado.jfif" alt="Agregator Wiadomości RSS - Centrum Informacyjne AI" loading="lazy" decoding="async" />
-          <div class="card-img-overlay"></div><span class="card-version">v2.5</span>
-        </div>
-        <div class="card-body">
-          <span class="card-cat" style="color:#2563EB">Wiadomości &amp; Media</span>
-          <h3 class="card-name">Aktualne wiadomości</h3>
-          <p class="card-desc">Wielowątkowy zbiór newsów z kraju i ze świata. Oferuje automatyczną deduplikację powielanych tematów, wbudowanego lektora TTS w języku polskim, tłumaczenie serwisów zagranicznych oraz system alertów słów-kluczy i zakładek.</p>
-          <div class="card-tags">
-            <span class="tag" style="background:#EEF2FF;color:#2563EB">RSS</span>
-            <span class="tag" style="background:#EEF2FF;color:#2563EB">TTS</span>
-            <span class="tag" style="background:#EEF2FF;color:#2563EB">Translator</span>
-            <span class="tag" style="background:#EEF2FF;color:#2563EB">SQLite</span>
-          </div>
-          <div class="card-footer">
-            <span class="card-meta">Streamlit · Cloud Ready</span>
-            <a target="_blank" rel="noopener noreferrer" class="btn-dl" href="https://ofl6bbscf25azvgtpfaoet.streamlit.app/" aria-label="Otwórz aplikację Wiadomości RSS" style="background:#2563EB;box-shadow:0 2px 8px #2563EB55">
-              <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M6 1v7M3 5.5l3 3 3-3M1 10h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Otwórz
-            </a>
-          </div>
-        </div>
-      </article>
-
-      <article class="card">
-        <div class="card-img" style="background:#FEE2E2">
-          <img src="img/tra.jfif" alt="YouTube Transkrypcja & DeepSeek AI - Zamiana mowy na tekst i streszczenia" loading="lazy" decoding="async" />
-          <div class="card-img-overlay"></div><span class="card-version">v3.2</span>
-        </div>
-        <div class="card-body">
-          <span class="card-cat" style="color:#DC2626">Wideo &amp; Sztuczna Inteligencja</span>
-          <h3 class="card-name">YouTube Transkrypcja</h3>
-          <p class="card-desc">Szybka zamiana filmów z YouTube w czytelny tekst bez konieczności ich oglądania. Program sam wyciąga wypowiedzi z wideo, dzieli je na naturalne akapity, a wbudowany asystent AI przygotowuje zwięzłe streszczenie i najważniejsze wnioski w kilka sekund.</p>
-          <div class="card-tags">
-            <span class="tag" style="background:#FEE2E2;color:#DC2626">YouTube</span>
-            <span class="tag" style="background:#FEE2E2;color:#DC2626">Napisy do filmów</span>
-            <span class="tag" style="background:#FEE2E2;color:#DC2626">Eksport</span>
-          </div>
-          <div class="card-footer">
-            <span class="card-meta">Streamlit · Cloud Ready</span>
-            <a target="_blank" rel="noopener noreferrer" class="btn-dl" href="https://transkrypcja-ivmkot9fq6rje34ezxsyic.streamlit.app/" aria-label="Otwórz aplikację YouTube Transkrypcja" style="background:#DC2626;box-shadow:0 2px 8px #DC262655">
-              <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M6 1v7M3 5.5l3 3 3-3M1 10h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Otwórz
-            </a>
-          </div>
-        </div>
-      </article>
-
-      <article class="card">
-        <div class="card-img" style="background:#FEF3C7">
-          <img src="img/geo.jfif" alt="Monitor Think Tanków - Analizy Geopolityczne PL" loading="lazy" decoding="async" />
-          <div class="card-img-overlay"></div><span class="card-version">v3.0</span>
-        </div>
-        <div class="card-body">
-          <span class="card-cat" style="color:#D97706">Geopolityka &amp; Analizy</span>
-          <h3 class="card-name">Monitor Think Tanków PL</h3>
-          <p class="card-desc">Centrum wiedzy o sytuacji na świecie. Zbiera najświeższe raporty czołowych ośrodków analitycznych (m.in. z USA, Wielkiej Brytanii i Polski), automatycznie segreguje je na najważniejsze kategorie i tłumaczy zagraniczne analizy na język polski.</p>
-          <div class="card-tags">
-            <span class="tag" style="background:#FEF3C7;color:#D97706">Geopolityka</span>
-            <span class="tag" style="background:#FEF3C7;color:#D97706">Bezpieczeństwo</span>
-            <span class="tag" style="background:#FEF3C7;color:#D97706">Raporty</span>
-          </div>
-          <div class="card-footer">
-            <span class="card-meta">Streamlit · Cloud Ready</span>
-            <a target="_blank" rel="noopener noreferrer" class="btn-dl" href="https://think-tank-pa6wuy4vuaxkfytdc2gffj.streamlit.app/" aria-label="Otwórz aplikację Monitor Think Tanków" style="background:#D97706;box-shadow:0 2px 8px #D9770655">
-              <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M6 1v7M3 5.5l3 3 3-3M1 10h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Otwórz
-            </a>
-          </div>
-        </div>
-      </article>
--->
       
     </div>
-    </div>
     <p class="apps-more"><strong>+ 50 dostępnych aplikacji.</strong> Zainteresowany? <a href="https://fabryka.tech/kontakt">Skontaktuj się ze mną.</a></p>
-  </div>
   </section>
-
-
 
   <div class="cta-wrap" id="cta">
     <div class="cta-box">
@@ -678,6 +808,21 @@
   </section>
 </main>
 
+<!-- WYSKAKUJĄCE OKNO (MODAL) Z WIDEO -->
+<div class="video-modal" id="videoModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="videoModalTitle">
+  <div class="video-modal-content">
+    <div class="video-modal-header">
+      <span class="video-modal-title" id="videoModalTitle">Film pokazowy</span>
+      <button class="video-modal-close" id="closeModalBtn" aria-label="Zamknij wideo">&times;</button>
+    </div>
+    <div class="video-modal-body">
+      <video id="modalVideoPlayer" controls playsinline preload="metadata">
+        Twoja przeglądarka nie obsługuje odtwarzacza wideo HTML5.
+      </video>
+    </div>
+  </div>
+</div>
+
 <footer id="footer">
   <div class="footer-inner">
     <span class="footer-logo">Fabryka.tech<span></span><b style="color: var(--muted);">nologi</b></span>
@@ -688,6 +833,68 @@
     </div>
   </div>
 </footer>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('videoModal');
+    const videoPlayer = document.getElementById('modalVideoPlayer');
+    const modalTitle = document.getElementById('videoModalTitle');
+    const closeBtn = document.getElementById('closeModalBtn');
+    const cardImages = document.querySelectorAll('.card-img[data-video]');
+
+    function openVideoModal(videoSrc, titleText) {
+      if (!videoSrc) return;
+      modalTitle.textContent = titleText || 'Film pokazowy aplikacji';
+      videoPlayer.src = videoSrc;
+      modal.classList.add('active');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      videoPlayer.play().catch(() => {});
+    }
+
+    function closeVideoModal() {
+      modal.classList.remove('active');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      videoPlayer.pause();
+      setTimeout(() => {
+        videoPlayer.removeAttribute('src');
+        videoPlayer.load();
+      }, 250);
+    }
+
+    cardImages.forEach(cardImg => {
+      cardImg.addEventListener('click', () => {
+        const videoSrc = cardImg.getAttribute('data-video');
+        const titleText = cardImg.getAttribute('data-title');
+        openVideoModal(videoSrc, titleText);
+      });
+
+      cardImg.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          const videoSrc = cardImg.getAttribute('data-video');
+          const titleText = cardImg.getAttribute('data-title');
+          openVideoModal(videoSrc, titleText);
+        }
+      });
+    });
+
+    closeBtn.addEventListener('click', closeVideoModal);
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        closeVideoModal();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal.classList.contains('active')) {
+        closeVideoModal();
+      }
+    });
+  });
+</script>
 
 </body>
 </html>
