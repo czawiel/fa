@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="pl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Symulator: Wynajem vs. Zakup Nieruchomości</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link rel="icon" href="svg/favicon.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom range slider styling */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-runnable-track {
+            height: 6px;
+            border-radius: 9999px;
+        }
+        .dark input[type="range"]::-webkit-slider-runnable-track {
+            background: #334155;
+        }
+        html:not(.dark) input[type="range"]::-webkit-slider-runnable-track {
+            background: #cbd5e1;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            margin-top: -5px;
+            background-color: #6366f1;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            border: 2px solid #ffffff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+            transition: transform 0.15s ease, background-color 0.15s ease;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            background-color: #4f46e5;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .dark ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        html:not(.dark) ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        html:not(.dark) ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .tooltip-trigger:hover .tooltip-content {
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen transition-colors duration-200">
+
+    <header class="sticky top-0 z-30 backdrop-blur-md bg-white/80 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800">
+        <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-emerald-500 flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-500/20">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+                            Wynajem czy Zakup
+                            <span class="hidden sm:inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">Symulator PRO</span>
+                        </h1>
+                        <p class="text-xs text-slate-500 dark:text-slate-400" style="max-width: 300px">Kompleksowa analiza kapitału, kredytu hipotecznego, podatków i kosztu alternatywnego</p>
+                    </div>
+                    
+                </div>
+
+                <!-- Mobile Theme Toggle -->
+                <button id="themeToggleMobile" class="md:hidden p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                    </svg>
+                </button>
+            </div>
+            <img src="svg/logh2.svg" style="height: 36px"/>
+
+            <!-- Preset Scenarios & Controls -->
+            <div style="max-width: 700px" class="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
+                <span class="text-xs font-medium text-slate-400 dark:text-slate-500 whitespace-nowrap mr-1">Scenariusze:</span>
+                <button onclick="applyPreset('standard')" id="preset-standard" class="preset-btn text-xs font-medium px-3 py-1.5 rounded-lg border transition-all whitespace-nowrap bg-indigo-600 text-white border-indigo-600 shadow-sm">
+                    🇵🇱 Standardowy rynek (10 lat)
+                </button>
+                <button onclick="applyPreset('highRates')" id="preset-highRates" class="preset-btn text-xs font-medium px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all whitespace-nowrap">
+                    📈 Wysokie stopy (8.5%)
+                </button>
+                <button onclick="applyPreset('taxSupport')" id="preset-taxSupport" class="preset-btn text-xs font-medium px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all whitespace-nowrap">
+                    🛡️ Kredyt z ulgą podatkową
+                </button>
+                <button onclick="applyPreset('expensiveRent')" id="preset-expensiveRent" class="preset-btn text-xs font-medium px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all whitespace-nowrap">
+                    🏙️ Drogi najem (Duże miasto)
+                </button>
+
+                <button id="themeToggleDesktop" title="Przełącz motyw jasny/ciemny" class="hidden md:flex items-center justify-center p-2 ml-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+                    <svg id="sunIcon" class="w-4 h-4 hidden dark:block text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                    </svg>
+                    <svg id="moonIcon" class="w-4 h-4 block dark:hidden text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+            <!-- LEFT COLUMN: INTERACTIVE PARAMETERS (4 COLS) -->
+            <aside class="lg:col-span-4 space-y-5">
+
+                <!-- Horyzont Analizy Card -->
+                <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <div class="flex items-center justify-between mb-2">
+                        <label for="horizonInput" class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+                            Horyzont analizy (Lata)
+                        </label>
+                        <div class="flex items-center gap-1 bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/60 px-2.5 py-1 rounded-lg">
+                            <input type="number" id="horizonNumber" min="1" max="30" step="1" value="10"
+                                class="w-12 text-right font-bold text-indigo-600 dark:text-indigo-400 bg-transparent focus:outline-none text-sm">
+                            <span class="text-xs font-semibold text-indigo-600 dark:text-indigo-400">lat</span>
+                        </div>
+                    </div>
+                    <input type="range" id="horizonSlider" min="1" max="30" step="1" value="10" class="w-full">
+                    <div class="flex justify-between text-[11px] text-slate-400 mt-1">
+                        <span>1 rok</span>
+                        <span class="text-indigo-500 font-medium">Domyślnie: 10 lat</span>
+                        <span>30 lat</span>
+                    </div>
+                </div>
+
+                <!-- 1. Parametry zakupu nieruchomości -->
+                <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                                </svg>
+                            </span>
+                            <h2 class="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">1. Parametry Zakupu</h2>
+                        </div>
+                        <span class="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Kredyt i Zakup</span>
+                    </div>
+
+                    <!-- Cena nieruchomości -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label class="text-xs font-medium text-slate-600 dark:text-slate-300">Cena nieruchomości</label>
+                            <div class="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg px-2.5 py-1 border border-slate-200 dark:border-slate-700">
+                                <input type="number" id="priceNumber" min="150000" max="5000000" step="10000" value="700000"
+                                    class="w-24 text-right text-xs font-bold bg-transparent focus:outline-none">
+                                <span class="text-[11px] text-slate-400 ml-1">PLN</span>
+                            </div>
+                        </div>
+                        <input type="range" id="priceSlider" min="150000" max="3000000" step="10000" value="700000" class="w-full">
+                        <div class="flex justify-between text-[10px] text-slate-400 mt-0.5">
+                            <span>150 tys.</span>
+                            <span>1.5 mln</span>
+                            <span>3 mln PLN</span>
+                        </div>
+                    </div>
+
+                    <!-- Wkład własny / Zaliczka (% i PLN) -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label class="text-xs font-medium text-slate-600 dark:text-slate-300">Wkład własny (Zaliczka)</label>
+                            <div class="flex items-center gap-1.5">
+                                <div class="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg px-2 py-1 border border-slate-200 dark:border-slate-700">
+                                    <input type="number" id="downPaymentPctNumber" min="0" max="90" step="1" value="20"
+                                        class="w-10 text-right text-xs font-bold bg-transparent focus:outline-none">
+                                    <span class="text-[11px] text-slate-400 ml-0.5">%</span>
+                                </div>
+                                <div class="flex items-center bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-2 py-1">
+                                    <input type="number" id="downPaymentPlnNumber" min="0" max="4500000" step="5000" value="140000"
+                                        class="w-20 text-right text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-transparent focus:outline-none">
+                                    <span class="text-[10px] text-emerald-600 dark:text-emerald-400 ml-1">PLN</span>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="range" id="downPaymentSlider" min="0" max="90" step="1" value="20" class="w-full">
+                        <div class="flex justify-between text-[11px] text-slate-400 mt-1">
+                            <span>Kwota kredytu: <strong id="loanAmountLabel" class="text-slate-700 dark:text-slate-200">560 000 PLN</strong></span>
+                            <span>LTV: <strong id="ltvLabel" class="text-slate-700 dark:text-slate-200">80%</strong></span>
+                        </div>
+                    </div>
+
+                    <!-- Oprocentowanie kredytu -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label class="text-xs font-medium text-slate-600 dark:text-slate-300">Oprocentowanie kredytu (WIRON/WIBOR + marża)</label>
+                            <div class="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg px-2.5 py-1 border border-slate-200 dark:border-slate-700">
+                                <input type="number" id="interestRateNumber" min="1" max="18" step="0.1" value="7.0"
+                                    class="w-14 text-right text-xs font-bold bg-transparent focus:outline-none">
+                                <span class="text-[11px] text-slate-400 ml-1">%</span>
+                            </div>
+                        </div>
+                        <input type="range" id="interestRateSlider" min="1" max="15" step="0.1" value="7.0" class="w-full">
+                    </div>
+
+                    <!-- Okres kredytowania -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label class="text-xs font-medium text-slate-600 dark:text-slate-300">Okres kredytowania</label>
+                            <div class="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg px-2.5 py-1 border border-slate-200 dark:border-slate-700">
+                                <input type="number" id="loanTermNumber" min="5" max="35" step="1" value="25"
+                                    class="w-12 text-right text-xs font-bold bg-transparent focus:outline-none">
+                                <span class="text-[11px] text-slate-400 ml-1">lat</span>
+                            </div>
+                        </div>
+                        <input type="range" id="loanTermSlider" min="5" max="35" step="1" value="25" class="w-full">
+                    </div>
+
+                    <!-- Koszty transakcyjne zakupu -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <div class="flex items-center gap-1 relative tooltip-trigger">
+                                <label class="text-xs font-medium text-slate-600 dark:text-slate-300">Koszty transakcyjne wejścia</label>
+                                <span class="text-slate-400 cursor-help text-xs">ⓘ</span>
+                                <div class="tooltip-content hidden absolute bottom-full left-0 mb-2 w-64 p-2.5 bg-slate-800 text-white text-[11px] rounded-xl shadow-xl z-40 border border-slate-700">
+                                    Bezzwrotne koszty na starcie: podatek PCC (2% na rynku wtórnym), taksa notarialna, prowizja banku i pośrednika. Kwota: <span id="buyingCostsPlnTooltip" class="font-bold text-emerald-400">21 000 PLN</span>.
+                                </div>
+                            </div>
+                            <div class="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg px-2.5 py-1 border border-slate-200 dark:border-slate-700">
+                                <input type="number" id="buyingCostsNumber" min="0" max="12" step="0.5" value="3.0"
+                                    class="w-12 text-right text-xs font-bold bg-transparent focus:outline-none">
+                                <span class="text-[11px] text-slate-400 ml-1">%</span>
+                            </div>
+                        </div>
+                        <input type="range" id="buyingCostsSlider" min="0" max="10" step="0.5" value="3.0" class="w-full">
+                    </div>
+                </div>
+
+                <!-- 2. Koszty utrzymania i podatki przy zakupie -->
+                <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="p-1.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/>
+                                </svg>
+                            </span>
+                            <h2 class="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">2. Utrzymanie i Podatki</h2>
+                        </div>
+                        <span class="text-xs text-amber-600 dark:text-amber-400 font-medium">Koszty i Ulgi</span>
+                    </div>
+
+                    <!-- Roczne koszty utrzymania -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <div class="flex items-center gap-1 relative tooltip-trigger">
+                                <label class="text-xs font-medium text-slate-600 dark:text-slate-300">Roczne utrzymanie i podatek (% wartości)</label>
+                                <span class="text-slate-400 cursor-help text-xs">ⓘ</span>
+                                <div class="tooltip-content hidden absolute bottom-full left-0 mb-2 w-64 p-2.5 bg-slate-800 text-white text-[11px] rounded-xl shadow-xl z-40 border border-slate-700">
+                                    Obejmuje fundusz remontowy, czynsz administracyjny właścicielski, ubezpieczenie murów, podatek od nieruchomości oraz naprawy (w 1. roku: <span id="maintMonthlyTooltip" class="font-bold text-amber-400">700 PLN/mies.</span>).
+                                </div>
+                            </div>
+                            <div class="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg px-2.5 py-1 border border-slate-200 dark:border-slate-700">
+                                <input type="number" id="maintenanceRateNumber" min="0.1" max="5.0" step="0.1" value="1.2"
+                                    class="w-12 text-right text-xs font-bold bg-transparent focus:outline-none">
+                                <span class="text-[11px] text-slate-400 ml-1">%</span>
+                            </div>
+                        </div>
+                        <input type="range" id="maintenanceRateSlider" min="0.2" max="4.0" step="0.1" value="1.2" class="w-full">
+                    </div>
+
+                    <!-- Odliczenia podatkowe / Ulgi podatkowe -->
+                    <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/70 space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-1 relative tooltip-trigger">
+                                <label class="text-xs font-semibold text-slate-700 dark:text-slate-200">Odliczenia / Ulgi podatkowe</label>
+                                <span class="text-slate-400 cursor-help text-xs">ⓘ</span>
+                                <div class="tooltip-content hidden absolute bottom-full left-0 mb-2 w-72 p-2.5 bg-slate-800 text-white text-[11px] rounded-xl shadow-xl z-40 border border-slate-700">
+                                    Uwzględnia roczne korzyści podatkowe (np. ulga termomodernizacyjna, odliczenie odsetek w działalności / programach wsparcia lub dopłaty zmniejszające koszt odsetkowy).
+                                </div>
+                            </div>
+                            <!-- Toggle: PLN/rok vs % odsetek -->
+                            <div class="inline-flex rounded-lg p-0.5 bg-slate-200 dark:bg-slate-700 text-[11px]">
+                                <button type="button" id="taxModePlnBtn" onclick="setTaxDeductionMode('pln')" class="px-2 py-0.5 rounded-md font-semibold bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm transition">
+                                    PLN / rok
+                                </button>
+                                <button type="button" id="taxModePctBtn" onclick="setTaxDeductionMode('interest_pct')" class="px-2 py-0.5 rounded-md font-medium text-slate-600 dark:text-slate-300 transition">
+                                    % odsetek
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Mode 1: Fixed PLN per year -->
+                        <div id="taxPlnControl">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-[11px] text-slate-500 dark:text-slate-400">Roczna kwota zwrotu / ulgi podatkowej</span>
+                                <div class="flex items-center bg-white dark:bg-slate-900 rounded-lg px-2 py-1 border border-slate-200 dark:border-slate-700">
+                                    <input type="number" id="taxDeductionPlnNumber" min="0" max="50000" step="250" value="2000"
+                                        class="w-16 text-right text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-transparent focus:outline-none">
+                                    <span class="text-[10px] text-slate-400 ml-1">PLN/rok</span>
+                                </div>
+                            </div>
+                            <input type="range" id="taxDeductionPlnSlider" min="0" max="20000" step="250" value="2000" class="w-full">
+                        </div>
+
+                        <!-- Mode 2: % of Mortgage Interest -->
+                        <div id="taxPctControl" class="hidden">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-[11px] text-slate-500 dark:text-slate-400">Efektywny zwrot % zapłaconych odsetek</span>
+                                <div class="flex items-center bg-white dark:bg-slate-900 rounded-lg px-2 py-1 border border-slate-200 dark:border-slate-700">
+                                    <input type="number" id="taxDeductionPctNumber" min="0" max="50" step="1" value="19"
+                                        class="w-12 text-right text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-transparent focus:outline-none">
+                                    <span class="text-[10px] text-slate-400 ml-1">% odsetek</span>
+                                </div>
+                            </div>
+                            <input type="range" id="taxDeductionPctSlider" min="0" max="40" step="1" value="19" class="w-full">
+                        </div>
+                    </div>
+
+                    <!-- Roczny wzrost wartości nieruchomości -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label class="text-xs font-medium text-slate-600 dark:text-slate-300">Roczny wzrost wartości nieruchomości</label>
+                            <div class="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg px-2.5 py-1 border border-slate-200 dark:border-slate-700">
+                                <input type="number" id="appreciationRateNumber" min="-3" max="15" step="0.2" value="4.0"
+                                    class="w-12 text-right text-xs font-bold bg-transparent focus:outline-none">
+                                <span class="text-[11px] text-slate-400 ml-1">%</span>
+                            </div>
+                        </div>
+                        <input type="range" id="appreciationRateSlider" min="-2" max="12" step="0.2" value="4.0" class="w-full">
+                    </div>
+                </div>
+
+                <!-- 3. Parametry wynajmu i alternatywnej inwestycji -->
+                <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                                </svg>
+                            </span>
+                            <h2 class="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">3. Wynajem i Inwestycja</h2>
+                        </div>
+                        <span class="text-xs text-indigo-600 dark:text-indigo-400 font-medium">Koszt alternatywny</span>
+                    </div>
+
+                    <!-- Miesięczny czynsz najmu -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label class="text-xs font-medium text-slate-600 dark:text-slate-300">Miesięczny koszt wynajmu (z odstępnym)</label>
+                            <div class="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg px-2.5 py-1 border border-slate-200 dark:border-slate-700">
+                                <input type="number" id="rentNumber" min="1000" max="25000" step="100" value="3500"
+                                    class="w-20 text-right text-xs font-bold bg-transparent focus:outline-none">
+                                <span class="text-[11px] text-slate-400 ml-1">PLN</span>
+                            </div>
+                        </div>
+                        <input type="range" id="rentSlider" min="1000" max="15000" step="100" value="3500" class="w-full">
+                    </div>
+
+                    <!-- Roczny wzrost czynszu -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label class="text-xs font-medium text-slate-600 dark:text-slate-300">Roczny wzrost czynszu (indeksacja)</label>
+                            <div class="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg px-2.5 py-1 border border-slate-200 dark:border-slate-700">
+                                <input type="number" id="rentIncreaseNumber" min="0" max="15" step="0.2" value="4.0"
+                                    class="w-12 text-right text-xs font-bold bg-transparent focus:outline-none">
+                                <span class="text-[11px] text-slate-400 ml-1">%</span>
+                            </div>
+                        </div>
+                        <input type="range" id="rentIncreaseSlider" min="0" max="12" step="0.2" value="4.0" class="w-full">
+                    </div>
+
+                    <!-- Stopa zwrotu z inwestycji kapitału -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <div class="flex items-center gap-1 relative tooltip-trigger">
+                                <label class="text-xs font-medium text-slate-600 dark:text-slate-300">Stopa zwrotu z inwestycji (netto)</label>
+                                <span class="text-slate-400 cursor-help text-xs">ⓘ</span>
+                                <div class="tooltip-content hidden absolute bottom-full left-0 mb-2 w-72 p-2.5 bg-slate-800 text-white text-[11px] rounded-xl shadow-xl z-40 border border-slate-700">
+                                    <strong>Koszt alternatywny kapitału:</strong> Najemca inwestuje początkową gotówkę (wkład własny + koszty zakupu) oraz comiesięczną nadwyżkę, jeśli najem jest tańszy niż rata kredytu i utrzymanie mieszkania. Podaj wartość po podatku Belki / na IKE/IKZE.
+                                </div>
+                            </div>
+                            <div class="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg px-2.5 py-1 border border-slate-200 dark:border-slate-700">
+                                <input type="number" id="investmentReturnNumber" min="0" max="20" step="0.2" value="6.0"
+                                    class="w-12 text-right text-xs font-bold bg-transparent focus:outline-none">
+                                <span class="text-[11px] text-slate-400 ml-1">%</span>
+                            </div>
+                        </div>
+                        <input type="range" id="investmentReturnSlider" min="0" max="15" step="0.2" value="6.0" class="w-full">
+                    </div>
+                </div>
+
+            </aside>
+
+            <!-- RIGHT COLUMN: RESULTS, CHARTS & TABLE (8 COLS) -->
+            <section class="lg:col-span-8 space-y-6">
+
+                <!-- HERO VERDICT BANNER -->
+                <div id="verdictBanner" class="relative overflow-hidden rounded-2xl p-6 bg-gradient-to-r from-emerald-900/90 via-slate-900 to-slate-900 border border-emerald-500/30 text-white shadow-lg">
+                    <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        <div class="space-y-2 max-w-xl">
+                            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-white/10 backdrop-blur-sm border border-white/15">
+                                <span id="verdictBadgeDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                <span id="verdictHorizonLabel">Werdykt finansowy po 10 latach</span>
+                            </div>
+                            <h2 id="verdictTitle" class="text-2xl sm:text-3xl font-extrabold tracking-tight">
+                                Zakup nieruchomości jest bardziej opłacalny
+                            </h2>
+                            <p id="verdictDescription" class="text-sm text-slate-300 leading-relaxed">
+                                Po uwzględnieniu wzrostu wartości mieszkania, spłaty kapitału, odliczeń podatkowych oraz kosztu alternatywnego kapitału, budujesz wyższy majątek netto.
+                            </p>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row md:flex-col items-start sm:items-center md:items-end justify-between gap-3 bg-slate-950/50 backdrop-blur-md p-4 rounded-xl border border-white/10 min-w-[240px]">
+                            <div>
+                                <span class="text-xs uppercase tracking-wider text-slate-400 block">Przewaga majątku netto</span>
+                                <div id="verdictDiffAmount" class="text-2xl sm:text-3xl font-black text-emerald-400 mt-0.5">
+                                    +142 500 PLN
+                                </div>
+                            </div>
+                            <div class="w-full border-t border-white/10 pt-2.5 flex items-center justify-between gap-4">
+                                <span class="text-xs text-slate-400">Próg rentowności (Break-even):</span>
+                                <span id="breakEvenBadge" class="text-xs font-bold px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                    4. rok
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4 KPI SUMMARY CARDS -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                    <!-- KPI 1: Majątek netto przy zakupie -->
+                    <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
+                                <span>Majątek netto (Zakup)</span>
+                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            </div>
+                            <div id="kpiBuyNetWorth" class="text-xl font-extrabold text-slate-900 dark:text-white mt-1">
+                                628 400 PLN
+                            </div>
+                        </div>
+                        <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800/80 text-[11px] text-slate-500 dark:text-slate-400 space-y-0.5">
+                            <div class="flex justify-between">
+                                <span>Wartość lokalu:</span>
+                                <strong id="kpiHomeValue" class="text-slate-700 dark:text-slate-200">1 036 171 PLN</strong>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Pozostały dług:</span>
+                                <strong id="kpiRemainingDebt" class="text-rose-500">-436 200 PLN</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KPI 2: Kapitał przy wynajmie -->
+                    <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
+                                <span>Kapitał (Wynajem + Inwest.)</span>
+                                <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                            </div>
+                            <div id="kpiRentNetWorth" class="text-xl font-extrabold text-slate-900 dark:text-white mt-1">
+                                485 900 PLN
+                            </div>
+                        </div>
+                        <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800/80 text-[11px] text-slate-500 dark:text-slate-400 space-y-0.5">
+                            <div class="flex justify-between">
+                                <span>Kapitał na start:</span>
+                                <strong id="kpiInitialInvested" class="text-slate-700 dark:text-slate-200">161 000 PLN</strong>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Suma czynszów:</span>
+                                <strong id="kpiTotalRentPaid" class="text-indigo-500">504 256 PLN</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KPI 3: Miesięczny przepływ (Rata + Utrzymanie vs Czynsz) -->
+                    <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
+                                <span>Koszt miesięczny (1. rok)</span>
+                                <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">Cashflow</span>
+                            </div>
+                            <div class="flex items-baseline gap-1.5 mt-1">
+                                <span id="kpiMonthlyBuyYr1" class="text-lg font-extrabold text-emerald-600 dark:text-emerald-400">4 491 PLN</span>
+                                <span class="text-xs text-slate-400">vs</span>
+                                <span id="kpiMonthlyRentYr1" class="text-sm font-bold text-indigo-600 dark:text-indigo-400">3 500 PLN</span>
+                            </div>
+                        </div>
+                        <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800/80 text-[11px] text-slate-500 dark:text-slate-400 space-y-0.5">
+                            <div class="flex justify-between">
+                                <span>Sama rata kredytu:</span>
+                                <strong id="kpiMortgagePayment" class="text-slate-700 dark:text-slate-200">3 958 PLN</strong>
+                            </div>
+                            <div class="flex justify-between">
+                                <span id="kpiYrEndComparisonLabel">W 10. roku (Z vs W):</span>
+                                <strong id="kpiMonthlyYrEnd" class="text-slate-700 dark:text-slate-200">4 790 vs 4 982 PLN</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KPI 4: Odliczenia podatkowe i Odsetki -->
+                    <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
+                                <span>Zaoszczędzony podatek</span>
+                                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                            </div>
+                            <div id="kpiTaxSaved" class="text-xl font-extrabold text-amber-600 dark:text-amber-400 mt-1">
+                                +20 000 PLN
+                            </div>
+                        </div>
+                        <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800/80 text-[11px] text-slate-500 dark:text-slate-400 space-y-0.5">
+                            <div class="flex justify-between">
+                                <span>Zapłacone odsetki:</span>
+                                <strong id="kpiTotalInterest" class="text-rose-500">351 120 PLN</strong>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Spłacony kapitał:</span>
+                                <strong id="kpiPrincipalPaid" class="text-emerald-500">123 800 PLN</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CHARTS SECTION -->
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                    <!-- Chart 1: Line Chart - Net Worth Comparison -->
+                    <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100">Porównanie majątku netto (Rok po roku)</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Wartość nieruchomości minus dług vs. Portfel inwestycyjny najemcy</p>
+                            </div>
+                            <div class="flex items-center gap-3 text-xs">
+                                <span class="flex items-center gap-1.5 font-medium text-slate-600 dark:text-slate-300">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Zakup
+                                </span>
+                                <span class="flex items-center gap-1.5 font-medium text-slate-600 dark:text-slate-300">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span> Wynajem
+                                </span>
+                            </div>
+                        </div>
+                        <div class="relative h-72 w-full">
+                            <canvas id="netWorthChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Chart 2: Stacked Bar Chart - Unrecoverable Costs -->
+                    <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100">Struktura kosztów bezzwrotnych</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Skumulowane wydatki, które nie budują kapitału (pomniejszone o ulgę)</p>
+                            </div>
+                        </div>
+                        <div class="relative h-72 w-full">
+                            <canvas id="sunkCostsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- YEAR-BY-YEAR TABLE -->
+                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                    <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100">Szczegółowe zestawienie rok po roku</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Analiza salda kredytu, kapitału własnego w nieruchomości, portfela najemcy oraz różnicy netto</p>
+                        </div>
+                        <span id="tableHorizonBadge" class="text-xs font-semibold px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 self-start sm:self-auto">
+                            Okres: 1 – 10 lat
+                        </span>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 dark:bg-slate-800/60 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
+                                    <th class="py-3 px-4">Rok</th>
+                                    <th class="py-3 px-4 text-right">Wartość nieruchomości</th>
+                                    <th class="py-3 px-4 text-right">Saldo kredytu</th>
+                                    <th class="py-3 px-4 text-right text-emerald-600 dark:text-emerald-400">Majątek netto (Zakup)</th>
+                                    <th class="py-3 px-4 text-right">Skumulowany czynsz</th>
+                                    <th class="py-3 px-4 text-right text-indigo-600 dark:text-indigo-400">Portfel najemcy (Wynajem)</th>
+                                    <th class="py-3 px-4 text-right">Różnica (Zakup - Wynajem)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="yearlyTableBody" class="divide-y divide-slate-200/70 dark:divide-slate-800 text-xs">
+                                <!-- Populated dynamically via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- METHODOLOGY NOTE -->
+                <div class="bg-slate-100/80 dark:bg-slate-900/60 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                    <strong class="text-slate-800 dark:text-slate-200">Metodologia kalkulacji:</strong>
+                    Symulator oblicza harmonogram kredytu w ratach równych (annuitetowych) w ujęciu miesięcznym.
+                    W wariancie <strong>Zakupu</strong> majątek netto to rynkowa wartość nieruchomości na koniec danego roku pomniejszona o pozostałe do spłaty saldo kredytu.
+                    W wariancie <strong>Wynajmu</strong> najemca inwestuje początkową gotówkę, którą musiałby wydać na zakup (wkład własny + koszty transakcyjne wejścia), a następnie co miesiąc dopłaca (lub wypłaca) różnicę pomiędzy całkowitym kosztem zakupu (rata kredytu + utrzymanie - ulga podatkowa) a czynszem najmu. Cały portfel najemcy pracuje na wybranej rocznej stopie zwrotu netto (kapitalizacja miesięczna).
+                </div>
+
+            </section>
+        </div>
+    </main>
+
+    <script>
+        // Application State
+        const state = {
+            horizon: 10,
+            propertyPrice: 700000,
+            downPaymentPct: 20,
+            interestRate: 7.0,
+            loanTerm: 25,
+            buyingCostsPct: 3.0,
+            maintenanceRatePct: 1.2,
+            taxDeductionMode: 'pln', // 'pln' or 'interest_pct'
+            taxDeductionPln: 2000,
+            taxDeductionPct: 19,
+            appreciationRatePct: 4.0,
+            monthlyRent: 3500,
+            rentIncreasePct: 4.0,
+            investmentReturnPct: 6.0
+        };
+
+        // Predefined Polish Market Scenarios
+        const presets = {
+            standard: {
+                horizon: 10,
+                propertyPrice: 700000,
+                downPaymentPct: 20,
+                interestRate: 7.0,
+                loanTerm: 25,
+                buyingCostsPct: 3.0,
+                maintenanceRatePct: 1.2,
+                taxDeductionMode: 'pln',
+                taxDeductionPln: 2000,
+                taxDeductionPct: 19,
+                appreciationRatePct: 4.0,
+                monthlyRent: 3500,
+                rentIncreasePct: 4.0,
+                investmentReturnPct: 6.0
+            },
+            highRates: {
+                horizon: 10,
+                propertyPrice: 750000,
+                downPaymentPct: 20,
+                interestRate: 8.5,
+                loanTerm: 25,
+                buyingCostsPct: 3.5,
+                maintenanceRatePct: 1.3,
+                taxDeductionMode: 'pln',
+                taxDeductionPln: 0,
+                taxDeductionPct: 0,
+                appreciationRatePct: 3.5,
+                monthlyRent: 3400,
+                rentIncreasePct: 3.5,
+                investmentReturnPct: 6.5
+            },
+            taxSupport: {
+                horizon: 10,
+                propertyPrice: 650000,
+                downPaymentPct: 15,
+                interestRate: 5.5,
+                loanTerm: 25,
+                buyingCostsPct: 2.5,
+                maintenanceRatePct: 1.1,
+                taxDeductionMode: 'interest_pct',
+                taxDeductionPln: 4500,
+                taxDeductionPct: 20,
+                appreciationRatePct: 4.5,
+                monthlyRent: 3300,
+                rentIncreasePct: 4.0,
+                investmentReturnPct: 5.5
+            },
+            expensiveRent: {
+                horizon: 10,
+                propertyPrice: 950000,
+                downPaymentPct: 25,
+                interestRate: 6.8,
+                loanTerm: 25,
+                buyingCostsPct: 3.0,
+                maintenanceRatePct: 1.2,
+                taxDeductionMode: 'pln',
+                taxDeductionPln: 2500,
+                taxDeductionPct: 19,
+                appreciationRatePct: 5.0,
+                monthlyRent: 5400,
+                rentIncreasePct: 5.0,
+                investmentReturnPct: 6.0
+            }
+        };
+
+        // Formatters for Polish currency
+        const plnFormatter = new Intl.NumberFormat('pl-PL', {
+            style: 'currency',
+            currency: 'PLN',
+            maximumFractionDigits: 0
+        });
+
+        const numberFormatter = new Intl.NumberFormat('pl-PL', {
+            maximumFractionDigits: 0
+        });
+
+        function formatPLN(val, showPlus = false) {
+            const rounded = Math.round(val);
+            const prefix = (showPlus && rounded > 0) ? '+' : '';
+            return prefix + plnFormatter.format(rounded);
+        }
+
+        // Chart instances
+        let netWorthChartInstance = null;
+        let sunkCostsChartInstance = null;
+
+        // Tax Deduction Mode Switcher
+        function setTaxDeductionMode(mode) {
+            state.taxDeductionMode = mode;
+            const plnBtn = document.getElementById('taxModePlnBtn');
+            const pctBtn = document.getElementById('taxModePctBtn');
+            const plnCtrl = document.getElementById('taxPlnControl');
+            const pctCtrl = document.getElementById('taxPctControl');
+
+            if (mode === 'pln') {
+                plnBtn.className = 'px-2 py-0.5 rounded-md font-semibold bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm transition';
+                pctBtn.className = 'px-2 py-0.5 rounded-md font-medium text-slate-600 dark:text-slate-300 transition';
+                plnCtrl.classList.remove('hidden');
+                pctCtrl.classList.add('hidden');
+            } else {
+                pctBtn.className = 'px-2 py-0.5 rounded-md font-semibold bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm transition';
+                plnBtn.className = 'px-2 py-0.5 rounded-md font-medium text-slate-600 dark:text-slate-300 transition';
+                pctCtrl.classList.remove('hidden');
+                plnCtrl.classList.add('hidden');
+            }
+            runSimulation();
+        }
+
+        // Core Simulation Engine (30 years max, extracted at chosen horizon)
+        function calculateSimulation() {
+            const P = state.propertyPrice;
+            const downPayment = P * (state.downPaymentPct / 100);
+            const loanAmount = Math.max(0, P - downPayment);
+            const buyingCosts = P * (state.buyingCostsPct / 100);
+
+            const totalLoanMonths = state.loanTerm * 12;
+            const monthlyInterestRate = (state.interestRate / 100) / 12;
+
+            // Standard annuity monthly mortgage payment
+            let monthlyMortgage = 0;
+            if (loanAmount > 0) {
+                if (monthlyInterestRate > 0) {
+                    const factor = Math.pow(1 + monthlyInterestRate, totalLoanMonths);
+                    monthlyMortgage = loanAmount * (monthlyInterestRate * factor) / (factor - 1);
+                } else {
+                    monthlyMortgage = loanAmount / totalLoanMonths;
+                }
+            }
+
+            // Monthly compounded rates for appreciation, rent & alternative investment
+            const monthlyInvestmentRate = Math.pow(1 + (state.investmentReturnPct / 100), 1 / 12) - 1;
+            const annualAppreciation = state.appreciationRatePct / 100;
+            const annualRentIncrease = state.rentIncreasePct / 100;
+            const annualMaintRate = state.maintenanceRatePct / 100;
+
+            let remainingBalance = loanAmount;
+            let currentPropertyValue = P;
+            let currentMonthlyRent = state.monthlyRent;
+
+            // Renter starts with the cash not spent on down payment and closing costs
+            let renterPortfolio = downPayment + buyingCosts;
+            let renterContributedCapital = downPayment + buyingCosts;
+
+            let cumulativeInterest = 0;
+            let cumulativeMaintenance = 0;
+            let cumulativeTaxSaved = 0;
+            let cumulativeRent = 0;
+            let cumulativePrincipalPaid = 0;
+
+            const yearlyData = [];
+            let breakEvenYear = null;
+
+            const maxYears = Math.max(state.horizon, 10);
+
+            for (let year = 1; year <= maxYears; year++) {
+                const startYearPropertyValue = currentPropertyValue;
+                const monthlyMaintenance = (startYearPropertyValue * annualMaintRate) / 12;
+
+                let yearInterest = 0;
+                let yearPrincipal = 0;
+                let yearTaxSaved = 0;
+                let yearMaint = 0;
+                let yearRent = 0;
+
+                for (let m = 1; m <= 12; m++) {
+                    const globalMonth = (year - 1) * 12 + m;
+
+                    // 1. Mortgage step
+                    let interestPayment = 0;
+                    let principalPayment = 0;
+                    let actualMortgagePayment = 0;
+
+                    if (globalMonth <= totalLoanMonths && remainingBalance > 0.01) {
+                        interestPayment = remainingBalance * monthlyInterestRate;
+                        actualMortgagePayment = monthlyMortgage;
+                        principalPayment = Math.min(remainingBalance, actualMortgagePayment - interestPayment);
+                        remainingBalance = Math.max(0, remainingBalance - principalPayment);
+                    }
+
+                    // 2. Tax deduction benefit for this month
+                    let monthlyTaxBenefit = 0;
+                    if (state.taxDeductionMode === 'pln') {
+                        monthlyTaxBenefit = state.taxDeductionPln / 12;
+                    } else {
+                        monthlyTaxBenefit = interestPayment * (state.taxDeductionPct / 100);
+                    }
+
+                    // 3. Total monthly cash outflow for Buyer vs Renter
+                    const buyerMonthlyOutflow = actualMortgagePayment + monthlyMaintenance - monthlyTaxBenefit;
+                    const renterMonthlyOutflow = currentMonthlyRent;
+
+                    // 4. Renter's portfolio compounds and absorbs the monthly cashflow difference
+                    // If buying costs more per month than renting, the renter invests the savings
+                    const monthlySavingsForRenter = buyerMonthlyOutflow - renterMonthlyOutflow;
+                    renterPortfolio = renterPortfolio * (1 + monthlyInvestmentRate) + monthlySavingsForRenter;
+                    renterContributedCapital += monthlySavingsForRenter;
+
+                    // Accumulate metrics
+                    yearInterest += interestPayment;
+                    yearPrincipal += principalPayment;
+                    yearTaxSaved += monthlyTaxBenefit;
+                    yearMaint += monthlyMaintenance;
+                    yearRent += currentMonthlyRent;
+                }
+
+                // End of year property appreciation & rent indexation for next year
+                currentPropertyValue = currentPropertyValue * (1 + annualAppreciation);
+                const endOfYearMonthlyRent = currentMonthlyRent;
+                currentMonthlyRent = currentMonthlyRent * (1 + annualRentIncrease);
+
+                cumulativeInterest += yearInterest;
+                cumulativePrincipalPaid += yearPrincipal;
+                cumulativeTaxSaved += yearTaxSaved;
+                cumulativeMaintenance += yearMaint;
+                cumulativeRent += yearRent;
+
+                // Buyer Net Worth (Property Value - Remaining Mortgage Debt)
+                const buyerNetWorth = currentPropertyValue - remainingBalance;
+                const netAdvantageBuy = buyerNetWorth - renterPortfolio;
+
+                if (breakEvenYear === null && netAdvantageBuy >= 0) {
+                    breakEvenYear = year;
+                }
+
+                yearlyData.push({
+                    year,
+                    propertyValue: currentPropertyValue,
+                    remainingDebt: remainingBalance,
+                    buyerNetWorth,
+                    renterPortfolio,
+                    netAdvantageBuy,
+                    cumulativeRent,
+                    cumulativeInterest,
+                    cumulativeMaintenance,
+                    cumulativeTaxSaved,
+                    cumulativePrincipalPaid,
+                    buyingCosts,
+                    monthlyBuyOutflow: (year <= state.loanTerm ? monthlyMortgage : 0) + monthlyMaintenance - (yearTaxSaved / 12),
+                    monthlyRentOutflow: endOfYearMonthlyRent
+                });
+            }
+
+            return {
+                downPayment,
+                loanAmount,
+                buyingCosts,
+                monthlyMortgage,
+                breakEvenYear,
+                yearlyData
+            };
+        }
+
+        function runSimulation() {
+            const sim = calculateSimulation();
+            const h = state.horizon;
+            const targetYear = sim.yearlyData[h - 1];
+            const firstYear = sim.yearlyData[0];
+
+            // Update Left Panel Helper Labels
+            document.getElementById('loanAmountLabel').textContent = formatPLN(sim.loanAmount);
+            document.getElementById('ltvLabel').textContent = (100 - state.downPaymentPct) + '%';
+            document.getElementById('buyingCostsPlnTooltip').textContent = formatPLN(sim.buyingCosts);
+            document.getElementById('maintMonthlyTooltip').textContent = formatPLN((state.propertyPrice * (state.maintenanceRatePct / 100)) / 12) + '/mies.';
+
+            // Update Hero Verdict Banner
+            const diff = targetYear.netAdvantageBuy;
+            const isBuyBetter = diff >= 0;
+            const banner = document.getElementById('verdictBanner');
+            const badgeDot = document.getElementById('verdictBadgeDot');
+            const diffEl = document.getElementById('verdictDiffAmount');
+            const breakEvenBadge = document.getElementById('breakEvenBadge');
+
+            document.getElementById('verdictHorizonLabel').textContent = `Werdykt finansowy po ${h} ${h === 1 ? 'roku' : (h < 5 ? 'latach' : 'latach')}`;
+
+            if (isBuyBetter) {
+                banner.className = 'relative overflow-hidden rounded-2xl p-6 bg-gradient-to-r from-emerald-950 via-slate-900 to-slate-900 border border-emerald-500/40 text-white shadow-lg transition-all';
+                badgeDot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
+                document.getElementById('verdictTitle').textContent = 'Zakup nieruchomości jest bardziej opłacalny';
+                document.getElementById('verdictDescription').textContent = `Po ${h} latach budowania kapitału i wzrostu wartości nieruchomości Twój majątek netto przy zakupie przewyższa portfel inwestycyjny najemcy.`;
+                diffEl.className = 'text-2xl sm:text-3xl font-black text-emerald-400 mt-0.5';
+                diffEl.textContent = formatPLN(diff, true) + ' (Zakup)';
+            } else {
+                banner.className = 'relative overflow-hidden rounded-2xl p-6 bg-gradient-to-r from-indigo-950 via-slate-900 to-slate-900 border border-indigo-500/40 text-white shadow-lg transition-all';
+                badgeDot.className = 'w-2 h-2 rounded-full bg-indigo-400 animate-pulse';
+                document.getElementById('verdictTitle').textContent = 'Wynajem i inwestycja są bardziej opłacalne';
+                document.getElementById('verdictDescription').textContent = `Po ${h} latach zainwestowany wkład własny oraz różnica między ratą kredytu a czynszem wygenerowały wyższy kapitał niż zakup mieszkania na kredyt.`;
+                diffEl.className = 'text-2xl sm:text-3xl font-black text-indigo-400 mt-0.5';
+                diffEl.textContent = formatPLN(Math.abs(diff), true) + ' (Wynajem)';
+            }
+
+            if (sim.breakEvenYear !== null && sim.breakEvenYear <= h) {
+                breakEvenBadge.textContent = `W ${sim.breakEvenYear}. roku`;
+                breakEvenBadge.className = 'text-xs font-bold px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+            } else if (sim.breakEvenYear !== null) {
+                breakEvenBadge.textContent = `W ${sim.breakEvenYear}. roku (poza okresem)`;
+                breakEvenBadge.className = 'text-xs font-bold px-2.5 py-1 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30';
+            } else {
+                breakEvenBadge.textContent = `Powyżej ${h} lat`;
+                breakEvenBadge.className = 'text-xs font-bold px-2.5 py-1 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30';
+            }
+
+            // Update 4 KPI Cards
+            document.getElementById('kpiBuyNetWorth').textContent = formatPLN(targetYear.buyerNetWorth);
+            document.getElementById('kpiHomeValue').textContent = formatPLN(targetYear.propertyValue);
+            document.getElementById('kpiRemainingDebt').textContent = '-' + formatPLN(targetYear.remainingDebt);
+
+            document.getElementById('kpiRentNetWorth').textContent = formatPLN(targetYear.renterPortfolio);
+            document.getElementById('kpiInitialInvested').textContent = formatPLN(sim.downPayment + sim.buyingCosts);
+            document.getElementById('kpiTotalRentPaid').textContent = formatPLN(targetYear.cumulativeRent);
+
+            document.getElementById('kpiMonthlyBuyYr1').textContent = formatPLN(firstYear.monthlyBuyOutflow);
+            document.getElementById('kpiMonthlyRentYr1').textContent = formatPLN(firstYear.monthlyRentOutflow);
+            document.getElementById('kpiMortgagePayment').textContent = formatPLN(sim.monthlyMortgage);
+            document.getElementById('kpiYrEndComparisonLabel').textContent = `W ${h}. roku (Z vs W):`;
+            document.getElementById('kpiMonthlyYrEnd').textContent = `${numberFormatter.format(Math.round(targetYear.monthlyBuyOutflow))} vs ${numberFormatter.format(Math.round(targetYear.monthlyRentOutflow))} PLN`;
+
+            document.getElementById('kpiTaxSaved').textContent = formatPLN(targetYear.cumulativeTaxSaved, true);
+            document.getElementById('kpiTotalInterest').textContent = formatPLN(targetYear.cumulativeInterest);
+            document.getElementById('kpiPrincipalPaid').textContent = formatPLN(targetYear.cumulativePrincipalPaid);
+
+            // Slice data to selected horizon for charts and table
+            const slicedYears = sim.yearlyData.slice(0, h);
+            updateCharts(slicedYears, targetYear);
+            updateTable(slicedYears, h);
+        }
+
+        function updateCharts(slicedYears, targetYear) {
+            const isDark = document.documentElement.classList.contains('dark');
+            const textColor = isDark ? '#94a3b8' : '#475569';
+            const gridColor = isDark ? 'rgba(51, 65, 85, 0.35)' : 'rgba(226, 232, 240, 0.8)';
+
+            const labels = slicedYears.map(d => `Rok ${d.year}`);
+            const buyNetWorthData = slicedYears.map(d => Math.round(d.buyerNetWorth));
+            const rentNetWorthData = slicedYears.map(d => Math.round(d.renterPortfolio));
+
+            // 1. Net Worth Line Chart
+            const ctxLine = document.getElementById('netWorthChart').getContext('2d');
+            if (netWorthChartInstance) {
+                netWorthChartInstance.destroy();
+            }
+
+            netWorthChartInstance = new Chart(ctxLine, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Majątek netto: Zakup nieruchomości',
+                            data: buyNetWorthData,
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                            borderWidth: 3,
+                            pointRadius: 3,
+                            pointHoverRadius: 6,
+                            tension: 0.3,
+                            fill: true
+                        },
+                        {
+                            label: 'Kapitał najemcy: Wynajem + Inwestycja',
+                            data: rentNetWorthData,
+                            borderColor: '#6366f1',
+                            backgroundColor: 'rgba(99, 102, 241, 0.10)',
+                            borderWidth: 3,
+                            pointRadius: 3,
+                            pointHoverRadius: 6,
+                            tension: 0.3,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: isDark ? '#0f172a' : '#ffffff',
+                            titleColor: isDark ? '#f8fafc' : '#0f172a',
+                            bodyColor: isDark ? '#cbd5e1' : '#334155',
+                            borderColor: isDark ? '#334155' : '#e2e8f0',
+                            borderWidth: 1,
+                            padding: 10,
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${formatPLN(context.parsed.y)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: textColor, font: { size: 11 } }
+                        },
+                        y: {
+                            grid: { color: gridColor },
+                            ticks: {
+                                color: textColor,
+                                font: { size: 11 },
+                                callback: function(value) {
+                                    return (value / 1000).toFixed(0) + ' tys. zł';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 2. Stacked Bar Chart - Total Unrecoverable Costs over Selected Horizon
+            const ctxBar = document.getElementById('sunkCostsChart').getContext('2d');
+            if (sunkCostsChartInstance) {
+                sunkCostsChartInstance.destroy();
+            }
+
+            const netInterestAfterTax = Math.max(0, targetYear.cumulativeInterest - targetYear.cumulativeTaxSaved);
+
+            sunkCostsChartInstance = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: ['Zakup (Koszty bezzwrotne netto)', 'Wynajem (Suma czynszów)'],
+                    datasets: [
+                        {
+                            label: 'Odsetki kredytowe (pomniejszone o ulgę podatkową)',
+                            data: [Math.round(netInterestAfterTax), 0],
+                            backgroundColor: '#f43f5e',
+                            borderRadius: 6
+                        },
+                        {
+                            label: 'Utrzymanie nieruchomości i podatek',
+                            data: [Math.round(targetYear.cumulativeMaintenance), 0],
+                            backgroundColor: '#f59e0b',
+                            borderRadius: 6
+                        },
+                        {
+                            label: 'Koszty transakcyjne zakupu (PCC, notariusz, prowizja)',
+                            data: [Math.round(targetYear.buyingCosts), 0],
+                            backgroundColor: '#10b981',
+                            borderRadius: 6
+                        },
+                        {
+                            label: 'Skumulowany czynsz najmu',
+                            data: [0, Math.round(targetYear.cumulativeRent)],
+                            backgroundColor: '#6366f1',
+                            borderRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: textColor,
+                                font: { size: 11 },
+                                boxWidth: 10,
+                                padding: 12
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: isDark ? '#0f172a' : '#ffffff',
+                            titleColor: isDark ? '#f8fafc' : '#0f172a',
+                            bodyColor: isDark ? '#cbd5e1' : '#334155',
+                            borderColor: isDark ? '#334155' : '#e2e8f0',
+                            borderWidth: 1,
+                            padding: 10,
+                            callbacks: {
+                                label: function(context) {
+                                    if (context.parsed.y === 0) return null;
+                                    return `${context.dataset.label}: ${formatPLN(context.parsed.y)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: true,
+                            grid: { display: false },
+                            ticks: { color: textColor, font: { size: 11, weight: '600' } }
+                        },
+                        y: {
+                            stacked: true,
+                            grid: { color: gridColor },
+                            ticks: {
+                                color: textColor,
+                                font: { size: 11 },
+                                callback: function(value) {
+                                    return (value / 1000).toFixed(0) + ' tys. zł';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateTable(slicedYears, horizon) {
+            document.getElementById('tableHorizonBadge').textContent = `Okres: 1 – ${horizon} lat`;
+            const tbody = document.getElementById('yearlyTableBody');
+            tbody.innerHTML = '';
+
+            slicedYears.forEach((row) => {
+                const tr = document.createElement('tr');
+                const isHighlight = row.year === 10 || row.year === horizon;
+                tr.className = isHighlight
+                    ? 'bg-indigo-50/50 dark:bg-indigo-950/25 font-medium transition hover:bg-slate-100 dark:hover:bg-slate-800/50'
+                    : 'transition hover:bg-slate-50 dark:hover:bg-slate-800/40';
+
+                const diffClass = row.netAdvantageBuy >= 0
+                    ? 'text-emerald-600 dark:text-emerald-400 font-bold'
+                    : 'text-indigo-600 dark:text-indigo-400 font-bold';
+
+                const diffBadge = row.netAdvantageBuy >= 0 ? 'Zakup' : 'Wynajem';
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap">
+                        Rok ${row.year}
+                        ${row.year === 10 ? '<span class="ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-500">10 lat</span>' : ''}
+                    </td>
+                    <td class="py-3 px-4 text-right text-slate-600 dark:text-slate-300 whitespace-nowrap">${formatPLN(row.propertyValue)}</td>
+                    <td class="py-3 px-4 text-right text-rose-500 whitespace-nowrap">${formatPLN(row.remainingDebt)}</td>
+                    <td class="py-3 px-4 text-right font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">${formatPLN(row.buyerNetWorth)}</td>
+                    <td class="py-3 px-4 text-right text-slate-600 dark:text-slate-300 whitespace-nowrap">${formatPLN(row.cumulativeRent)}</td>
+                    <td class="py-3 px-4 text-right font-bold text-indigo-600 dark:text-indigo-400 whitespace-nowrap">${formatPLN(row.renterPortfolio)}</td>
+                    <td class="py-3 px-4 text-right whitespace-nowrap ${diffClass}">
+                        ${formatPLN(row.netAdvantageBuy, true)}
+                        <span class="text-[10px] font-normal opacity-80 ml-1">(${diffBadge})</span>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function bindInputPair(sliderId, numberId, stateKey, onUpdateCallback) {
+            const slider = document.getElementById(sliderId);
+            const numberInput = document.getElementById(numberId);
+
+            slider.addEventListener('input', (e) => {
+                const val = parseFloat(e.target.value);
+                state[stateKey] = val;
+                numberInput.value = val;
+                if (onUpdateCallback) onUpdateCallback(val);
+                clearActivePresetHighlight();
+                runSimulation();
+            });
+
+            numberInput.addEventListener('input', (e) => {
+                let val = parseFloat(e.target.value);
+                if (isNaN(val)) return;
+                state[stateKey] = val;
+                slider.value = val;
+                if (onUpdateCallback) onUpdateCallback(val);
+                clearActivePresetHighlight();
+                runSimulation();
+            });
+        }
+
+        function syncDownPaymentPlnFromPct() {
+            const plnVal = Math.round(state.propertyPrice * (state.downPaymentPct / 100));
+            document.getElementById('downPaymentPlnNumber').value = plnVal;
+        }
+
+        function clearActivePresetHighlight() {
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.className = 'preset-btn text-xs font-medium px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all whitespace-nowrap';
+            });
+        }
+
+        function applyPreset(presetKey) {
+            const p = presets[presetKey];
+            if (!p) return;
+
+            Object.assign(state, p);
+
+            // Sync all DOM inputs
+            document.getElementById('horizonSlider').value = state.horizon;
+            document.getElementById('horizonNumber').value = state.horizon;
+
+            document.getElementById('priceSlider').value = state.propertyPrice;
+            document.getElementById('priceNumber').value = state.propertyPrice;
+
+            document.getElementById('downPaymentSlider').value = state.downPaymentPct;
+            document.getElementById('downPaymentPctNumber').value = state.downPaymentPct;
+            syncDownPaymentPlnFromPct();
+
+            document.getElementById('interestRateSlider').value = state.interestRate;
+            document.getElementById('interestRateNumber').value = state.interestRate;
+
+            document.getElementById('loanTermSlider').value = state.loanTerm;
+            document.getElementById('loanTermNumber').value = state.loanTerm;
+
+            document.getElementById('buyingCostsSlider').value = state.buyingCostsPct;
+            document.getElementById('buyingCostsNumber').value = state.buyingCostsPct;
+
+            document.getElementById('maintenanceRateSlider').value = state.maintenanceRatePct;
+            document.getElementById('maintenanceRateNumber').value = state.maintenanceRatePct;
+
+            document.getElementById('taxDeductionPlnSlider').value = state.taxDeductionPln;
+            document.getElementById('taxDeductionPlnNumber').value = state.taxDeductionPln;
+
+            document.getElementById('taxDeductionPctSlider').value = state.taxDeductionPct;
+            document.getElementById('taxDeductionPctNumber').value = state.taxDeductionPct;
+
+            setTaxDeductionMode(state.taxDeductionMode);
+
+            document.getElementById('appreciationRateSlider').value = state.appreciationRatePct;
+            document.getElementById('appreciationRateNumber').value = state.appreciationRatePct;
+
+            document.getElementById('rentSlider').value = state.monthlyRent;
+            document.getElementById('rentNumber').value = state.monthlyRent;
+
+            document.getElementById('rentIncreaseSlider').value = state.rentIncreasePct;
+            document.getElementById('rentIncreaseNumber').value = state.rentIncreasePct;
+
+            document.getElementById('investmentReturnSlider').value = state.investmentReturnPct;
+            document.getElementById('investmentReturnNumber').value = state.investmentReturnPct;
+
+            // Highlight active preset button
+            clearActivePresetHighlight();
+            const activeBtn = document.getElementById(`preset-${presetKey}`);
+            if (activeBtn) {
+                activeBtn.className = 'preset-btn text-xs font-medium px-3 py-1.5 rounded-lg border transition-all whitespace-nowrap bg-indigo-600 text-white border-indigo-600 shadow-sm';
+            }
+
+            runSimulation();
+        }
+
+        // Initialize all Listeners on DOMContentLoaded
+        window.addEventListener('DOMContentLoaded', () => {
+            bindInputPair('horizonSlider', 'horizonNumber', 'horizon');
+            bindInputPair('priceSlider', 'priceNumber', 'propertyPrice', syncDownPaymentPlnFromPct);
+            bindInputPair('downPaymentSlider', 'downPaymentPctNumber', 'downPaymentPct', syncDownPaymentPlnFromPct);
+
+            // Special listener for Down Payment in PLN direct input
+            const dpPlnInput = document.getElementById('downPaymentPlnNumber');
+            dpPlnInput.addEventListener('input', (e) => {
+                const plnVal = parseFloat(e.target.value);
+                if (isNaN(plnVal) || state.propertyPrice <= 0) return;
+                const pct = Math.min(90, Math.max(0, Math.round((plnVal / state.propertyPrice) * 100)));
+                state.downPaymentPct = pct;
+                document.getElementById('downPaymentSlider').value = pct;
+                document.getElementById('downPaymentPctNumber').value = pct;
+                clearActivePresetHighlight();
+                runSimulation();
+            });
+
+            bindInputPair('interestRateSlider', 'interestRateNumber', 'interestRate');
+            bindInputPair('loanTermSlider', 'loanTermNumber', 'loanTerm');
+            bindInputPair('buyingCostsSlider', 'buyingCostsNumber', 'buyingCostsPct');
+            bindInputPair('maintenanceRateSlider', 'maintenanceRateNumber', 'maintenanceRatePct');
+            bindInputPair('taxDeductionPlnSlider', 'taxDeductionPlnNumber', 'taxDeductionPln');
+            bindInputPair('taxDeductionPctSlider', 'taxDeductionPctNumber', 'taxDeductionPct');
+            bindInputPair('appreciationRateSlider', 'appreciationRateNumber', 'appreciationRatePct');
+            bindInputPair('rentSlider', 'rentNumber', 'monthlyRent');
+            bindInputPair('rentIncreaseSlider', 'rentIncreaseNumber', 'rentIncreasePct');
+            bindInputPair('investmentReturnSlider', 'investmentReturnNumber', 'investmentReturnPct');
+
+            // Theme toggle buttons
+            const toggleTheme = () => {
+                document.documentElement.classList.toggle('dark');
+                runSimulation();
+            };
+            document.getElementById('themeToggleDesktop').addEventListener('click', toggleTheme);
+            document.getElementById('themeToggleMobile').addEventListener('click', toggleTheme);
+
+            // Initial run
+            runSimulation();
+        });
+    </script>
+</body>
+</html>
