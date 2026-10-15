@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator Przepisów AI</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts: Inter & Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #f8fafc;
+            background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(12px);
+        }
+        @keyframes pulse-subtle {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .animate-pulse-subtle {
+            animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @media print {
+            body {
+                background: white !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-full {
+                grid-column: span 12 / span 12 !important;
+            }
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-emerald-100 shadow-sm no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 flex items-center justify-center text-white shadow-md shadow-emerald-600/20">
+                    <i data-lucide="chef-hat" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <h1 class="font-display font-extrabold text-lg sm:text-2xl text-slate-900 tracking-tight">
+                            Generator Przepisów AI <span class="text-emerald-600"></span>
+                        </h1>
+                        <span id="header-active-filters-badge" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                            <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-600"></i>
+                            <span id="active-filters-count-text">5 Aktywnych Filtrów</span>
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-500">
+                        Spersonalizowana Kuchnia Eliminacyjna i Obliczanie Makroskładników
+                    </p>
+                </div>
+            </div>
+
+            <img src="img/logku2.svg" style="height: 36px"/>
+
+            <div class="flex flex-wrap items-center gap-2">
+                <button onclick="loadTestScenario('safe')" class="text-xs font-medium px-3 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 transition flex items-center gap-1.5 cursor-pointer" title="Wczytaj bezpieczny zestaw składników">
+                    <i data-lucide="sparkles" class="w-3.5 h-3.5 text-emerald-600"></i>
+                    <span>Bezpieczny zestaw</span>
+                </button>
+                <button onclick="loadTestScenario('trap')" class="text-xs font-medium px-3 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 transition flex items-center gap-1.5 cursor-pointer" title="Przetestuj jak zaznaczone filtry odrzucają zakazane składniki (pomidor, czosnek, ser żółty)">
+                    <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-amber-600"></i>
+                    <span>Testuj filtr alergii</span>
+                </button>
+                <button style="display: none;" onclick="toggleApiConfigPanel()" id="api-panel-btn" class="text-xs font-semibold px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white transition flex items-center gap-1.5 cursor-pointer">
+                    <i data-lucide="key-round" class="w-3.5 h-3.5 text-emerald-400"></i>
+                    <span>API</span>
+                    <span id="api-status-dot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Collapsible DeepSeek API Configuration Bar -->
+        <div id="api-config-panel" class="hidden border-t border-slate-200 bg-slate-900 text-slate-100">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                API Skonfigurowane
+                            </span>
+                            <h3 class="text-sm font-display font-bold text-white">Konfiguracja połączenia AI</h3>
+                        </div>
+                        <p class="text-xs text-slate-400">
+                            Aplikacja wysyła zapytania bezpośrednio do <code class="text-emerald-300">https://api.deepseek.com/chat/completions</code> z wymuszonym schematem JSON. W razie blokady sieciowej automatycznie uruchomi się inteligentny silnik awaryjny.
+                        </p>
+                    </div>
+
+                    <div class="flex flex-wrap sm:flex-nowrap items-center gap-2.5">
+                        <!-- API Key Input -->
+                        <div class="relative flex-grow sm:w-72">
+                            <input 
+                                type="password" 
+                                id="deepseek-api-key" 
+                                value="sk-8f7fed0c5eba47318b6a3ab4cec15cd5"
+                                placeholder="Wklej klucz DeepSeek API (sk-...)"
+                                class="w-full pl-3.5 pr-9 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-emerald-300 font-mono focus:outline-none focus:border-emerald-500"
+                            >
+                            <button onclick="toggleApiKeyVisibility()" type="button" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
+                                <i data-lucide="eye" id="api-eye-icon" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+
+                        <!-- Model Selector -->
+                        <select id="deepseek-model" class="px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500">
+                            <option value="deepseek-chat" selected>deepseek-chat (Szybki V3)</option>
+                            <option value="deepseek-reasoner">deepseek-reasoner (R1)</option>
+                        </select>
+
+                        <!-- Test Connection Button -->
+                        <button onclick="testDeepSeekConnection()" id="test-api-btn" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition flex items-center gap-1.5 shrink-0 cursor-pointer">
+                            <i data-lucide="activity" class="w-3.5 h-3.5"></i>
+                            <span id="test-api-btn-text">Testuj połączenie</span>
+                        </button>
+                    </div>
+                </div>
+                <div id="api-test-feedback" class="hidden mt-3 p-2.5 rounded-xl text-xs font-medium"></div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <!-- Left Column: Controls & Interactive Filters (5 cols on desktop) -->
+            <div class="lg:col-span-5 space-y-6 no-print">
+                
+                <!-- 1. Co masz w lodówce -->
+                <section class="glass-card rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-200/90">
+                    <div class="flex items-center justify-between mb-2">
+                        <label for="ingredient-input" class="flex items-center gap-2 font-display font-bold text-base sm:text-lg text-slate-900">
+                            <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-bold">1</span>
+                            Składniki w lodówce i szafce
+                        </label>
+                        <button onclick="clearIngredients()" id="clear-btn" class="text-xs text-slate-400 hover:text-rose-600 transition hidden items-center gap-1 cursor-pointer">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Wyczyść
+                        </button>
+                    </div>
+                    <p class="text-xs text-slate-500 mb-3">
+                        Wpisz składniki po przecinku lub naciśnij Enter. Możesz też szybko kliknąć produkty poniżej.
+                    </p>
+
+                    <div class="flex gap-2 mb-3">
+                        <input 
+                            type="text" 
+                            id="ingredient-input" 
+                            placeholder="np. pierś z indyka, cukinia, ziemniaki..." 
+                            class="flex-grow px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                        >
+                        <button 
+                            onclick="handleAddFromInput()" 
+                            class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-xl shadow-sm transition flex items-center gap-1.5 shrink-0 cursor-pointer"
+                        >
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                            <span>Dodaj</span>
+                        </button>
+                    </div>
+
+                    <!-- Selected Ingredients Pills -->
+                    <div id="selected-ingredients-container" class="min-h-[54px] p-3 rounded-2xl bg-slate-50 border border-dashed border-slate-300 mb-4 flex flex-wrap gap-2 items-center"></div>
+
+                    <!-- Quick Safe Staples -->
+                    <div>
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-800 flex items-center gap-1 mb-2">
+                            <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-600"></i>
+                            Szybki wybór bezpiecznych składników:
+                        </span>
+                        <div id="quick-ingredients-list" class="flex flex-wrap gap-1.5"></div>
+                    </div>
+                </section>
+
+                <!-- 2. Interaktywne Aktywne Filtry Bezpieczeństwa (NEW!) -->
+                <section class="glass-card rounded-3xl p-5 sm:p-6 shadow-sm border-2 border-emerald-200/90 bg-gradient-to-b from-white to-emerald-50/30">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                        <h2 class="flex items-center gap-2 font-display font-bold text-base sm:text-lg text-slate-900">
+                            <span class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-sm font-bold">2</span>
+                            <span>Aktywne Filtry Bezpieczeństwa</span>
+                        </h2>
+                        <div class="flex items-center gap-1.5">
+                            <button onclick="setAllFilters(true)" class="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-800 transition cursor-pointer">
+                                Zaznacz wszystkie
+                            </button>
+                            <button onclick="setAllFilters(false)" class="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition cursor-pointer">
+                                Odznacz
+                            </button>
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-slate-600 mb-3.5">
+                        Zaznacz swoje nietolerancje i alergie pokarmowe. Sztuczna inteligencja odrzuci zakazane produkty i dostosuje przepis wyłącznie do zaznaczonych poniżej kryteriów:
+                    </p>
+
+                    <!-- Checkboxes List -->
+                    <div id="dietary-filters-list" class="space-y-2.5 mb-4">
+                        <!-- Populated dynamically by JS -->
+                    </div>
+
+                    <!-- Add Custom Allergy / Restriction -->
+                    <div class="pt-3 border-t border-emerald-200/70">
+                        <label for="custom-filter-input" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                            Dodaj własną nietolerancję lub nielubiany składnik:
+                        </label>
+                        <div class="flex gap-2">
+                            <input 
+                                type="text" 
+                                id="custom-filter-input" 
+                                placeholder="np. bez jajek, alergia na seler, bez papryki..." 
+                                class="flex-grow px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            >
+                            <button 
+                                onclick="addCustomFilter()" 
+                                class="px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white font-semibold text-xs rounded-xl transition flex items-center gap-1 shrink-0 cursor-pointer"
+                            >
+                                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                                <span>Dodaj filtr</span>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. Wybierz urządzenie kuchenne -->
+                <section class="glass-card rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-200/90">
+                    <h2 class="flex items-center gap-2 font-display font-bold text-base sm:text-lg text-slate-900 mb-3">
+                        <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-bold">3</span>
+                        Urządzenie kuchenne
+                    </h2>
+
+                    <div id="appliances-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5"></div>
+
+                    <!-- Dynamic Slow Cooker + Histamine Warning -->
+                    <div id="slow-cooker-warning" class="hidden mt-3.5 p-3.5 rounded-2xl bg-amber-50 border border-amber-300 text-amber-950 text-xs leading-relaxed">
+                        <div class="flex items-start gap-2.5">
+                            <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-600 shrink-0 mt-0.5"></i>
+                            <div>
+                                <strong class="font-semibold block mb-0.5">Ostrzeżenie: Wolnowar + Nietolerancja Histaminy!</strong>
+                                Długie wielogodzinne gotowanie mięsa (zwłaszcza na kości) drastycznie podnosi poziom histaminy, co może wywołać katar lub kaszel po posiłku. AI ułoży przepis wyłącznie na <strong>krótki cykl ze świeżym mięsem bez kości i warzywami</strong>.
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. Maksymalny czas -->
+                <section class="glass-card rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-200/90">
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="flex items-center gap-2 font-display font-bold text-base sm:text-lg text-slate-900">
+                            <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-bold">4</span>
+                            Dostępny czas
+                        </h2>
+                        <span id="time-display-badge" class="text-xs font-bold px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800">
+                            Do 25 min
+                        </span>
+                    </div>
+
+                    <div id="time-buttons-grid" class="grid grid-cols-5 gap-2"></div>
+                </section>
+
+                <!-- Generate Button -->
+                <button 
+                    id="generate-btn"
+                    onclick="generateRecipe()" 
+                    class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-[0.99] text-white font-display font-bold text-base sm:text-lg shadow-lg shadow-emerald-600/25 transition flex items-center justify-center gap-3 cursor-pointer"
+                >
+                    <i data-lucide="wand-2" class="w-5 h-5"></i>
+                    <span>Ułóż przepis z AI</span>
+                </button>
+
+                <!-- Inline Validation Box -->
+                <div id="validation-msg" class="hidden p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-medium flex items-center gap-2.5">
+                    <i data-lucide="alert-circle" class="w-5 h-5 text-rose-600 shrink-0"></i>
+                    <span id="validation-msg-text">Dodaj przynajmniej jeden składnik przed wygenerowaniem przepisu.</span>
+                </div>
+            </div>
+
+            <div class="lg:col-span-7 space-y-6 print-full">
+                
+                <!-- Welcome Empty State -->
+                <div id="empty-state-card" class="glass-card rounded-3xl p-8 sm:p-12 border border-slate-200/90 text-center flex flex-col items-center justify-center min-h-[500px]">
+                    <div class="w-20 h-20 rounded-3xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 mb-5 shadow-inner">
+                        <i data-lucide="utensils-crossed" class="w-10 h-10"></i>
+                    </div>
+                    <h2 class="font-display font-extrabold text-xl sm:text-2xl text-slate-900 mb-2">
+                        Twój Osobisty Szef Kuchni Eliminacyjnej AI
+                    </h2>
+                    <p class="text-sm text-slate-500 max-w-lg mb-6 leading-relaxed">
+                        Wpisz składniki z lodówki, zaznacz swoje <strong>Aktywne Filtry Bezpieczeństwa</strong> (np. Niska Histamina, SIBO, Bez glutenu, nabiału i cukru), wybierz urządzenie i czas. AI przeanalizuje każdy składnik i wygeneruje bezpieczny przepis.
+                    </p>
+                    <div class="flex flex-wrap justify-center gap-3">
+                        <button onclick="loadTestScenario('safe'); generateRecipe();" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center gap-2 shadow-sm cursor-pointer">
+                            <i data-lucide="play" class="w-4 h-4"></i>
+                            <span>Wygeneruj przykładowy obiad (Air Fryer)</span>
+                        </button>
+                        <button onclick="loadTestScenario('trap'); generateRecipe();" class="px-4 py-2.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-950 text-xs font-bold transition flex items-center gap-2 border border-amber-300 cursor-pointer">
+                            <i data-lucide="shield-alert" class="w-4 h-4 text-amber-700"></i>
+                            <span>Przetestuj odrzucanie alergenów</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Loading State -->
+                <div id="loading-state-card" class="hidden glass-card rounded-3xl p-8 sm:p-12 border border-emerald-200 text-center flex-col items-center justify-center min-h-[500px]">
+                    <div class="relative w-20 h-20 mb-6 mx-auto">
+                        <div class="absolute inset-0 rounded-full border-4 border-emerald-100"></div>
+                        <div class="absolute inset-0 rounded-full border-4 border-emerald-600 border-t-transparent animate-spin"></div>
+                        <div class="absolute inset-0 flex items-center justify-center text-emerald-700">
+                            <i data-lucide="sparkles" class="w-8 h-8 animate-pulse"></i>
+                        </div>
+                    </div>
+                    <h3 class="font-display font-bold text-xl text-slate-900 mb-2">
+                         AI analizuje składniki i układa przepis...
+                    </h3>
+                    <p id="loading-step-text" class="text-sm text-emerald-700 font-medium animate-pulse-subtle mb-5">
+                        Weryfikacja zaznaczonych filtrów żywieniowych...
+                    </p>
+                    <div id="loading-active-filters-summary" class="max-w-md mx-auto w-full bg-slate-50 rounded-2xl p-4 text-xs text-slate-600 text-left space-y-2 border border-slate-200"></div>
+                </div>
+
+                <!-- Recipe Result Container -->
+                <div id="recipe-result-container" class="hidden space-y-6">
+                    
+                    <!-- Recipe Header Card -->
+                    <div class="glass-card rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200/90 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-emerald-100/60 via-teal-50/20 to-transparent rounded-bl-full pointer-events-none"></div>
+                        
+                        <div class="relative z-10">
+                            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span id="res-appliance-badge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800"></span>
+                                    <span id="res-prep-badge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700"></span>
+                                    <span id="res-cook-badge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-900"></span>
+                                    <span id="res-source-badge" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-900 text-emerald-300">
+                                     AI
+                                    </span>
+                                </div>
+
+                                <div class="flex items-center gap-2 no-print">
+                                    <button 
+                                        onclick="copyRecipeToClipboard()" 
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-2xs transition cursor-pointer"
+                                    >
+                                        <i data-lucide="copy" class="w-3.5 h-3.5 text-emerald-600"></i>
+                                        <span id="copy-btn-text">Kopiuj</span>
+                                    </button>
+                                    <button 
+                                        onclick="window.print()" 
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-2xs transition cursor-pointer"
+                                    >
+                                        <i data-lucide="printer" class="w-3.5 h-3.5 text-slate-600"></i>
+                                        <span>Drukuj</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <h2 id="res-dish-name" class="font-display font-extrabold text-2xl sm:text-3xl text-slate-900 tracking-tight mb-3">
+                                Nazwa Dania
+                            </h2>
+
+                            <!-- Applied Filters Pills -->
+                            <div id="res-applied-filters" class="flex flex-wrap gap-1.5"></div>
+                        </div>
+                    </div>
+
+                    <!-- Safety Audit Table / Alert Card -->
+                    <div id="res-safety-audit-card" class="glass-card rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-200/90">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center gap-2.5">
+                                <div id="audit-icon-box" class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                                    <i data-lucide="shield-check" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <h3 id="audit-title" class="font-display font-bold text-base text-slate-900">
+                                        Audyt bezpieczeństwa składników (Filtr Alergii i Nietolerancji)
+                                    </h3>
+                                    <p class="text-xs text-slate-500">Weryfikacja każdego podanego składnika względem aktywnych filtrów</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="res-safety-audit-list" class="space-y-2 mt-3"></div>
+                    </div>
+
+                    <!-- Ingredients Grid (From Fridge vs Safe Pantry/Herbs) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                        <div class="glass-card rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-200/90">
+                            <div class="flex items-center gap-2.5 mb-4 pb-3 border-b border-slate-100">
+                                <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                                    <i data-lucide="refrigerator" class="w-4 h-4"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-display font-bold text-base text-slate-900">Z Twojej lodówki</h3>
+                                    <p class="text-[11px] text-slate-500">Zaakceptowane składniki z gramaturą (1 porcja)</p>
+                                </div>
+                            </div>
+                            <ul id="res-fridge-ingredients" class="space-y-2 text-sm"></ul>
+                        </div>
+
+                        <div class="glass-card rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-200/90">
+                            <div class="flex items-center gap-2.5 mb-4 pb-3 border-b border-slate-100">
+                                <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center">
+                                    <i data-lucide="leaf" class="w-4 h-4"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-display font-bold text-base text-slate-900">Bazowe z szafki i bezpieczne zioła</h3>
+                                    <p class="text-[11px] text-slate-500">Bezpieczne tłuszcze i przyprawy</p>
+                                </div>
+                            </div>
+                            <ul id="res-pantry-ingredients" class="space-y-2 text-sm"></ul>
+                        </div>
+                    </div>
+
+                    <!-- Step-by-Step Instructions Card -->
+                    <div class="glass-card rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-200/90">
+                        <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-xl bg-teal-100 text-teal-800 flex items-center justify-center">
+                                    <i data-lucide="list-ordered" class="w-4 h-4"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-display font-bold text-base sm:text-lg text-slate-900">Instrukcja przygotowania krok po kroku</h3>
+                                    <p class="text-xs text-slate-500 no-print">Kliknij dowolny krok, aby oznaczyć go jako wykonany podczas gotowania</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="res-steps-list" class="space-y-3"></div>
+                    </div>
+
+                    <!-- Macronutrients & Chef Tip Card -->
+                    <div class="glass-card rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-200/90">
+                        <div class="flex items-center gap-2.5 mb-4">
+                            <div class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center">
+                                <i data-lucide="flame" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-display font-bold text-base sm:text-lg text-slate-900">Lista makroskładników (na całą porcję)</h3>
+                                <p class="text-xs text-slate-500">Szacunkowe wartości odżywcze gotowego posiłku</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+                                <span class="text-xs font-medium text-slate-500 block mb-1">Kalorie (Energia)</span>
+                                <div class="flex items-baseline gap-1">
+                                    <span id="macro-kcal" class="font-display font-extrabold text-2xl text-slate-900">0</span>
+                                    <span class="text-xs font-semibold text-slate-500">kcal</span>
+                                </div>
+                                <div class="w-full bg-slate-200 h-1.5 rounded-full mt-2.5 overflow-hidden">
+                                    <div id="bar-kcal" class="bg-slate-800 h-full rounded-full" style="width: 70%"></div>
+                                </div>
+                            </div>
+
+                            <div class="p-4 rounded-2xl bg-emerald-50/60 border border-emerald-200/70">
+                                <span class="text-xs font-medium text-emerald-800 block mb-1">Białko</span>
+                                <div class="flex items-baseline gap-1">
+                                    <span id="macro-protein" class="font-display font-extrabold text-2xl text-emerald-900">0</span>
+                                    <span class="text-xs font-semibold text-emerald-700">g</span>
+                                </div>
+                                <div class="w-full bg-emerald-200/70 h-1.5 rounded-full mt-2.5 overflow-hidden">
+                                    <div id="bar-protein" class="bg-emerald-600 h-full rounded-full" style="width: 60%"></div>
+                                </div>
+                            </div>
+
+                            <div class="p-4 rounded-2xl bg-amber-50/60 border border-amber-200/70">
+                                <span class="text-xs font-medium text-amber-900 block mb-1">Tłuszcze</span>
+                                <div class="flex items-baseline gap-1">
+                                    <span id="macro-fat" class="font-display font-extrabold text-2xl text-amber-950">0</span>
+                                    <span class="text-xs font-semibold text-amber-800">g</span>
+                                </div>
+                                <div class="w-full bg-amber-200/70 h-1.5 rounded-full mt-2.5 overflow-hidden">
+                                    <div id="bar-fat" class="bg-amber-500 h-full rounded-full" style="width: 45%"></div>
+                                </div>
+                            </div>
+
+                            <div class="p-4 rounded-2xl bg-sky-50/60 border border-sky-200/70">
+                                <span class="text-xs font-medium text-sky-900 block mb-1">Węglowodany</span>
+                                <div class="flex items-baseline gap-1">
+                                    <span id="macro-carbs" class="font-display font-extrabold text-2xl text-sky-950">0</span>
+                                    <span class="text-xs font-semibold text-sky-800">g</span>
+                                </div>
+                                <div class="w-full bg-sky-200/70 h-1.5 rounded-full mt-2.5 overflow-hidden">
+                                    <div id="bar-carbs" class="bg-sky-500 h-full rounded-full" style="width: 55%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Chef Tip -->
+                        <div class="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200 flex items-start gap-3 text-xs text-emerald-950 leading-relaxed">
+                            <i data-lucide="heart-pulse" class="w-5 h-5 text-emerald-600 shrink-0 mt-0.5"></i>
+                            <div id="res-chef-tip"></div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Session History -->
+                <section id="history-section" class="hidden glass-card rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-200/90 no-print">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-display font-bold text-sm sm:text-base text-slate-900 flex items-center gap-2">
+                            <i data-lucide="history" class="w-4 h-4 text-emerald-600"></i>
+                            Historia przepisów z tej sesji
+                        </h3>
+                        <span id="history-count" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">0</span>
+                    </div>
+                    <div id="history-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5"></div>
+                </section>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-auto border-t border-slate-200/80 bg-white/70 py-4 no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
+            <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span>Silnik AI: <strong>Chat API</strong> • Interaktywne Filtry Nietolerancji i Alergii Pokarmowych</span>
+            </div>
+            <div>
+                Kliknij dowolny krok w przepisie, aby odhaczyć postęp.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const state = {
+            ingredients: ['pierś z indyka', 'ziemniaki', 'cukinia', 'świeży koperek', 'masło klarowane Ghee'],
+            selectedAppliance: 'Air Fryer',
+            selectedTime: 25,
+            currentRecipe: null,
+            sessionHistory: [],
+            filters: [
+                {
+                    id: 'histamine',
+                    title: 'Nietolerancja histaminy (Dieta niskohistaminowa)',
+                    badge: 'Blokada histaminy',
+                    active: true,
+                    desc: 'Zakaz kiszonek, pomidorów, szpinaku, bakłażana, awokado, cytrusów, wędzonek, konserw, octu, sosu sojowego i odgrzewanego mięsa (ochrona przed kaszlem i katarem po posiłku).',
+                    promptRule: '1. NIETOLERANCJA HISTAMINY (Dieta niskohistaminowa): Bezwzględny zakaz pomidorów, szpinaku, bakłażana, awokado, kiszonek (ogórki/kapusta), wędzonek, konserw, cytrusów (cytryna/limonka), octu, sosu sojowego, grzybów, kakao oraz długo przechowywanego/odgrzewanego mięsa.'
+                },
+                {
+                    id: 'sibo',
+                    title: 'SIBO / Low FODMAP',
+                    badge: 'Ochrona jelit',
+                    active: true,
+                    desc: 'Zakaz czosnku, cebuli (dozwolona wyłącznie zielona część dymki/szczypior), strączków, grzybów i nadmiaru produktów wysokofermentujących.',
+                    promptRule: '2. SIBO / LOW FODMAP: Bezwzględny zakaz czosnku, cebuli białej/czerwonej (dozwolony TYLKO zielony szczypior / zielona część dymki!), roślin strączkowych, grzybów, białej części pora, jabłek.'
+                },
+                {
+                    id: 'gluten',
+                    title: 'Bez glutenu',
+                    badge: 'Bezglutenowo',
+                    active: true,
+                    desc: 'Wykluczenie pszenicy, żyta, jęczmienia, zwykłego makaronu i mąki pszennej (dozwolone ryż, ziemniaki, gryka, komosa, mąka ziemniaczana/ryżowa).',
+                    promptRule: '3. BEZ GLUTENU: Bezwzględny zakaz pszenicy, żyta, jęczmienia, zwykłej mąki pszennej, zwykłego makaronu, bułki tartej i kuskusu.'
+                },
+                {
+                    id: 'dairy',
+                    title: 'Bez nabiału',
+                    badge: 'Bez mleka i laktozy',
+                    active: true,
+                    desc: 'Wykluczenie mleka krowiego, śmietany, twarogu, jogurtów, serów żółtych i pleśniowych (dozwolone masło klarowane Ghee, oliwa, olej i mleczko kokosowe).',
+                    promptRule: '4. BEZ NABIAŁU: Bezwzględny zakaz mleka krowiego, śmietany, jogurtu, twarogu, serów żółtych, mozzarelli, parmezanu i zwykłego masła. Dozwolone: masło klarowane Ghee, oliwa z oliwek, olej kokosowy, mleczko kokosowe.'
+                },
+                {
+                    id: 'sugar',
+                    title: 'Bez cukru i miodu',
+                    badge: 'Zero cukru',
+                    active: true,
+                    desc: 'Wykluczenie białego i brązowego cukru, syropów glukozowo-fruktozowych oraz miodu (wysokie FODMAP).',
+                    promptRule: '5. BEZ CUKRU: Bezwzględny zakaz białego/brązowego cukru, syropów słodzących oraz miodu.'
+                }
+            ]
+        };
+
+        const QUICK_SAFE_STAPLES = [
+            'pierś z indyka', 'udziec z indyka', 'ziemniaki', 'marchewka', 
+            'cukinia', 'jajka', 'ryż biały', 'świeży koperek', 
+            'natka pietruszki', 'zielona część dymki', 'masło klarowane Ghee', 
+            'płatki owsiane bezglutenowe'
+        ];
+
+        const APPLIANCES = [
+            { id: 'Air Fryer', name: 'Air Fryer', desc: 'Szybkie i chrupiące', icon: 'fan' },
+            { id: 'Wolnowar', name: 'Wolnowar', desc: 'Krótkie cykle', icon: 'timer' },
+            { id: 'Piekarnik', name: 'Piekarnik', desc: 'Pieczenie w naczyniu', icon: 'microwave' },
+            { id: 'Patelnia / Garnek', name: 'Patelnia / Garnek', desc: 'Duszenie i gotowanie', icon: 'cooking-pot' },
+            { id: 'Mikrofalówka', name: 'Mikrofalówka', desc: 'Ekspresowo na parze', icon: 'zap' },
+            { id: 'Naleśnikarka', name: 'Naleśnikarka', desc: 'Placki i naleśniki BG', icon: 'circle-dot' }
+        ];
+
+        const TIME_OPTIONS = [15, 25, 35, 45, 60];
+
+        function initApp() {
+            renderSelectedIngredients();
+            renderQuickIngredients();
+            renderDietaryFilters();
+            renderAppliances();
+            renderTimeButtons();
+
+            document.getElementById('ingredient-input').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddFromInput();
+                }
+            });
+
+            document.getElementById('custom-filter-input').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addCustomFilter();
+                }
+            });
+
+            lucide.createIcons();
+        }
+
+        function renderSelectedIngredients() {
+            const container = document.getElementById('selected-ingredients-container');
+            const clearBtn = document.getElementById('clear-btn');
+
+            if (state.ingredients.length === 0) {
+                container.innerHTML = `<span class="text-xs text-slate-400 italic">Brak składników – dodaj je powyżej lub kliknij szybki wybór...</span>`;
+                clearBtn.classList.add('hidden');
+                clearBtn.classList.remove('inline-flex');
+            } else {
+                clearBtn.classList.remove('hidden');
+                clearBtn.classList.add('inline-flex');
+                container.innerHTML = state.ingredients.map((item, idx) => `
+                    <span class="inline-flex items-center gap-1.5 pl-3 pr-2 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 text-white shadow-2xs">
+                        <span>${escapeHtml(item)}</span>
+                        <button onclick="removeIngredient(${idx})" class="w-4 h-4 rounded-full bg-emerald-700 hover:bg-rose-500 flex items-center justify-center transition cursor-pointer" title="Usuń">
+                            <i data-lucide="x" class="w-3 h-3"></i>
+                        </button>
+                    </span>
+                `).join('');
+            }
+            renderQuickIngredients();
+            lucide.createIcons();
+        }
+
+        function renderQuickIngredients() {
+            const listEl = document.getElementById('quick-ingredients-list');
+            listEl.innerHTML = QUICK_SAFE_STAPLES.map(name => {
+                const isSelected = state.ingredients.some(i => i.toLowerCase() === name.toLowerCase());
+                return `
+                    <button 
+                        onclick="toggleQuickIngredient('${name.replace(/'/g, "\\'")}')"
+                        class="text-xs px-2.5 py-1.5 rounded-xl font-medium transition flex items-center gap-1 cursor-pointer ${
+                            isSelected 
+                            ? 'bg-emerald-100 text-emerald-900 border border-emerald-300 font-semibold' 
+                            : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                        }"
+                    >
+                        <i data-lucide="${isSelected ? 'check' : 'plus'}" class="w-3 h-3 ${isSelected ? 'text-emerald-600' : 'text-slate-400'}"></i>
+                        <span>${escapeHtml(name)}</span>
+                    </button>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        function handleAddFromInput() {
+            const inputEl = document.getElementById('ingredient-input');
+            const rawVal = inputEl.value.trim();
+            if (!rawVal) return;
+
+            rawVal.split(',').map(s => s.trim()).filter(Boolean).forEach(part => {
+                if (!state.ingredients.some(i => i.toLowerCase() === part.toLowerCase())) {
+                    state.ingredients.push(part);
+                }
+            });
+
+            inputEl.value = '';
+            hideValidationError();
+            renderSelectedIngredients();
+        }
+
+        function toggleQuickIngredient(name) {
+            const idx = state.ingredients.findIndex(i => i.toLowerCase() === name.toLowerCase());
+            if (idx > -1) {
+                state.ingredients.splice(idx, 1);
+            } else {
+                state.ingredients.push(name);
+                hideValidationError();
+            }
+            renderSelectedIngredients();
+        }
+
+        function removeIngredient(idx) {
+            state.ingredients.splice(idx, 1);
+            renderSelectedIngredients();
+        }
+
+        function clearIngredients() {
+            state.ingredients = [];
+            renderSelectedIngredients();
+        }
+
+        // Render Interactive Checkboxes for Dietary Filters
+        function renderDietaryFilters() {
+            const container = document.getElementById('dietary-filters-list');
+            const activeCount = state.filters.filter(f => f.active).length;
+
+            // Update header badge
+            const badgeText = document.getElementById('active-filters-count-text');
+            badgeText.textContent = `${activeCount} ${activeCount === 1 ? 'Aktywny Filtr' : 'Aktywne Filtry'}`;
+
+            container.innerHTML = state.filters.map((f, idx) => `
+                <label 
+                    for="filter-checkbox-${f.id}"
+                    class="block p-3.5 rounded-2xl border transition cursor-pointer select-none ${
+                        f.active 
+                        ? 'bg-white border-emerald-400 shadow-2xs ring-1 ring-emerald-400/40' 
+                        : 'bg-slate-50/70 border-slate-200 opacity-65 hover:opacity-90'
+                    }"
+                >
+                    <div class="flex items-start gap-3">
+                        <input 
+                            type="checkbox" 
+                            id="filter-checkbox-${f.id}" 
+                            ${f.active ? 'checked' : ''} 
+                            onchange="toggleFilter(${idx})"
+                            class="mt-1 w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 cursor-pointer accent-emerald-600"
+                        >
+                        <div class="flex-grow">
+                            <div class="flex flex-wrap items-center justify-between gap-1.5">
+                                <span class="font-display font-bold text-xs sm:text-sm ${f.active ? 'text-slate-900' : 'text-slate-500 line-through'}">
+                                    ${escapeHtml(f.title)}
+                                </span>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${
+                                        f.active 
+                                        ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' 
+                                        : 'bg-slate-200 text-slate-500'
+                                    }">
+                                        ${f.active ? f.badge : 'Wyłączony'}
+                                    </span>
+                                    ${f.isCustom ? `
+                                        <button type="button" onclick="event.preventDefault(); removeCustomFilter(${idx})" class="text-slate-400 hover:text-rose-600 p-0.5" title="Usuń własny filtr">
+                                            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                                ${escapeHtml(f.desc)}
+                            </p>
+                        </div>
+                    </div>
+                </label>
+            `).join('');
+
+            updateSlowCookerWarning();
+            lucide.createIcons();
+        }
+
+        function toggleFilter(idx) {
+            state.filters[idx].active = !state.filters[idx].active;
+            renderDietaryFilters();
+        }
+
+        function setAllFilters(activeState) {
+            state.filters.forEach(f => f.active = activeState);
+            renderDietaryFilters();
+        }
+
+        function addCustomFilter() {
+            const input = document.getElementById('custom-filter-input');
+            const val = input.value.trim();
+            if (!val) return;
+
+            state.filters.push({
+                id: 'custom_' + Date.now(),
+                title: `Własny filtr: ${val}`,
+                badge: 'Własne wykluczenie',
+                active: true,
+                isCustom: true,
+                desc: `Bezwzględne wykluczenie składnika lub grupy: ${val}.`,
+                promptRule: `DODATKOWE WYKLUCZENIE UŻYTKOWNIKA: Bezwzględnie wyklucz z przepisu: ${val}.`
+            });
+
+            input.value = '';
+            renderDietaryFilters();
+        }
+
+        function removeCustomFilter(idx) {
+            state.filters.splice(idx, 1);
+            renderDietaryFilters();
+        }
+
+        function renderAppliances() {
+            const grid = document.getElementById('appliances-grid');
+            grid.innerHTML = APPLIANCES.map(app => {
+                const active = state.selectedAppliance === app.id;
+                return `
+                    <button 
+                        onclick="selectAppliance('${app.id}')"
+                        class="p-3.5 rounded-2xl text-left transition border flex flex-col justify-between cursor-pointer ${
+                            active 
+                            ? 'bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-600/20' 
+                            : 'bg-white hover:bg-emerald-50/50 text-slate-800 border-slate-200'
+                        }"
+                    >
+                        <div class="flex items-center justify-between w-full mb-2">
+                            <i data-lucide="${app.icon}" class="w-5 h-5 ${active ? 'text-white' : 'text-emerald-600'}"></i>
+                            ${active ? '<span class="w-2 h-2 rounded-full bg-white"></span>' : ''}
+                        </div>
+                        <div>
+                            <div class="font-display font-bold text-xs sm:text-sm leading-tight">${app.name}</div>
+                            <div class="text-[10px] mt-0.5 ${active ? 'text-emerald-100' : 'text-slate-400'}">${app.desc}</div>
+                        </div>
+                    </button>
+                `;
+            }).join('');
+
+            updateSlowCookerWarning();
+            lucide.createIcons();
+        }
+
+        function selectAppliance(id) {
+            state.selectedAppliance = id;
+            renderAppliances();
+        }
+
+        function updateSlowCookerWarning() {
+            const warningEl = document.getElementById('slow-cooker-warning');
+            const histamineActive = state.filters.find(f => f.id === 'histamine')?.active;
+            if (state.selectedAppliance === 'Wolnowar' && histamineActive) {
+                warningEl.classList.remove('hidden');
+            } else {
+                warningEl.classList.add('hidden');
+            }
+        }
+
+        function renderTimeButtons() {
+            const grid = document.getElementById('time-buttons-grid');
+            const badge = document.getElementById('time-display-badge');
+            badge.textContent = state.selectedTime === 60 ? '60+ min' : `Do ${state.selectedTime} min`;
+
+            grid.innerHTML = TIME_OPTIONS.map(mins => {
+                const active = state.selectedTime === mins;
+                return `
+                    <button 
+                        onclick="selectTime(${mins})"
+                        class="py-2.5 px-2 rounded-2xl border text-center transition cursor-pointer ${
+                            active 
+                            ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm font-bold' 
+                            : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200 font-medium'
+                        }"
+                    >
+                        <div class="text-xs sm:text-sm">${mins === 60 ? '60+' : mins}</div>
+                        <div class="text-[10px] ${active ? 'text-emerald-100' : 'text-slate-400'}">min</div>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function selectTime(mins) {
+            state.selectedTime = mins;
+            renderTimeButtons();
+        }
+
+        function toggleApiConfigPanel() {
+            const panel = document.getElementById('api-config-panel');
+            panel.classList.toggle('hidden');
+        }
+
+        function toggleApiKeyVisibility() {
+            const input = document.getElementById('deepseek-api-key');
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        async function testDeepSeekConnection() {
+            const apiKey = document.getElementById('deepseek-api-key').value.trim();
+            const model = document.getElementById('deepseek-model').value;
+            const feedback = document.getElementById('api-test-feedback');
+            const btnText = document.getElementById('test-api-btn-text');
+
+            feedback.classList.remove('hidden');
+            feedback.className = 'mt-3 p-2.5 rounded-xl text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700';
+            feedback.textContent = 'Łączenie z serwerem api.deepseek.com...';
+            btnText.textContent = 'Testowanie...';
+
+            try {
+                const response = await fetch('https://api.deepseek.com/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        messages: [{ role: 'user', content: 'Odpowiedz jednym słowem: OK' }],
+                        max_tokens: 10
+                    })
+                });
+
+                if (!response.ok) {
+                    const errText = await response.text();
+                    throw new Error(`Kod HTTP ${response.status}: ${errText}`);
+                }
+
+                feedback.className = 'mt-3 p-2.5 rounded-xl text-xs font-medium bg-emerald-950 text-emerald-300 border border-emerald-700';
+                feedback.textContent = 'Połączenie z DeepSeek API zakończone sukcesem! Klucz API jest aktywny.';
+                document.getElementById('api-status-dot').className = 'w-2 h-2 rounded-full bg-emerald-400';
+            } catch (err) {
+                feedback.className = 'mt-3 p-2.5 rounded-xl text-xs font-medium bg-amber-950 text-amber-300 border border-amber-700';
+                feedback.textContent = `Uwaga połączenia API (${err.message}). W razie problemów z limitem lub siecią aplikacja użyje wbudowanego silnika awaryjnego.`;
+                document.getElementById('api-status-dot').className = 'w-2 h-2 rounded-full bg-amber-400';
+            } finally {
+                btnText.textContent = 'Testuj połączenie';
+            }
+        }
+
+        function loadTestScenario(type) {
+            if (type === 'safe') {
+                state.ingredients = ['pierś z indyka', 'ziemniaki', 'cukinia', 'świeży koperek', 'masło klarowane Ghee'];
+                state.selectedAppliance = 'Air Fryer';
+                state.selectedTime = 25;
+            } else if (type === 'trap') {
+                state.ingredients = ['pierś z indyka', 'pomidor', 'czosnek', 'ser żółty', 'cukinia', 'ziemniaki'];
+                state.selectedAppliance = 'Patelnia / Garnek';
+                state.selectedTime = 25;
+                setAllFilters(true);
+            }
+            hideValidationError();
+            renderSelectedIngredients();
+            renderAppliances();
+            renderTimeButtons();
+        }
+
+        function showValidationError(msg) {
+            const box = document.getElementById('validation-msg');
+            document.getElementById('validation-msg-text').textContent = msg;
+            box.classList.remove('hidden');
+        }
+
+        function hideValidationError() {
+            document.getElementById('validation-msg').classList.add('hidden');
+        }
+
+        async function generateRecipe() {
+            if (state.ingredients.length === 0) {
+                showValidationError('Wpisz lub wybierz przynajmniej jeden składnik przed wygenerowaniem przepisu.');
+                return;
+            }
+            hideValidationError();
+
+            const activeFilters = state.filters.filter(f => f.active);
+            const apiKey = document.getElementById('deepseek-api-key').value.trim();
+            const model = document.getElementById('deepseek-model').value;
+
+            // Show Loading Card
+            document.getElementById('empty-state-card').classList.add('hidden');
+            document.getElementById('recipe-result-container').classList.add('hidden');
+            const loadingCard = document.getElementById('loading-state-card');
+            loadingCard.classList.remove('hidden');
+            loadingCard.classList.add('flex');
+
+            const loadingSummary = document.getElementById('loading-active-filters-summary');
+            if (activeFilters.length > 0) {
+                loadingSummary.innerHTML = `
+                    <div class="font-bold text-slate-800 mb-1">Aktywne filtry sprawdzane przez DeepSeek AI (${activeFilters.length}):</div>
+                    ${activeFilters.map(f => `
+                        <div class="flex items-center gap-2 text-emerald-800">
+                            <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-600 shrink-0"></i>
+                            <span>${escapeHtml(f.title)}</span>
+                        </div>
+                    `).join('')}
+                `;
+            } else {
+                loadingSummary.innerHTML = `<div class="text-slate-500">Brak zaznaczonych filtrów eliminacyjnych – generowanie przepisu standardowego.</div>`;
+            }
+            lucide.createIcons();
+
+            const genBtn = document.getElementById('generate-btn');
+            genBtn.disabled = true;
+            genBtn.classList.add('opacity-75', 'cursor-not-allowed');
+
+            const activeRulesText = activeFilters.length > 0
+                ? activeFilters.map(f => f.promptRule).join('\n')
+                : 'Brak szczególnych wykluczeń dietetycznych – wszystkie podane składniki są dozwolone.';
+
+            const slowCookerNote = (state.selectedAppliance === 'Wolnowar' && activeFilters.some(f => f.id === 'histamine'))
+                ? 'UWAGA SPECJALNA: Użytkownik wybrał Wolnowar oraz ma aktywną Nietolerancję Histaminy. Zaproponuj wyłącznie krótki cykl obróbki świeżego mięsa bez kości i warzyw oraz ostrzeż przed długim gotowaniem podnoszącym histaminę.'
+                : '';
+
+            const systemPrompt = `Jesteś zaawansowanym Generatorem Przepisów Kulinarnych AI „Z tego, co w lodówce”, specjalizującym się w diecie eliminacyjnej.
+Twoim zadaniem jest ułożenie bezpiecznego, smacznego przepisu krok po kroku w języku polskim oraz zwrócenie odpowiedzi WYŁĄCZNIE jako obiekt JSON.
+
+AKTYWNE FILTRY BEZPIECZEŃSTWA ZAZNACZONE PRZEZ UŻYTKOWNIKA:
+${activeRulesText}
+${slowCookerNote}
+
+ZASADY AUDYTU SKŁADNIKÓW (safetyAudit):
+- Przeanalizuj każdy składnik wpisany przez użytkownika względem AKTYWNYCH filtrów powyżej.
+- Jeśli składnik narusza którykolwiek z AKTYWNYCH filtrów (np. pomidor przy nietolerancji histaminy, czosnek/cebula przy SIBO, ser żółty/śmietana przy diecie bez nabiału, mąka pszenna przy diecie bez glutenu), oznacz jego status jako "rejected", wyjaśnij dokładnie powód medyczny w polu "reason" i podaj bezpieczny zamiennik w polu "replacement".
+- Odrzuconego składnika NIGDY nie umieszczaj w "fridgeIngredients" ani w krokach przygotowania!
+- Do doprawiania używaj bezpiecznych ziół i tłuszczów: sól, świeży koperek, natka pietruszki, zielona część dymki, majeranek, tymianek, bazylia, oregano, kurkuma, imbir, masło klarowane Ghee, oliwa z oliwek.
+
+WYMAGANY FORMAT ODPOWIEDZI JSON:
+{
+  "dishName": "Pełna apetyczna nazwa dania po polsku",
+  "applianceUsed": "${state.selectedAppliance}",
+  "prepTime": "np. 10 min",
+  "cookTime": "np. 15 min (180°C)",
+  "safetyAudit": [
+    {
+      "ingredient": "Nazwa składnika użytkownika",
+      "status": "accepted | rejected | modified",
+      "reason": "Krótkie uzasadnienie dlaczego składnik jest bezpieczny lub dlaczego został odrzucony przez aktywny filtr",
+      "replacement": "Bezpieczny zamiennik (lub '-' jeśli zaakceptowano)"
+    }
+  ],
+  "fridgeIngredients": [
+    "Składnik z lodówki z dokładną gramaturą na 1 porcję, np. Pierś z indyka (świeża) – 180 g"
+  ],
+  "pantryIngredients": [
+    "Bezpieczny dodatek z szafki/zioła z gramaturą, np. Masło klarowane Ghee – 15 g (1 łyżka)"
+  ],
+  "steps": [
+    "Krok 1: Dokładny opis czynności z temperaturą w °C i czasem w minutach..."
+  ],
+  "macros": {
+    "kcal": 460,
+    "protein": 38,
+    "fat": 16,
+    "carbs": 42
+  },
+  "chefTip": "Praktyczna wskazówka dotycząca niskiej histaminy / SIBO i przechowywania posiłku"
+}`;
+
+            const userPrompt = `Składniki wpisane przez użytkownika: ${state.ingredients.join(', ')}
+Wybrane urządzenie: ${state.selectedAppliance}
+Maksymalny czas: ${state.selectedTime} minut.
+Wygeneruj przepis w formacie JSON.`;
+
+            try {
+                if (!apiKey) throw new Error('Brak klucza API');
+
+                const response = await fetch('https://api.deepseek.com/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        messages: [
+                            { role: 'system', content: systemPrompt },
+                            { role: 'user', content: userPrompt }
+                        ],
+                        response_format: { type: 'json_object' },
+                        temperature: 0.35
+                    })
+                });
+
+                if (!response.ok) {
+                    const errText = await response.text();
+                    throw new Error(`DeepSeek API HTTP ${response.status}: ${errText}`);
+                }
+
+                const data = await response.json();
+                let rawContent = data?.choices?.[0]?.message?.content || '';
+                rawContent = rawContent.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
+
+                const parsedRecipe = JSON.parse(rawContent);
+                parsedRecipe._source = `DeepSeek AI (${model})`;
+                parsedRecipe._appliedFilters = activeFilters.map(f => f.title);
+
+                saveAndRenderRecipe(parsedRecipe);
+
+            } catch (err) {
+                console.warn('DeepSeek API fallback triggered:', err);
+                const fallbackRecipe = buildSmartFallbackRecipe(state.ingredients, state.selectedAppliance, state.selectedTime, activeFilters);
+                fallbackRecipe._source = 'Silnik Lokalny Bezpiecznej Kuchni (Tryb Offline/Fallback)';
+                fallbackRecipe._appliedFilters = activeFilters.map(f => f.title);
+                saveAndRenderRecipe(fallbackRecipe);
+            } finally {
+                genBtn.disabled = false;
+                genBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+            }
+        }
+
+        function buildSmartFallbackRecipe(ingredients, appliance, maxTime, activeFilters) {
+            const isActive = (id) => activeFilters.some(f => f.id === id);
+
+            const safetyAudit = [];
+            const acceptedFridge = [];
+
+            ingredients.forEach(rawIng => {
+                const low = rawIng.toLowerCase();
+                if (isActive('histamine') && (low.includes('pomidor') || low.includes('szpinak') || low.includes('awokado') || low.includes('kiszon') || low.includes('cytryn') || low.includes('wędzon') || low.includes('ocet') || low.includes('sojow'))) {
+                    safetyAudit.push({
+                        ingredient: rawIng,
+                        status: 'rejected',
+                        reason: 'Odrzucono przez filtr Nietolerancji Histaminy (wysokie ryzyko wyrzutu histaminy, kataru lub kaszlu po posiłku).',
+                        replacement: 'Cukinia / marchewka oraz świeże zioła (koperek, natka pietruszki)'
+                    });
+                } else if (isActive('sibo') && ((low.includes('czosn') || low.includes('cebul') || low.includes('pieczark') || low.includes('grzyb') || low.includes('fasol') || low.includes('soczewic')) && !low.includes('dymk') && !low.includes('szczypior'))) {
+                    safetyAudit.push({
+                        ingredient: rawIng,
+                        status: 'rejected',
+                        reason: 'Odrzucono przez filtr SIBO / Low FODMAP (wysoka zawartość fruktanów powodujących szybką fermentację jelitową).',
+                        replacement: 'Wyłącznie zielona część dymki (szczypior) oraz świeży koperek'
+                    });
+                } else if (isActive('dairy') && ((low.includes('ser') || low.includes('śmietan') || low.includes('mlek') || low.includes('twaróg') || low.includes('jogurt') || (low.includes('masł') && !low.includes('klarowan') && !low.includes('ghee'))) && !low.includes('kokos'))) {
+                    safetyAudit.push({
+                        ingredient: rawIng,
+                        status: 'rejected',
+                        reason: 'Odrzucono przez filtr Bez Nabiału (zawiera kazeinę i laktozę; sery dojrzewające są też bogate w histaminę).',
+                        replacement: 'Masło klarowane Ghee (15 g) lub oliwa z oliwek'
+                    });
+                } else if (isActive('gluten') && (low.includes('pszenn') || low.includes('makaron') || low.includes('bułk') || low.includes('chleb'))) {
+                    safetyAudit.push({
+                        ingredient: rawIng,
+                        status: 'rejected',
+                        reason: 'Odrzucono przez filtr Bez Glutenu.',
+                        replacement: 'Ziemniaki, biały ryż lub mąka ryżowa'
+                    });
+                } else if (isActive('sugar') && (low.includes('cukier') || low.includes('miód') || low.includes('syrop'))) {
+                    safetyAudit.push({
+                        ingredient: rawIng,
+                        status: 'rejected',
+                        reason: 'Odrzucono przez filtr Bez Cukru i Miodu.',
+                        replacement: 'Naturalny smak świeżych ziół lub szczypta cynamonu'
+                    });
+                } else {
+                    safetyAudit.push({
+                        ingredient: rawIng,
+                        status: 'accepted',
+                        reason: 'Składnik w 100% zgodny z zaznaczonymi filtrami żywieniowymi.',
+                        replacement: '-'
+                    });
+                    acceptedFridge.push(rawIng);
+                }
+            });
+
+            if (acceptedFridge.length === 0) {
+                acceptedFridge.push('Pierś z indyka (świeża)', 'Cukinia', 'Ziemniaki');
+            }
+
+            const fridgeFormatted = acceptedFridge.map(item => {
+                const l = item.toLowerCase();
+                if (l.includes('indyk') || l.includes('dorsz') || l.includes('kurczak')) return `${item} – 180 g (1 świeża porcja)`;
+                if (l.includes('ziemniak')) return `${item} – 200 g (ok. 3 średnie sztuki, obrane)`;
+                if (l.includes('cukini') || l.includes('marchew')) return `${item} – 150 g (pokrojona w kawałki)`;
+                if (l.includes('ryż') || l.includes('komos') || l.includes('płatki')) return `${item} – 65 g (waga sucha)`;
+                if (l.includes('jajk')) return `${item} – 2 sztuki`;
+                return `${item} – 1 porcja kulinarna`;
+            });
+
+            const cookTimeMin = Math.max(maxTime - 7, 10);
+            let tempDesc = '185°C';
+            if (appliance === 'Piekarnik') tempDesc = '195°C (góra-dół)';
+            if (appliance === 'Patelnia / Garnek') tempDesc = 'Średnia moc palnika (pod przykryciem)';
+            if (appliance === 'Wolnowar') tempDesc = 'Tryb HIGH (krótki cykl niskohistaminowy)';
+            if (appliance === 'Naleśnikarka') tempDesc = '190°C (rozgrzana płyta)';
+            if (appliance === 'Mikrofalówka') tempDesc = 'Moc 750W (naczynie żaroodporne z przykrywką)';
+
+            return {
+                dishName: `Soczyste danie: ${acceptedFridge.slice(0, 3).join(', ')} z zieloną dymką i koperkiem (${appliance})`,
+                applianceUsed: appliance,
+                prepTime: '7 min',
+                cookTime: `${cookTimeMin} min (${tempDesc})`,
+                safetyAudit: safetyAudit,
+                fridgeIngredients: fridgeFormatted,
+                pantryIngredients: [
+                    'Masło klarowane Ghee (lub oliwa z oliwek) – 15 g (1 łyżka)',
+                    'Świeży koperek i natka pietruszki (drobno posiekane) – 2 łyżki',
+                    'Zielona część dymki (szczypior bezpieczny w SIBO) – 1 łyżka',
+                    'Sól kamienna/himalajska – 1/2 łyżeczki, szczypta majeranku i kurkumy'
+                ],
+                steps: [
+                    `Krok 1 (Przygotowanie składników – 5 min): Umyj i osusz zaakceptowane składniki (${acceptedFridge.join(', ')}). Pokrój je na równe kawałki wielkości ok. 2 cm, aby równomiernie przeszły obróbkę cieplną.`,
+                    `Krok 2 (Bezpieczna marynata – 2 min): W misce wymieszaj pokrojone składniki z rozpuszczonym masłem klarowanym Ghee (15 g), solą, szczyptą kurkumy, majerankiem oraz połową posiekanego koperku.`,
+                    `Krok 3 (Obróbka w urządzeniu ${appliance} – ${cookTimeMin} min): Przełóż składniki do urządzenia (${tempDesc}). Prowadź obróbkę przez ${cookTimeMin} minut. W połowie czasu delikatnie przemieszaj lub obróć składniki, by zachowały soczystość.`,
+                    `Krok 4 (Podanie): Wyjmij gotowe danie na talerz i od razu posyp pozostałym świeżym koperkiem, natką pietruszki oraz zieloną częścią dymki.`
+                ],
+                macros: {
+                    kcal: 475,
+                    protein: 39,
+                    fat: 16,
+                    carbs: 41
+                },
+                chefTip: isActive('histamine')
+                    ? 'Wskazówka niskohistaminowa: Spożyj posiłek bezpośrednio po przygotowaniu. Długie przechowywanie ugotowanego mięsa w lodówce powoduje szybki wzrost poziomu histaminy.'
+                    : 'Wskazówka kulinarna: Świeże zioła dodane tuż przed podaniem wspierają trawienie i wzbogacają aromat bez obciążania jelit.'
+            };
+        }
+
+        function saveAndRenderRecipe(recipe) {
+            state.currentRecipe = recipe;
+            state.sessionHistory.unshift({
+                id: Date.now(),
+                recipe: recipe,
+                time: new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })
+            });
+            if (state.sessionHistory.length > 6) state.sessionHistory.pop();
+
+            renderRecipeOutput(recipe);
+            renderSessionHistory();
+        }
+
+        function renderRecipeOutput(recipe) {
+            const loadingCard = document.getElementById('loading-state-card');
+            loadingCard.classList.add('hidden');
+            loadingCard.classList.remove('flex');
+            document.getElementById('empty-state-card').classList.add('hidden');
+
+            const container = document.getElementById('recipe-result-container');
+            container.classList.remove('hidden');
+
+            document.getElementById('res-appliance-badge').innerHTML = `<i data-lucide="cpu" class="w-3.5 h-3.5"></i><span>${escapeHtml(recipe.applianceUsed)}</span>`;
+            document.getElementById('res-prep-badge').innerHTML = `<i data-lucide="clock" class="w-3.5 h-3.5 text-slate-500"></i><span>Przygotowanie: ${escapeHtml(recipe.prepTime)}</span>`;
+            document.getElementById('res-cook-badge').innerHTML = `<i data-lucide="flame" class="w-3.5 h-3.5 text-amber-600"></i><span>Obróbka: ${escapeHtml(recipe.cookTime)}</span>`;
+            document.getElementById('res-source-badge').textContent = recipe._source || 'DeepSeek AI';
+            document.getElementById('res-dish-name').textContent = recipe.dishName;
+
+            // Render active filters badges on the recipe card
+            const appliedEl = document.getElementById('res-applied-filters');
+            const appliedList = recipe._appliedFilters || [];
+            if (appliedList.length > 0) {
+                appliedEl.innerHTML = appliedList.map(fName => `
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                        <i data-lucide="shield-check" class="w-3 h-3 text-emerald-600"></i>
+                        <span>${escapeHtml(fName)}</span>
+                    </span>
+                `).join('');
+            } else {
+                appliedEl.innerHTML = `<span class="text-xs text-slate-400">Przepis wygenerowany bez aktywnych filtrów eliminacyjnych.</span>`;
+            }
+
+            // Safety Audit List
+            const auditList = document.getElementById('res-safety-audit-list');
+            const auditItems = recipe.safetyAudit || [];
+            const hasRejected = auditItems.some(a => a.status === 'rejected' || a.status === 'modified');
+
+            const auditIconBox = document.getElementById('audit-icon-box');
+            const auditTitle = document.getElementById('audit-title');
+
+            if (hasRejected) {
+                auditIconBox.className = 'w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0';
+                auditIconBox.innerHTML = `<i data-lucide="shield-alert" class="w-5 h-5"></i>`;
+                auditTitle.textContent = 'Filtr Bezpieczeństwa zadziałał: Wykryto i zastąpiono zakazane składniki!';
+            } else {
+                auditIconBox.className = 'w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0';
+                auditIconBox.innerHTML = `<i data-lucide="shield-check" class="w-5 h-5"></i>`;
+                auditTitle.textContent = 'Audyt bezpieczeństwa składników: Wszystkie składniki bezpieczne';
+            }
+
+            auditList.innerHTML = auditItems.map(item => {
+                const isRej = item.status === 'rejected' || item.status === 'modified';
+                return `
+                    <div class="p-3 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${
+                        isRej ? 'bg-amber-50/90 border-amber-300' : 'bg-slate-50/80 border-slate-200/80'
+                    }">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-0.5 rounded-md text-xs font-bold ${
+                                    isRej ? 'bg-rose-100 text-rose-800 line-through' : 'bg-emerald-100 text-emerald-800'
+                                }">
+                                    ${escapeHtml(item.ingredient)}
+                                </span>
+                                <span class="text-xs font-bold ${isRej ? 'text-rose-700' : 'text-emerald-700'}">
+                                    ${isRej ? 'ODRZUCONO' : 'ZAAKCEPTOWANO'}
+                                </span>
+                            </div>
+                            <p class="text-xs text-slate-600 mt-1">${escapeHtml(item.reason)}</p>
+                        </div>
+                        ${isRej && item.replacement && item.replacement !== '-' ? `
+                            <div class="sm:text-right shrink-0 bg-white px-3 py-1.5 rounded-xl border border-emerald-200">
+                                <span class="text-[10px] uppercase tracking-wider font-bold text-emerald-700 block">Zamiennik w przepisie:</span>
+                                <span class="text-xs font-bold text-emerald-950">${escapeHtml(item.replacement)}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            // Fridge & Pantry Ingredients
+            document.getElementById('res-fridge-ingredients').innerHTML = (recipe.fridgeIngredients || []).map(line => `
+                <li class="flex items-center gap-2.5 py-2 px-3 rounded-xl bg-slate-50 border border-slate-100">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                    <span class="text-slate-800 font-medium">${escapeHtml(line)}</span>
+                </li>
+            `).join('');
+
+            document.getElementById('res-pantry-ingredients').innerHTML = (recipe.pantryIngredients || []).map(line => `
+                <li class="flex items-center gap-2.5 py-2 px-3 rounded-xl bg-amber-50/40 border border-amber-100">
+                    <span class="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
+                    <span class="text-slate-800 font-medium">${escapeHtml(line)}</span>
+                </li>
+            `).join('');
+
+            // Steps
+            document.getElementById('res-steps-list').innerHTML = (recipe.steps || []).map((stepText, idx) => `
+                <div onclick="this.classList.toggle('opacity-50'); this.querySelector('.step-body').classList.toggle('line-through');" class="p-4 rounded-2xl bg-slate-50/80 hover:bg-white border border-slate-200/80 transition cursor-pointer flex items-start gap-3.5">
+                    <div class="w-7 h-7 rounded-xl bg-emerald-600 text-white font-display font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                        ${idx + 1}
+                    </div>
+                    <p class="step-body text-xs sm:text-sm text-slate-700 leading-relaxed flex-grow">
+                        ${escapeHtml(stepText)}
+                    </p>
+                </div>
+            `).join('');
+
+            // Macros
+            const kcal = recipe.macros?.kcal || 0;
+            const protein = recipe.macros?.protein || 0;
+            const fat = recipe.macros?.fat || 0;
+            const carbs = recipe.macros?.carbs || 0;
+
+            document.getElementById('macro-kcal').textContent = kcal;
+            document.getElementById('macro-protein').textContent = protein;
+            document.getElementById('macro-fat').textContent = fat;
+            document.getElementById('macro-carbs').textContent = carbs;
+
+            const totalG = Math.max(protein + fat + carbs, 1);
+            document.getElementById('bar-kcal').style.width = `${Math.min(Math.round((kcal / 800) * 100), 100)}%`;
+            document.getElementById('bar-protein').style.width = `${Math.min(Math.round((protein / totalG) * 100), 100)}%`;
+            document.getElementById('bar-fat').style.width = `${Math.min(Math.round((fat / totalG) * 100), 100)}%`;
+            document.getElementById('bar-carbs').style.width = `${Math.min(Math.round((carbs / totalG) * 100), 100)}%`;
+
+            document.getElementById('res-chef-tip').innerHTML = `<strong>Wskazówka Szefa Kuchni Eliminacyjnej:</strong> ${escapeHtml(recipe.chefTip || '')}`;
+
+            lucide.createIcons();
+        }
+
+        function renderSessionHistory() {
+            const section = document.getElementById('history-section');
+            const list = document.getElementById('history-list');
+            const count = document.getElementById('history-count');
+
+            if (state.sessionHistory.length === 0) {
+                section.classList.add('hidden');
+                return;
+            }
+
+            section.classList.remove('hidden');
+            count.textContent = state.sessionHistory.length;
+
+            list.innerHTML = state.sessionHistory.map((item, idx) => `
+                <button onclick="loadFromHistory(${idx})" class="p-3.5 rounded-2xl bg-slate-50 hover:bg-emerald-50/60 border border-slate-200 hover:border-emerald-300 text-left transition flex items-start justify-between gap-2 cursor-pointer">
+                    <div>
+                        <div class="font-display font-bold text-xs sm:text-sm text-slate-900 line-clamp-1">${escapeHtml(item.recipe.dishName)}</div>
+                        <div class="text-[11px] text-slate-500 mt-1">${escapeHtml(item.recipe.applianceUsed)} • ${item.recipe.macros?.kcal || 0} kcal</div>
+                    </div>
+                    <span class="text-[10px] font-medium text-slate-400 shrink-0">${item.time}</span>
+                </button>
+            `).join('');
+        }
+
+        function loadFromHistory(idx) {
+            const entry = state.sessionHistory[idx];
+            if (!entry) return;
+            state.currentRecipe = entry.recipe;
+            renderRecipeOutput(entry.recipe);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function copyRecipeToClipboard() {
+            if (!state.currentRecipe) return;
+            const r = state.currentRecipe;
+            const text = `${r.dishName.toUpperCase()}
+Urządzenie: ${r.applianceUsed} | Przygotowanie: ${r.prepTime} | Obróbka: ${r.cookTime}
+Aktywne filtry: ${(r._appliedFilters || []).join(', ')}
+
+SKŁADNIKI Z LODÓWKI:
+${(r.fridgeIngredients || []).map(i => '- ' + i).join('\n')}
+
+BAZOWE Z SZAFKI I BEZPIECZNE ZIOŁA:
+${(r.pantryIngredients || []).map(i => '- ' + i).join('\n')}
+
+INSTRUKCJA KROK PO KROKU:
+${(r.steps || []).join('\n\n')}
+
+MAKROSKŁADNIKI:
+Kalorie: ${r.macros?.kcal} kcal | Białko: ${r.macros?.protein} g | Tłuszcze: ${r.macros?.fat} g | Węglowodany: ${r.macros?.carbs} g
+
+Wskazówka: ${r.chefTip}`;
+
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                const btnText = document.getElementById('copy-btn-text');
+                btnText.textContent = 'Skopiowano!';
+                setTimeout(() => btnText.textContent = 'Kopiuj', 2000);
+            } catch (e) {
+                console.error(e);
+            } finally {
+                document.body.removeChild(textarea);
+            }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
