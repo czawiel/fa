@@ -2,14 +2,37 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   width="111.81409mm"
-   height="8.8131571mm"
-   viewBox="0 0 111.81409 8.8131571"
+   width="111.11504mm"
+   height="8.2603865mm"
+   viewBox="0 0 111.11504 8.2603865"
    version="1.1"
    id="svg1"
    xml:space="preserve"
+   sodipodi:docname="logo1.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg"><defs
+   xmlns:svg="http://www.w3.org/2000/svg"><sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:clip-to-page="true"
+     inkscape:zoom="1.4858122"
+     inkscape:cx="65.620674"
+     inkscape:cy="80.763906"
+     inkscape:window-width="1920"
+     inkscape:window-height="1018"
+     inkscape:window-x="-6"
+     inkscape:window-y="-6"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" /><defs
      id="defs1"><style
        id="style1">
       .txt-domain { font-family: 'Montserrat', 'Inter', 'Segoe UI', system-ui, sans-serif; font-weight: 900; font-size: 46px; fill: #1E293B; letter-spacing: 1px; }
@@ -33,7 +56,7 @@
       .pcb-trace { stroke: #0077D4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
     </style></defs><g
      id="layer1"
-     transform="translate(-28.342981,-65.451175)"><g
+     transform="matrix(0.92719008,0,0,0.92719008,-26.27933,-60.639576)"><g
        id="g1"
        transform="matrix(0.26458333,0,0,0.26458333,-46.831248,43.688679)"><g
          transform="translate(50,45)"
