@@ -1,0 +1,1895 @@
+<!DOCTYPE html>
+<html lang="pl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inżynieryjny Przelicznik Jednostek, AWG i Gwintów | PRO</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        eng: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            900: '#0c4a6e',
+                        },
+                        amber: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.4);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(100, 116, 139, 0.5);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(14, 165, 233, 0.7);
+        }
+
+        /* Technical Grid Background Pattern */
+        .bg-grid-pattern {
+            background-size: 24px 24px;
+            background-image: 
+                linear-gradient(to right, rgba(148, 163, 184, 0.06) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(148, 163, 184, 0.06) 1px, transparent 1px);
+        }
+
+        /* Remove number input spinners */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        .card-hover {
+            transition: all 0.15s ease-in-out;
+        }
+        .card-hover:hover {
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans min-h-screen flex flex-col bg-grid-pattern selection:bg-eng-500 selection:text-white transition-colors duration-200">
+
+    <!-- Toast Notification for Copy -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-3 bg-slate-900 dark:bg-eng-600 text-white px-4 py-3 rounded-xl shadow-2xl border border-slate-700 dark:border-eng-400">
+        <i class="fa-solid fa-circle-check text-emerald-400 dark:text-white text-lg"></i>
+        <div>
+            <div class="text-xs font-semibold uppercase tracking-wider opacity-80">Skopiowano do schowka</div>
+            <div id="toast-value" class="font-mono text-sm font-bold">100.00 PSI</div>
+        </div>
+    </div>
+
+    <!-- Top Header & Global Controls -->
+    <header class="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm">
+        <div class="max-w-[1600px] mx-auto px-4 sm:px-6 py-3 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+            
+            <!-- Brand Title -->
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-eng-500 to-eng-700 flex items-center justify-center text-white shadow-lg shadow-eng-500/20 border border-eng-400/30">
+                        <i class="fa-solid fa-gauge-high text-lg"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h1 class="font-bold text-lg sm:text-xl tracking-tight text-slate-900 dark:text-white">
+                                KAL<span style="color: #fff" class="text-eng-500">KU</span>LATOR
+                            </h1>
+                            <span class="text-[10px] font-mono uppercase bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full font-semibold">
+                                ISO / DIN / ANSI
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">
+                            Przelicznik Jednostek Inżynieryjnych, AWG
+                        </p>
+                    </div>
+                    
+                </div>
+
+                <!-- Mobile Theme Toggle -->
+                <button onclick="toggleTheme()" class="lg:hidden p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-eng-500 border border-slate-200 dark:border-slate-700" title="Przełącz motyw">
+                    <i id="theme-icon-mobile" class="fa-solid fa-sun"></i>
+                </button>
+            </div>
+                <img src="img/logk2.svg" style="height: 36px"/>
+            <!-- Live Search Bar -->
+            <div class="relative flex-1 max-w-2xl">
+                <div class="relative flex items-center">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 text-slate-400 pointer-events-none"></i>
+                    <input 
+                        type="text" 
+                        id="global-search" 
+                        placeholder="Szukaj jednostki, gwintu lub przewodu (np. PSI, M8, 12 AWG, Nm, 3/8, cSt, GPM)..." 
+                        class="w-full pl-10 pr-20 py-2.5 bg-slate-100 dark:bg-slate-800/90 border border-slate-300 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:border-eng-500 focus:ring-2 focus:ring-eng-500/20 text-slate-900 dark:text-white placeholder-slate-400 font-medium transition-all"
+                        oninput="handleGlobalSearch(this.value)"
+                    >
+                    <button id="clear-search-btn" onclick="clearGlobalSearch()" class="hidden absolute right-12 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                    <kbd class="hidden sm:inline-block absolute right-3 text-[10px] font-mono bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded border border-slate-300 dark:border-slate-600">
+                        /
+                    </kbd>
+                </div>
+                <!-- Live Search Dropdown Results -->
+                <div id="search-results-dropdown" class="hidden absolute left-0 right-0 mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl max-h-96 overflow-y-auto z-50 divide-y divide-slate-100 dark:divide-slate-800">
+                    <!-- Dynamic search results injected here -->
+                </div>
+            </div>
+
+            <!-- Precision & Theme Controls -->
+            <div class="flex items-center justify-between sm:justify-end gap-2.5">
+                <div class="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <span class="text-xs font-medium text-slate-500 dark:text-slate-400 pl-2 pr-1">Format:</span>
+                    <select id="precision-select" onchange="updatePrecision(this.value)" class="bg-white dark:bg-slate-900 text-xs font-mono font-semibold text-slate-800 dark:text-slate-200 py-1.5 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 focus:outline-none focus:border-eng-500 cursor-pointer">
+                        <option value="auto" selected>Auto (Inteligentny)</option>
+                        <option value="2">2 miejsca (0.00)</option>
+                        <option value="3">3 miejsca (0.000)</option>
+                        <option value="4">4 miejsca (0.0000)</option>
+                        <option value="6">6 miejsc (0.000000)</option>
+                        <option value="sci">Naukowy (1.23e+4)</option>
+                    </select>
+                </div>
+
+                <button onclick="toggleTheme()" class="hidden lg:flex items-center justify-center w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-eng-500 dark:hover:text-eng-400 border border-slate-200 dark:border-slate-700 transition-colors" title="Przełącz motyw Ciemny / Jasny">
+                    <i id="theme-icon-desktop" class="fa-solid fa-sun"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Quick Engineering Presets Bar -->
+        <div class="bg-slate-100/80 dark:bg-slate-900/50 border-t border-slate-200/80 dark:border-slate-800/80 px-4 sm:px-6 py-1.5 overflow-x-auto">
+            <div class="max-w-[1600px] mx-auto flex items-center gap-2 whitespace-nowrap text-xs">
+                <span class="font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5 mr-1">
+                    <i class="fa-solid fa-bolt text-amber-500"></i> Szybkie presety:
+                </span>
+                <button onclick="applyPreset('pressure', 'bar', 'psi', 10)" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 hover:bg-eng-50 dark:hover:bg-eng-900/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-eng-400 font-mono transition-all flex items-center gap-1">
+                    <span>Bar ↔ PSI</span>
+                </button>
+                <button onclick="applyPreset('pressure', 'mpa', 'bar', 1)" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 hover:bg-eng-50 dark:hover:bg-eng-900/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-eng-400 font-mono transition-all flex items-center gap-1">
+                    <span>MPa ↔ Bar</span>
+                </button>
+                <button onclick="applyPreset('torque', 'nm', 'lbft', 100)" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 hover:bg-eng-50 dark:hover:bg-eng-900/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-eng-400 font-mono transition-all flex items-center gap-1">
+                    <span>Nm ↔ lb-ft</span>
+                </button>
+                <button onclick="applyPreset('length', 'in', 'mm', 1)" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 hover:bg-eng-50 dark:hover:bg-eng-900/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-eng-400 font-mono transition-all flex items-center gap-1">
+                    <span>cal (in) ↔ mm</span>
+                </button>
+                <button onclick="selectCategory('awg')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 hover:bg-eng-50 dark:hover:bg-eng-900/40 text-amber-600 dark:text-amber-400 border border-slate-200 dark:border-slate-700 hover:border-amber-400 font-mono font-medium transition-all flex items-center gap-1">
+                    <i class="fa-solid fa-plug-circle-bolt text-[10px]"></i> <span>AWG ↔ mm²</span>
+                </button>
+                <button onclick="selectCategory('threads')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 hover:bg-eng-50 dark:hover:bg-eng-900/40 text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-slate-700 hover:border-emerald-400 font-mono font-medium transition-all flex items-center gap-1">
+                    <i class="fa-solid fa-screwdriver-wrench text-[10px]"></i> <span>Gwinty M / UNC / BSP</span>
+                </button>
+                <button onclick="applyPreset('power', 'kw', 'km', 100)" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 hover:bg-eng-50 dark:hover:bg-eng-900/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-eng-400 font-mono transition-all flex items-center gap-1">
+                    <span>kW ↔ KM / HP</span>
+                </button>
+                <button onclick="applyPreset('flow', 'lpm', 'cfm', 50)" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 hover:bg-eng-50 dark:hover:bg-eng-900/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-eng-400 font-mono transition-all flex items-center gap-1">
+                    <span>l/min ↔ CFM</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <div class="max-w-[1600px] w-full mx-auto px-4 sm:px-6 py-6 flex-1 flex flex-col lg:flex-row gap-6">
+        
+        <!-- Left Sidebar: Category Navigation -->
+        <aside class="w-full lg:w-72 shrink-0">
+            <div class="sticky top-32 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 shadow-sm">
+                <div class="flex items-center justify-between px-2 pb-2 mb-2 border-b border-slate-100 dark:border-slate-800">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Kategorie Inżynieryjne</span>
+                    <span id="cat-count-badge" class="text-[11px] font-mono bg-slate-100 dark:bg-slate-800 text-slate-500 px-2 py-0.5 rounded-md">17</span>
+                </div>
+                
+                <!-- Category List (Horizontal scroll on mobile, vertical list on desktop) -->
+                <nav id="category-nav" class="flex lg:flex-col gap-1.5 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0">
+                    <!-- Populated dynamically by JS -->
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Right Main Workspace -->
+        <main class="flex-1 min-w-0 flex flex-col gap-6">
+            
+            <!-- Active Category Header Card -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="flex items-start sm:items-center gap-4">
+                    <div id="active-cat-icon" class="w-12 h-12 rounded-2xl bg-eng-500/10 text-eng-600 dark:text-eng-400 border border-eng-500/20 flex items-center justify-center text-xl shrink-0">
+                        <i class="fa-solid fa-gauge-high"></i>
+                    </div>
+                    <div>
+                        <h2 id="active-cat-title" class="text-xl font-bold text-slate-900 dark:text-white">Ciśnienie i Naprężenie</h2>
+                        <p id="active-cat-desc" class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                            Natychmiastowa konwersja jednostek ciśnienia technicznego, atmosferycznego, próżni i słupa cieczy.
+                        </p>
+                    </div>
+                </div>
+                <div id="active-cat-QuickTags" class="flex flex-wrap gap-1.5">
+                    <!-- Quick value buttons injected dynamically -->
+                </div>
+            </div>
+
+            <!-- ==========================================
+                 VIEW 1: STANDARD UNIT CONVERTER WORKSPACE
+                 ========================================== -->
+            <div id="standard-converter-view" class="flex flex-col gap-6">
+                
+                <!-- Dual Primary Converter (From -> To with Swap) -->
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-xs font-bold uppercase tracking-wider text-eng-600 dark:text-eng-400 flex items-center gap-1.5">
+                            <i class="fa-solid fa-right-left"></i> Szybki Przelicznik Bezpośredni
+                        </span>
+                        <span id="conversion-formula-badge" class="text-xs font-mono text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700">
+                            1 bar = 14.50377 PSI
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-11 gap-4 items-center">
+                        <!-- FROM Input & Unit -->
+                        <div class="md:col-span-5 bg-slate-50 dark:bg-slate-950/80 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 focus-within:border-eng-500 focus-within:ring-2 focus-within:ring-eng-500/20 transition-all">
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Wartość wejściowa (Z jednostki)</label>
+                            <div class="flex items-center gap-2">
+                                <input 
+                                    type="number" 
+                                    id="main-input-val" 
+                                    value="1" 
+                                    step="any"
+                                    oninput="onMainInputChange()"
+                                    class="w-full bg-transparent font-mono text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white focus:outline-none"
+                                    placeholder="0.00"
+                                >
+                            </div>
+                            <select 
+                                id="main-from-unit" 
+                                onchange="onMainUnitChange()"
+                                class="mt-2.5 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:border-eng-500 cursor-pointer"
+                            >
+                                <!-- Populated dynamically -->
+                            </select>
+                        </div>
+
+                        <!-- SWAP Button -->
+                        <div class="md:col-span-1 flex justify-center">
+                            <button 
+                                onclick="swapMainUnits()" 
+                                class="w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-eng-500 hover:text-white dark:hover:bg-eng-500 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 flex items-center justify-center shadow-sm transition-all transform active:scale-95"
+                                title="Zamień jednostki miejscami"
+                            >
+                                <i class="fa-solid fa-arrows-rotate md:fa-right-left"></i>
+                            </button>
+                        </div>
+
+                        <!-- TO Output & Unit -->
+                        <div class="md:col-span-5 bg-eng-50/50 dark:bg-eng-950/20 p-3.5 rounded-xl border border-eng-200 dark:border-eng-900/60 relative group">
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="block text-[11px] font-semibold uppercase tracking-wider text-eng-600 dark:text-eng-400">Wynik konwersji (Na jednostkę)</label>
+                                <button 
+                                    onclick="copyMainResult()" 
+                                    class="text-xs font-medium text-eng-600 dark:text-eng-400 hover:underline flex items-center gap-1"
+                                    title="Kopiuj wynik"
+                                >
+                                    <i class="fa-regular fa-copy"></i> Kopiuj
+                                </button>
+                            </div>
+                            <div class="flex items-center justify-between gap-2">
+                                <div 
+                                    id="main-output-val" 
+                                    onclick="copyMainResult()"
+                                    class="w-full font-mono text-2xl sm:text-3xl font-bold text-eng-600 dark:text-eng-400 truncate cursor-pointer select-all"
+                                    title="Kliknij, aby skopiować"
+                                >
+                                    14.5038
+                                </div>
+                            </div>
+                            <select 
+                                id="main-to-unit" 
+                                onchange="onMainUnitChange()"
+                                class="mt-2.5 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:border-eng-500 cursor-pointer"
+                            >
+                                <!-- Populated dynamically -->
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Special Sub-Widget: Fractional Inch Calculator (Visible only in Length & Workshop category) -->
+                <div id="fractional-inch-widget" class="hidden bg-gradient-to-r from-slate-900 to-slate-800 dark:from-slate-900 dark:to-slate-900/90 text-white border border-amber-500/40 rounded-2xl p-5 shadow-md">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 pb-3 border-b border-slate-700">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center font-mono font-bold text-sm">
+                                ⅜"
+                            </span>
+                            <div>
+                                <h3 class="font-bold text-sm sm:text-base text-white flex items-center gap-2">
+                                    Warsztatowy Kalkulator Ułamków Cala (Fractional Inches ↔ mm)
+                                </h3>
+                                <p class="text-xs text-slate-400">Wybierz ułamek calowy z kluczy, śrub lub złączek hydraulicznych, aby natychmiast obliczyć wymiar w mm.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+                        <!-- Whole + Numerator / Denominator inputs -->
+                        <div class="lg:col-span-5 flex items-center gap-3 bg-slate-950/70 p-3.5 rounded-xl border border-slate-700">
+                            <div class="w-20">
+                                <label class="block text-[10px] uppercase text-slate-400 font-mono mb-1">Całe cale</label>
+                                <input type="number" id="frac-whole" value="0" min="0" oninput="calcFractionInch()" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-2.5 py-2 text-center font-mono text-lg font-bold text-white focus:border-amber-400 focus:outline-none">
+                            </div>
+                            <span class="text-slate-500 font-bold text-xl mt-4">+</span>
+                            <div class="flex-1 flex flex-col items-center">
+                                <label class="block text-[10px] uppercase text-slate-400 font-mono mb-1">Licznik / Mianownik</label>
+                                <div class="flex items-center gap-1.5 w-full">
+                                    <input type="number" id="frac-num" value="3" min="0" oninput="calcFractionInch()" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-2 py-2 text-center font-mono text-base font-bold text-amber-400 focus:border-amber-400 focus:outline-none">
+                                    <span class="text-slate-400 font-mono text-xl">/</span>
+                                    <select id="frac-den" onchange="calcFractionInch()" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-2 py-2 text-center font-mono text-base font-bold text-white focus:border-amber-400 focus:outline-none cursor-pointer">
+                                        <option value="2">2</option>
+                                        <option value="4">4</option>
+                                        <option value="8" selected>8</option>
+                                        <option value="16">16</option>
+                                        <option value="32">32</option>
+                                        <option value="64">64</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="text-center pl-2 border-l border-slate-800">
+                                <div class="text-[10px] uppercase text-slate-400 font-mono">Wynik</div>
+                                <div id="frac-result-mm" onclick="copyText(this.innerText)" class="font-mono text-xl font-bold text-emerald-400 cursor-pointer hover:underline" title="Kliknij, aby skopiować">9.525 mm</div>
+                                <div id="frac-result-dec" class="font-mono text-xs text-slate-400">0.375"</div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Workshop Fraction Buttons -->
+                        <div class="lg:col-span-7">
+                            <div class="text-[11px] font-mono uppercase text-slate-400 mb-2">Popularne rozmiary calowe (kliknij, aby wstawić):</div>
+                            <div class="flex flex-wrap gap-1.5" id="workshop-fractions-list">
+                                <!-- Injected by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simultaneous All-Units Grid -->
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                        <div>
+                            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                                <i class="fa-solid fa-table-cells text-eng-500"></i>
+                                Jednoczesny podgląd wszystkich jednostek w kategorii
+                            </h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">
+                                Wpisz wartość w dowolnym polu poniżej, aby przeliczyć ją w locie na wszystkie pozostałe jednostki. Kliknij ikonę kopiowania, aby skopiować.
+                            </p>
+                        </div>
+                        <div class="relative w-full sm:w-64">
+                            <i class="fa-solid fa-filter absolute left-3 top-2.5 text-xs text-slate-400"></i>
+                            <input 
+                                type="text" 
+                                id="unit-grid-filter" 
+                                oninput="filterUnitGrid(this.value)"
+                                placeholder="Filtruj jednostki na liście..." 
+                                class="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:border-eng-500 text-slate-800 dark:text-slate-200"
+                            >
+                        </div>
+                    </div>
+
+                    <div id="all-units-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                        <!-- Dynamically populated unit cards -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==========================================
+                 VIEW 2: AWG <-> MM² WIRE CALCULATOR & TABLE
+                 ========================================== -->
+            <div id="awg-converter-view" class="hidden flex-col gap-6">
+                <!-- Interactive AWG Calculator & Reverse Lookup -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- AWG Size Selector -->
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                                <i class="fa-solid fa-bolt"></i> Kalkulator Rozmiaru AWG → mm²
+                            </span>
+                            <span class="text-[11px] font-mono bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded border border-amber-500/20">
+                                ASTM B258
+                            </span>
+                        </div>
+                        <label class="block text-xs text-slate-500 dark:text-slate-400 mb-2">Wybierz rozmiar przewodu AWG:</label>
+                        <select id="awg-select-input" onchange="calculateFromAWG(this.value)" class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-3 font-mono text-base font-bold text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 cursor-pointer mb-4">
+                            <!-- Populated by JS -->
+                        </select>
+
+                        <div id="awg-detail-cards" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Reverse mm2 -> Nearest AWG & Standard IEC Finder -->
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-xs font-bold uppercase tracking-wider text-eng-600 dark:text-eng-400 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-magnifying-glass-chart"></i> Dobór AWG z przekroju mm² (mm² → AWG)
+                                </span>
+                                <span class="text-[11px] font-mono bg-eng-500/10 text-eng-600 dark:text-eng-400 px-2 py-0.5 rounded border border-eng-500/20">
+                                    IEC 60228 / AWG
+                                </span>
+                            </div>
+                            <label class="block text-xs text-slate-500 dark:text-slate-400 mb-2">Wpisz przekrój żyły w mm² (np. 1.5, 2.5, 4, 10, 16):</label>
+                            <div class="flex items-center gap-2 mb-4">
+                                <input 
+                                    type="number" 
+                                    id="mm2-reverse-input" 
+                                    value="2.5" 
+                                    step="any" 
+                                    min="0.001"
+                                    oninput="calculateFromMM2(this.value)"
+                                    class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 font-mono text-xl font-bold text-slate-900 dark:text-white focus:outline-none focus:border-eng-500"
+                                >
+                                <span class="font-mono font-bold text-slate-500 px-2">mm²</span>
+                            </div>
+                        </div>
+
+                        <div id="mm2-reverse-result" class="bg-slate-50 dark:bg-slate-950/90 border border-slate-200 dark:border-slate-800 rounded-xl p-4">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Full Interactive AWG Table -->
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                        <div>
+                            <h3 class="font-bold text-base text-slate-900 dark:text-white">Pełna Tabela Przewodów Elektrycznych (4/0 AWG – 40 AWG)</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Średnice, przekroje czynne mm², rezystancja miedzi (Ω/km w 20°C) oraz orientacyjna obciążalność prądowa.</p>
+                        </div>
+                        <input 
+                            type="text" 
+                            id="awg-table-search" 
+                            oninput="renderAWGTable(this.value)"
+                            placeholder="Filtruj tabelę AWG (np. 12 AWG, 4.0)..." 
+                            class="w-full sm:w-72 px-3.5 py-2 text-xs bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:border-eng-500"
+                        >
+                    </div>
+
+                    <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 max-h-[550px]">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-slate-100 dark:bg-slate-800/90 text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 sticky top-0 z-10">
+                                <tr>
+                                    <th class="py-3 px-4">Rozmiar AWG</th>
+                                    <th class="py-3 px-4">Przekrój [mm²]</th>
+                                    <th class="py-3 px-4">Średnica [mm]</th>
+                                    <th class="py-3 px-4">Średnica [cal / in]</th>
+                                    <th class="py-3 px-4">Rezystancja Cu [Ω/km]</th>
+                                    <th class="py-3 px-4">Obciążalność orient. [A]</th>
+                                    <th class="py-3 px-4">Odpowiednik eur. [mm²]</th>
+                                </tr>
+                            </thead>
+                            <tbody id="awg-table-body" class="divide-y divide-slate-200 dark:divide-slate-800 font-mono text-xs sm:text-sm">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==========================================
+                 VIEW 3: METRIC, INCH & PIPE THREADS COMPENDIUM
+                 ========================================== -->
+            <div id="threads-converter-view" class="hidden flex-col gap-6">
+                
+                <!-- Thread Standard Filter Tabs & Tap Drill Calculator -->
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 mb-4 border-b border-slate-200 dark:border-slate-800">
+                        <div class="flex flex-wrap gap-2" id="thread-type-tabs">
+                            <button onclick="setThreadFilter('ALL')" data-thread-tab="ALL" class="thread-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-eng-600 text-white shadow-sm">
+                                Wszystkie standardy
+                            </button>
+                            <button onclick="setThreadFilter('M')" data-thread-tab="M" class="thread-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200">
+                                Metryczne zwykłe (M1 – M68)
+                            </button>
+                            <button onclick="setThreadFilter('MF')" data-thread-tab="MF" class="thread-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200">
+                                Metryczne drobnozwojne (MF)
+                            </button>
+                            <button onclick="setThreadFilter('UNC')" data-thread-tab="UNC" class="thread-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200">
+                                Calowe zunifikowane UNC
+                            </button>
+                            <button onclick="setThreadFilter('UNF')" data-thread-tab="UNF" class="thread-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200">
+                                Calowe drobnozwojne UNF
+                            </button>
+                            <button onclick="setThreadFilter('BSP')" data-thread-tab="BSP" class="thread-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200">
+                                Rurowe calowe BSP (G) / NPT
+                            </button>
+                        </div>
+
+                        <div class="relative w-full lg:w-80">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-2.5 text-slate-400 text-xs"></i>
+                            <input 
+                                type="text" 
+                                id="thread-search-input" 
+                                oninput="renderThreadsTable()"
+                                placeholder="Szukaj gwintu lub wiertła (np. M8, G 1/2, 6.8, 1/4-20)..." 
+                                class="w-full pl-9 pr-3 py-2 text-xs bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:border-eng-500 text-slate-900 dark:text-white font-medium"
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Custom Metric Tap Drill Formula Calculator -->
+                    <div class="bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 rounded-xl p-4 mb-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                        <div>
+                            <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                                <i class="fa-solid fa-compass-drafting"></i> Szybki Kalkulator Wiertła pod Dowolny Gwint Metryczny (ISO)
+                            </div>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                Wzór warsztatowy dla gwintu 60°: <span class="font-mono font-semibold">D_wiertła ≈ Średnica (d) − Skok (P)</span> (dla ~75% głębokości zarysu)
+                            </p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                            <div>
+                                <label class="block text-[10px] font-mono uppercase text-slate-400">Średnica d [mm]</label>
+                                <input type="number" id="custom-thread-d" value="10" step="0.5" oninput="calcCustomTapDrill()" class="w-24 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 font-mono text-sm font-bold">
+                            </div>
+                            <span class="text-slate-400 font-mono mt-4">×</span>
+                            <div>
+                                <label class="block text-[10px] font-mono uppercase text-slate-400">Skok P [mm]</label>
+                                <input type="number" id="custom-thread-p" value="1.5" step="0.05" oninput="calcCustomTapDrill()" class="w-24 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 font-mono text-sm font-bold">
+                            </div>
+                            <div class="bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-4 py-1.5 text-center">
+                                <div class="text-[10px] font-mono uppercase text-emerald-600 dark:text-emerald-400">Zalecane wiertło</div>
+                                <div id="custom-thread-result" onclick="copyText(this.innerText)" class="font-mono text-base font-bold text-emerald-600 dark:text-emerald-400 cursor-pointer">⌀ 8.50 mm</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Threads Table -->
+                    <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 max-h-[600px]">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-slate-100 dark:bg-slate-800/90 text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 sticky top-0 z-10">
+                                <tr>
+                                    <th class="py-3 px-4">Oznaczenie Gwintu</th>
+                                    <th class="py-3 px-4">Typ / Norma</th>
+                                    <th class="py-3 px-4">Średnica zewn. [mm / in]</th>
+                                    <th class="py-3 px-4">Skok [mm] / Zwoje [TPI]</th>
+                                    <th class="py-3 px-4 text-emerald-600 dark:text-emerald-400">Wiertło pod gwint [mm]</th>
+                                    <th class="py-3 px-4">Wiertło calowe [in / #]</th>
+                                    <th class="py-3 px-4">Klucz / Uwagi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="threads-table-body" class="divide-y divide-slate-200 dark:divide-slate-800 font-mono text-xs sm:text-sm">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-200 dark:border-slate-800/80 bg-white/60 dark:bg-slate-900/60 py-4 px-4 sm:px-6 mt-8">
+        <div class="max-w-[1600px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-gears text-eng-500"></i>
+                <span><strong>KALKULATOR PRO</strong> – Kompendium i Przelicznik Jednostek Inżynieryjnych (SI / Imperial / US) by Cezary Wielgus</span> 
+            </div>
+            <div class="font-mono text-[11px]">
+                Kliknij dowolny wynik, aby skopiować do schowka • Klawisz <kbd class="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-800 rounded">/</kbd> aktywuje wyszukiwarkę
+            </div>
+        </div>
+    </footer>
+
+    <!-- ==========================================
+         APPLICATION LOGIC & ENGINEERING DATABASES
+         ========================================== -->
+    <script>
+        /**************************************************************
+         * 1. ENGINEERING UNITS DATABASE (17 CATEGORIES)
+         * Each linear unit defines `factor` = how many BASE units equal 1 of this unit.
+         * Formula: baseValue = value * unit.factor; targetValue = baseValue / target.factor
+         **************************************************************/
+        const CATEGORIES = [
+            {
+                id: 'pressure',
+                name: 'Ciśnienie',
+                icon: 'fa-gauge-high',
+                desc: 'Ciśnienie manometryczne, absolutne, hydrauliczne oraz próżnia techniczna.',
+                baseUnit: 'pa',
+                defaultFrom: 'bar',
+                defaultTo: 'psi',
+                quickValues: [1, 2.5, 6, 10, 16, 100, 250, 350],
+                units: [
+                    { id: 'bar', name: 'Bar', symbol: 'bar', factor: 100000, common: true, aliases: 'bary ciśnienie' },
+                    { id: 'psi', name: 'Funt na cal kwadratowy (PSI)', symbol: 'PSI (lbf/in²)', factor: 6894.757293168, common: true, aliases: 'pound square inch' },
+                    { id: 'mpa', name: 'Megapaskal', symbol: 'MPa (N/mm²)', factor: 1000000, common: true, aliases: 'megapascal naprężenie' },
+                    { id: 'kpa', name: 'Kilopaskal', symbol: 'kPa', factor: 1000, common: true, aliases: 'kilopascal' },
+                    { id: 'pa', name: 'Paskal', symbol: 'Pa (N/m²)', factor: 1, common: false, aliases: 'pascal' },
+                    { id: 'mbar', name: 'Milibar', symbol: 'mbar', factor: 100, common: true, aliases: 'hpa hektopaskal' },
+                    { id: 'hpa', name: 'Hektopaskal', symbol: 'hPa', factor: 100, common: false, aliases: 'mbar' },
+                    { id: 'atm', name: 'Atmosfera fizyczna (standardowa)', symbol: 'atm', factor: 101325, common: true, aliases: 'atmosfera' },
+                    { id: 'at', name: 'Atmosfera techniczna', symbol: 'at (kgf/cm²)', factor: 98066.5, common: true, aliases: 'kG/cm2 kgf/cm2' },
+                    { id: 'torr', name: 'Milimetr słupa rtęci (Torr)', symbol: 'mmHg (Torr)', factor: 133.322368421, common: true, aliases: 'mmhg tor próżnia' },
+                    { id: 'inhg', name: 'Cal słupa rtęci', symbol: 'inHg', factor: 3386.389, common: false, aliases: 'inch mercury' },
+                    { id: 'mmh2o', name: 'Milimetr słupa wody', symbol: 'mmH₂O', factor: 9.80665, common: true, aliases: 'mmh2o słup wody' },
+                    { id: 'mh2o', name: 'Metr słupa wody', symbol: 'mH₂O', factor: 9806.65, common: false, aliases: 'mh2o' },
+                    { id: 'inh2o', name: 'Cal słupa wody', symbol: 'inH₂O', factor: 249.08891, common: false, aliases: 'inch water' },
+                    { id: 'ksi', name: 'Kilofunt na cal kwadratowy (ksi)', symbol: 'ksi', factor: 6894757.293168, common: false, aliases: 'kilopsi' }
+                ]
+            },
+            {
+                id: 'torque',
+                name: 'Moment obrotowy',
+                icon: 'fa-wrench',
+                desc: 'Moment dokręcania śrub, moment na wale silnika i przekładni.',
+                baseUnit: 'nm',
+                defaultFrom: 'nm',
+                defaultTo: 'lbft',
+                quickValues: [10, 25, 50, 85, 100, 120, 200, 500],
+                units: [
+                    { id: 'nm', name: 'Niutonometr', symbol: 'N·m (Nm)', factor: 1, common: true, aliases: 'newton meter moment' },
+                    { id: 'knm', name: 'Kiloniutonometr', symbol: 'kN·m', factor: 1000, common: true, aliases: 'kilonewton meter' },
+                    { id: 'dnm', name: 'Decyniutonometr', symbol: 'dN·m', factor: 0.1, common: false, aliases: 'decinewton' },
+                    { id: 'mnm', name: 'Miliniutonometr', symbol: 'mN·m', factor: 0.001, common: false, aliases: 'milinewton' },
+                    { id: 'lbft', name: 'Stopofunt (Pound-foot)', symbol: 'lb-ft (lbf·ft)', factor: 1.35581794833, common: true, aliases: 'ft-lb lbf-ft foot pound' },
+                    { id: 'lbin', name: 'Calofunt (Pound-inch)', symbol: 'lb-in (lbf·in)', factor: 0.11298482902, common: true, aliases: 'in-lb lbf-in inch pound' },
+                    { id: 'kgfm', name: 'Kilogram-siła metr (kG·m)', symbol: 'kgf·m (kG·m)', factor: 9.80665, common: true, aliases: 'kpm kilopondometr' },
+                    { id: 'kgfcm', name: 'Kilogram-siła centymetr', symbol: 'kgf·cm', factor: 0.0980665, common: true, aliases: 'kgcm' },
+                    { id: 'ozfin', name: 'Uncja-siła cal (Ounce-inch)', symbol: 'ozf·in', factor: 0.0070615518, common: false, aliases: 'oz-in' }
+                ]
+            },
+            {
+                id: 'awg',
+                name: 'Przewody AWG ↔ mm²',
+                icon: 'fa-plug-circle-bolt',
+                desc: 'Dedykowany kalkulator i tablica przewodów elektrycznych American Wire Gauge (4/0 AWG – 40 AWG).',
+                specialView: 'awg',
+                badge: 'TABELA'
+            },
+            {
+                id: 'length',
+                name: 'Długość i Warsztat',
+                icon: 'fa-ruler-combined',
+                desc: 'Wymiary warsztatowe, tolerancje, cale ułamkowe, mils/thou oraz jednostki geograficzne.',
+                baseUnit: 'm',
+                defaultFrom: 'in',
+                defaultTo: 'mm',
+                quickValues: [1, 5, 10, 12, 25.4, 100, 1000],
+                units: [
+                    { id: 'mm', name: 'Milimetr', symbol: 'mm', factor: 0.001, common: true, aliases: 'milimetry' },
+                    { id: 'in', name: 'Cal (Inch)', symbol: 'in (")', factor: 0.0254, common: true, aliases: 'cal cale inch' },
+                    { id: 'cm', name: 'Centymetr', symbol: 'cm', factor: 0.01, common: true, aliases: 'centymetry' },
+                    { id: 'm', name: 'Metr', symbol: 'm', factor: 1, common: true, aliases: 'metry' },
+                    { id: 'um', name: 'Mikrometr (Mikron)', symbol: 'µm', factor: 1e-6, common: true, aliases: 'mikron' },
+                    { id: 'mil', name: 'Mil / Thou (1/1000 cala)', symbol: 'mil (thou)', factor: 0.0000254, common: true, aliases: 'tysięczna cala' },
+                    { id: 'ft', name: 'Stopa (Foot)', symbol: 'ft (\')', factor: 0.3048, common: true, aliases: 'stopy feet' },
+                    { id: 'yd', name: 'Jard (Yard)', symbol: 'yd', factor: 0.9144, common: false, aliases: 'jardy' },
+                    { id: 'km', name: 'Kilometr', symbol: 'km', factor: 1000, common: true, aliases: 'kilometry' },
+                    { id: 'mi', name: 'Mila lądowa (Statute Mile)', symbol: 'mi', factor: 1609.344, common: false, aliases: 'mile' },
+                    { id: 'nmi', name: 'Mila morska (Nautical Mile)', symbol: 'NM (nmi)', factor: 1852, common: false, aliases: 'mila morska' },
+                    { id: 'nm_len', name: 'Nanometr', symbol: 'nm', factor: 1e-9, common: false, aliases: 'nanometry' }
+                ]
+            },
+            {
+                id: 'threads',
+                name: 'Gwinty i Wiertła',
+                icon: 'fa-screwdriver-wrench',
+                desc: 'Kompendium gwintów metrycznych (M, MF), calowych (UNC, UNF) i rurowych (BSP/G, NPT) z doborem wierteł.',
+                specialView: 'threads',
+                badge: 'KOMPENDIUM'
+            },
+            {
+                id: 'force',
+                name: 'Siła i Obciążenie',
+                icon: 'fa-weight-hanging',
+                desc: 'Siła nacisku prasy, ciąg, obciążenie konstrukcyjne i wytrzymałość.',
+                baseUnit: 'n',
+                defaultFrom: 'kn',
+                defaultTo: 'kgf',
+                quickValues: [1, 10, 50, 100, 500, 1000],
+                units: [
+                    { id: 'n', name: 'Niuton', symbol: 'N', factor: 1, common: true, aliases: 'newton' },
+                    { id: 'kn', name: 'Kiloniuton', symbol: 'kN', factor: 1000, common: true, aliases: 'kilonewton' },
+                    { id: 'mn', name: 'Meganiuton', symbol: 'MN', factor: 1000000, common: true, aliases: 'meganewton' },
+                    { id: 'kgf', name: 'Kilogram-siła (Kilopond)', symbol: 'kgf (kG / kp)', factor: 9.80665, common: true, aliases: 'kg siła kilopond' },
+                    { id: 'tf', name: 'Tona-siła (Metryczna)', symbol: 'tf (tG)', factor: 9806.65, common: true, aliases: 'tona siła nacisk' },
+                    { id: 'lbf', name: 'Funt-siła (Pound-force)', symbol: 'lbf', factor: 4.4482216152605, common: true, aliases: 'pound force' },
+                    { id: 'kip', name: 'Kip (1000 lbf)', symbol: 'kip (klbf)', factor: 4448.2216152605, common: false, aliases: 'kilopound' },
+                    { id: 'ozf', name: 'Uncja-siła (Ounce-force)', symbol: 'ozf', factor: 0.27801385, common: false, aliases: 'ounce force' },
+                    { id: 'dyn', name: 'Dyna', symbol: 'dyn', factor: 0.00001, common: false, aliases: 'dyne' }
+                ]
+            },
+            {
+                id: 'temperature',
+                name: 'Temperatura',
+                icon: 'fa-temperature-high',
+                desc: 'Skale termodynamiczne i techniczne (°C, °F, K, °R).',
+                baseUnit: 'k',
+                defaultFrom: 'c',
+                defaultTo: 'f',
+                isCustomConversion: true,
+                quickValues: [-40, 0, 20, 25, 100, 200, 500],
+                units: [
+                    { 
+                        id: 'c', name: 'Stopnie Celsjusza', symbol: '°C', common: true, aliases: 'celsjusz celsius',
+                        toBase: v => v + 273.15, fromBase: k => k - 273.15 
+                    },
+                    { 
+                        id: 'f', name: 'Stopnie Fahrenheita', symbol: '°F', common: true, aliases: 'fahrenheit',
+                        toBase: v => (v - 32) * 5/9 + 273.15, fromBase: k => (k - 273.15) * 9/5 + 32 
+                    },
+                    { 
+                        id: 'k', name: 'Kelwin (SI)', symbol: 'K', common: true, aliases: 'kelvin',
+                        toBase: v => v, fromBase: k => k 
+                    },
+                    { 
+                        id: 'r', name: 'Stopnie Rankine’a', symbol: '°R (°Ra)', common: false, aliases: 'rankine',
+                        toBase: v => v * 5/9, fromBase: k => k * 9/5 
+                    }
+                ]
+            },
+            {
+                id: 'flow',
+                name: 'Przepływ (Objętościowy)',
+                icon: 'fa-faucet-drip',
+                desc: 'Wydajność pomp hydraulicznych, sprężarek (CFM) i instalacji rurociągowych.',
+                baseUnit: 'm3s',
+                defaultFrom: 'lpm',
+                defaultTo: 'm3h',
+                quickValues: [1, 10, 25, 50, 100, 500],
+                units: [
+                    { id: 'lpm', name: 'Litr na minutę', symbol: 'l/min (LPM)', factor: 1 / 60000, common: true, aliases: 'l/min lpm litry' },
+                    { id: 'm3h', name: 'Metr sześcienny na godzinę', symbol: 'm³/h', factor: 1 / 3600, common: true, aliases: 'm3/h' },
+                    { id: 'ls', name: 'Litr na sekundę', symbol: 'l/s', factor: 0.001, common: true, aliases: 'l/s' },
+                    { id: 'm3s', name: 'Metr sześcienny na sekundę', symbol: 'm³/s', factor: 1, common: false, aliases: 'm3/s' },
+                    { id: 'cfm', name: 'Stopa sześcienna na minutę (CFM)', symbol: 'CFM (ft³/min)', factor: 0.00047194745, common: true, aliases: 'cubic feet minute kompresor' },
+                    { id: 'gpm_us', name: 'Galon amerykański na minutę', symbol: 'GPM (US)', factor: 0.0000630901964, common: true, aliases: 'galon us gpm' },
+                    { id: 'gpm_uk', name: 'Galon imperialny (UK) na minutę', symbol: 'GPM (UK)', factor: 0.0000757681667, common: false, aliases: 'galon uk' },
+                    { id: 'lh', name: 'Litr na godzinę', symbol: 'l/h', factor: 1 / 3600000, common: false, aliases: 'l/h' },
+                    { id: 'bbld', name: 'Baryłka ropy na dobę', symbol: 'bbl/d', factor: 0.158987294928 / 86400, common: false, aliases: 'baryłka barrel' }
+                ]
+            },
+            {
+                id: 'power',
+                name: 'Moc i Wydajność Cieplna',
+                icon: 'fa-bolt-lightning',
+                desc: 'Moc silników elektrycznych, spalinowych (KM / HP) oraz urządzeń chłodniczych i grzewczych.',
+                baseUnit: 'w',
+                defaultFrom: 'kw',
+                defaultTo: 'km',
+                quickValues: [1, 5.5, 11, 22, 50, 75, 100, 150],
+                units: [
+                    { id: 'kw', name: 'Kilowat', symbol: 'kW', factor: 1000, common: true, aliases: 'kilowatt' },
+                    { id: 'km', name: 'Koń mechaniczny (metryczny)', symbol: 'KM (PS / cv)', factor: 735.49875, common: true, aliases: 'konie mechaniczne ps' },
+                    { id: 'hp', name: 'Koń parowy / mechaniczny (Imperial HP)', symbol: 'HP (bhp)', factor: 745.699871582, common: true, aliases: 'horsepower hp' },
+                    { id: 'w', name: 'Wat', symbol: 'W (J/s)', factor: 1, common: true, aliases: 'watt' },
+                    { id: 'mw', name: 'Megawat', symbol: 'MW', factor: 1000000, common: true, aliases: 'megawatt' },
+                    { id: 'btuh', name: 'BTU na godzinę', symbol: 'BTU/h', factor: 0.29307107, common: true, aliases: 'btu klimatyzacja' },
+                    { id: 'kcalh', name: 'Kilokaloria na godzinę', symbol: 'kcal/h', factor: 1.163, common: false, aliases: 'kilokalorie' },
+                    { id: 'tr', name: 'Tona chłodnicza (Ton of Refrigeration)', symbol: 'TR (RT)', factor: 3516.85284, common: false, aliases: 'tona chłodnicza' },
+                    { id: 'ftlbfs', name: 'Stopofunt na sekundę', symbol: 'ft·lbf/s', factor: 1.35581795, common: false, aliases: 'foot pound second' }
+                ]
+            },
+            {
+                id: 'energy',
+                name: 'Energia, Praca i Ciepło',
+                icon: 'fa-fire-flame-simple',
+                desc: 'Energia mechaniczna, elektryczna (kWh) i termiczna (J, BTU, kcal).',
+                baseUnit: 'j',
+                defaultFrom: 'kwh',
+                defaultTo: 'mj',
+                quickValues: [1, 10, 100, 500, 1000],
+                units: [
+                    { id: 'j', name: 'Dżul (Joule)', symbol: 'J (W·s)', factor: 1, common: true, aliases: 'joule dżul' },
+                    { id: 'kj', name: 'Kilodżul', symbol: 'kJ', factor: 1000, common: true, aliases: 'kilojoule' },
+                    { id: 'mj', name: 'Megadżul', symbol: 'MJ', factor: 1000000, common: true, aliases: 'megajoule' },
+                    { id: 'gj', name: 'Gigadżul', symbol: 'GJ', factor: 1e9, common: true, aliases: 'gigajoule ciepło' },
+                    { id: 'wh', name: 'Watogodzina', symbol: 'Wh', factor: 3600, common: true, aliases: 'watogodzina' },
+                    { id: 'kwh', name: 'Kilowatogodzina', symbol: 'kWh', factor: 3600000, common: true, aliases: 'kilowatogodzina prąd' },
+                    { id: 'btu', name: 'British Thermal Unit (BTU)', symbol: 'BTU', factor: 1055.05585262, common: true, aliases: 'btu' },
+                    { id: 'kcal', name: 'Kilokaloria', symbol: 'kcal', factor: 4184, common: true, aliases: 'kalorie' },
+                    { id: 'cal', name: 'Kaloria', symbol: 'cal', factor: 4.184, common: false, aliases: 'kaloria' },
+                    { id: 'ftlbf', name: 'Stopofunt energii (Foot-pound)', symbol: 'ft·lbf', factor: 1.35581794833, common: true, aliases: 'foot pound energy' },
+                    { id: 'ev', name: 'Elektronowolt', symbol: 'eV', factor: 1.602176634e-19, common: false, aliases: 'elektronowolt' }
+                ]
+            },
+            {
+                id: 'mass',
+                name: 'Masa i Ciężar',
+                icon: 'fa-scale-balanced',
+                desc: 'Jednostki masy metryczne oraz anglosaskie (funty, uncje, tony, grany).',
+                baseUnit: 'kg',
+                defaultFrom: 'kg',
+                defaultTo: 'lb',
+                quickValues: [1, 5, 10, 25, 50, 100, 1000],
+                units: [
+                    { id: 'kg', name: 'Kilogram', symbol: 'kg', factor: 1, common: true, aliases: 'kilogramy' },
+                    { id: 'g', name: 'Gram', symbol: 'g', factor: 0.001, common: true, aliases: 'gramy' },
+                    { id: 'mg', name: 'Miligram', symbol: 'mg', factor: 1e-6, common: true, aliases: 'miligramy' },
+                    { id: 't', name: 'Tona metryczna (Megagram)', symbol: 't (Mg)', factor: 1000, common: true, aliases: 'tona' },
+                    { id: 'lb', name: 'Funt (Pound avoirdupois)', symbol: 'lb (lbs)', factor: 0.45359237, common: true, aliases: 'funt funty pound' },
+                    { id: 'oz', name: 'Uncja (Ounce)', symbol: 'oz', factor: 0.028349523125, common: true, aliases: 'uncja ounce' },
+                    { id: 'st', name: 'Kamień (Stone)', symbol: 'st', factor: 6.35029318, common: false, aliases: 'stone' },
+                    { id: 'gr', name: 'Gran (Grain)', symbol: 'gr', factor: 0.00006479891, common: false, aliases: 'grain' },
+                    { id: 'ct', name: 'Karat jubilerski', symbol: 'ct', factor: 0.0002, common: false, aliases: 'karat' },
+                    { id: 'ton_us', name: 'Tona amerykańska (Short Ton)', symbol: 'ton (US)', factor: 907.18474, common: false, aliases: 'short ton' },
+                    { id: 'ton_uk', name: 'Tona brytyjska (Long Ton)', symbol: 'ton (UK)', factor: 1016.0469088, common: false, aliases: 'long ton' }
+                ]
+            },
+            {
+                id: 'area',
+                name: 'Powierzchnia i Przekrój',
+                icon: 'fa-vector-square',
+                desc: 'Pole przekroju poprzecznego oraz powierzchnia gruntów i arkuszy.',
+                baseUnit: 'm2',
+                defaultFrom: 'mm2',
+                defaultTo: 'in2',
+                quickValues: [1, 10, 50, 100, 1000],
+                units: [
+                    { id: 'mm2', name: 'Milimetr kwadratowy', symbol: 'mm²', factor: 1e-6, common: true, aliases: 'mm2 przekrój' },
+                    { id: 'cm2', name: 'Centymetr kwadratowy', symbol: 'cm²', factor: 0.0001, common: true, aliases: 'cm2' },
+                    { id: 'm2', name: 'Metr kwadratowy', symbol: 'm²', factor: 1, common: true, aliases: 'm2' },
+                    { id: 'in2', name: 'Cal kwadratowy (sq in)', symbol: 'in² (sq in)', factor: 0.00064516, common: true, aliases: 'inch2 sq in' },
+                    { id: 'ft2', name: 'Stopa kwadratowa (sq ft)', symbol: 'ft² (sq ft)', factor: 0.09290304, common: true, aliases: 'sq ft' },
+                    { id: 'yd2', name: 'Jard kwadratowy', symbol: 'yd²', factor: 0.83612736, common: false, aliases: 'sq yd' },
+                    { id: 'a', name: 'Ar', symbol: 'a', factor: 100, common: false, aliases: 'ar' },
+                    { id: 'ha', name: 'Hektar', symbol: 'ha', factor: 10000, common: true, aliases: 'hektary' },
+                    { id: 'km2', name: 'Kilometr kwadratowy', symbol: 'km²', factor: 1000000, common: false, aliases: 'km2' },
+                    { id: 'ac', name: 'Akr (Acre)', symbol: 'ac', factor: 4046.8564224, common: false, aliases: 'akr' }
+                ]
+            },
+            {
+                id: 'volume',
+                name: 'Objętość i Pojemność',
+                icon: 'fa-cube',
+                desc: 'Pojemność zbiorników, siłowników, silników (cm³ / in³) i cieczy.',
+                baseUnit: 'm3',
+                defaultFrom: 'l',
+                defaultTo: 'gal_us',
+                quickValues: [1, 5, 10, 20, 100, 200, 1000],
+                units: [
+                    { id: 'l', name: 'Litr (dm³)', symbol: 'l (dm³)', factor: 0.001, common: true, aliases: 'litr litry' },
+                    { id: 'ml', name: 'Mililitr (cm³ / cc)', symbol: 'ml (cm³)', factor: 1e-6, common: true, aliases: 'cm3 cc mililitr' },
+                    { id: 'mm3', name: 'Milimetr sześcienny', symbol: 'mm³', factor: 1e-9, common: false, aliases: 'mm3' },
+                    { id: 'm3', name: 'Metr sześcienny', symbol: 'm³', factor: 1, common: true, aliases: 'm3 kubik' },
+                    { id: 'in3', name: 'Cal sześcienny (cu in)', symbol: 'in³ (cu in)', factor: 0.000016387064, common: true, aliases: 'cubic inch' },
+                    { id: 'ft3', name: 'Stopa sześcienna (cu ft)', symbol: 'ft³ (cu ft)', factor: 0.028316846592, common: true, aliases: 'cubic feet' },
+                    { id: 'gal_us', name: 'Galon amerykański (US Gal)', symbol: 'gal (US)', factor: 0.003785411784, common: true, aliases: 'galon us' },
+                    { id: 'gal_uk', name: 'Galon brytyjski (Imperial Gal)', symbol: 'gal (UK)', factor: 0.00454609, common: true, aliases: 'galon uk' },
+                    { id: 'bbl', name: 'Baryłka ropy (Oil Barrel - 42 US gal)', symbol: 'bbl', factor: 0.158987294928, common: true, aliases: 'baryłka barrel' },
+                    { id: 'floz_us', name: 'Uncja płynu amerykańska (US fl oz)', symbol: 'fl oz (US)', factor: 0.00002957352956, common: false, aliases: 'fluid ounce' }
+                ]
+            },
+            {
+                id: 'speed',
+                name: 'Prędkość i Przyspieszenie',
+                icon: 'fa-gauge-simple-high',
+                desc: 'Prędkość liniowa przepływu, pojazdów, skrawania oraz przyspieszenie (m/s², g).',
+                baseUnit: 'ms',
+                defaultFrom: 'ms',
+                defaultTo: 'kmh',
+                quickValues: [1, 10, 25, 50, 100, 343],
+                units: [
+                    { id: 'ms', name: 'Metr na sekundę', symbol: 'm/s', factor: 1, common: true, aliases: 'm/s' },
+                    { id: 'kmh', name: 'Kilometr na godzinę', symbol: 'km/h', factor: 1 / 3.6, common: true, aliases: 'km/h' },
+                    { id: 'mmin', name: 'Metr na minutę (Prędkość skrawania)', symbol: 'm/min', factor: 1 / 60, common: true, aliases: 'm/min skrawanie' },
+                    { id: 'mph', name: 'Mila na godzinę', symbol: 'mph (mi/h)', factor: 0.44704, common: true, aliases: 'mph mile' },
+                    { id: 'fts', name: 'Stopa na sekundę', symbol: 'ft/s (fps)', factor: 0.3048, common: true, aliases: 'fps ft/s' },
+                    { id: 'ftmin', name: 'Stopa na minutę (SFM)', symbol: 'ft/min (SFM)', factor: 0.00508, common: false, aliases: 'sfm' },
+                    { id: 'kn', name: 'Węzeł (Mila morska na godz.)', symbol: 'kn (kt)', factor: 1852 / 3600, common: true, aliases: 'węzły knot' },
+                    { id: 'mach', name: 'Liczba Macha (w 20°C, 1 atm)', symbol: 'Mach', factor: 343.2, common: true, aliases: 'mach dźwięk' }
+                ]
+            },
+            {
+                id: 'viscosity_dyn',
+                name: 'Lepkość i Gęstość',
+                icon: 'fa-droplet',
+                desc: 'Lepkość kinematyczna olejów hydraulicznych (cSt / mm²/s) oraz lepkość dynamiczna (cP / mPa·s).',
+                baseUnit: 'cst',
+                defaultFrom: 'cst',
+                defaultTo: 'm2s',
+                quickValues: [1, 15, 32, 46, 68, 100, 220],
+                units: [
+                    { id: 'cst', name: 'Centystokes / Milimetr kw. na sek. (ISO VG)', symbol: 'cSt (mm²/s)', factor: 1, common: true, aliases: 'centistokes mm2/s olej lepkość kinematyczna' },
+                    { id: 'st_visc', name: 'Stokes (Lepkość kinematyczna)', symbol: 'St (cm²/s)', factor: 100, common: true, aliases: 'stokes' },
+                    { id: 'm2s', name: 'Metr kwadratowy na sekundę', symbol: 'm²/s', factor: 1000000, common: true, aliases: 'm2/s' },
+                    { id: 'ft2s', name: 'Stopa kwadratowa na sekundę', symbol: 'ft²/s', factor: 92903.04, common: false, aliases: 'ft2/s' },
+                    { id: 'cp', name: 'Centypuaz / Milipaskalosekunda (dla ρ=1 g/cm³)', symbol: 'cP (mPa·s) [ρ=1]', factor: 1, common: true, aliases: 'centipoise mpas lepkość dynamiczna' },
+                    { id: 'pas', name: 'Paskalosekunda (dla ρ=1 g/cm³)', symbol: 'Pa·s (N·s/m²) [ρ=1]', factor: 1000, common: true, aliases: 'pascal second' },
+                    { id: 'poise', name: 'Puaz (Poise, dla ρ=1 g/cm³)', symbol: 'P (g/(cm·s)) [ρ=1]', factor: 100, common: false, aliases: 'poise puaz' }
+                ]
+            },
+            {
+                id: 'density',
+                name: 'Gęstość Materiałów',
+                icon: 'fa-cubes-stacked',
+                desc: 'Masa właściwa cieczy, gazów, metali i tworzyw sztucznych.',
+                baseUnit: 'kgm3',
+                defaultFrom: 'gcm3',
+                defaultTo: 'kgm3',
+                quickValues: [1, 1.2, 2.7, 7.85, 8.96, 1000],
+                units: [
+                    { id: 'kgm3', name: 'Kilogram na metr sześcienny', symbol: 'kg/m³', factor: 1, common: true, aliases: 'kg/m3 gęstość' },
+                    { id: 'gcm3', name: 'Gram na centymetr sześcienny', symbol: 'g/cm³ (kg/l)', factor: 1000, common: true, aliases: 'g/cm3 kg/dm3' },
+                    { id: 'gl', name: 'Gram na litr', symbol: 'g/l', factor: 1, common: true, aliases: 'g/l' },
+                    { id: 'lbft3', name: 'Funt na stopę sześcienną', symbol: 'lb/ft³', factor: 16.01846337, common: true, aliases: 'lb/ft3' },
+                    { id: 'lbin3', name: 'Funt na cal sześcienny', symbol: 'lb/in³', factor: 27679.90471, common: false, aliases: 'lb/in3' },
+                    { id: 'lbgal', name: 'Funt na galon amerykański', symbol: 'lb/gal (US)', factor: 119.826427, common: false, aliases: 'lb/gal' }
+                ]
+            },
+            {
+                id: 'rpm',
+                name: 'Obroty i Częstotliwość',
+                icon: 'fa-rotate',
+                desc: 'Prędkość obrotowa wrzecion, silników (RPM), prędkość kątowa (rad/s) oraz częstotliwość (Hz).',
+                baseUnit: 'hz',
+                defaultFrom: 'rpm',
+                defaultTo: 'rads',
+                quickValues: [50, 60, 1000, 1450, 1500, 2900, 3000],
+                units: [
+                    { id: 'rpm', name: 'Obroty na minutę (RPM)', symbol: 'obr/min (RPM)', factor: 1 / 60, common: true, aliases: 'rpm obroty' },
+                    { id: 'rps', name: 'Obroty na sekundę (RPS)', symbol: 'obr/s (RPS)', factor: 1, common: true, aliases: 'rps' },
+                    { id: 'rads', name: 'Radian na sekundę (Prędkość kątowa)', symbol: 'rad/s', factor: 1 / (2 * Math.PI), common: true, aliases: 'rad/s omega' },
+                    { id: 'degs', name: 'Stopień na sekundę', symbol: '°/s (deg/s)', factor: 1 / 360, common: false, aliases: 'deg/s' },
+                    { id: 'hz', name: 'Herc (Cykle na sekundę)', symbol: 'Hz (1/s)', factor: 1, common: true, aliases: 'herc hertz' },
+                    { id: 'khz', name: 'Kiloherc', symbol: 'kHz', factor: 1000, common: true, aliases: 'kilohertz' },
+                    { id: 'mhz', name: 'Megaherc', symbol: 'MHz', factor: 1000000, common: false, aliases: 'megahertz' }
+                ]
+            }
+        ];
+
+        /**************************************************************
+         * 2. AWG WIRE GAUGE DATABASE (4/0 AWG to 40 AWG)
+         * Formula ASTM B258: d_in = 0.005 * 92^((36 - n)/39)
+         **************************************************************/
+        const AWG_SIZES = [
+            { label: '4/0 (0000)', n: -3, ampChassis: 302, ampBundle: 195, iecEquiv: '95 / 120 mm²' },
+            { label: '3/0 (000)', n: -2, ampChassis: 239, ampBundle: 165, iecEquiv: '70 / 95 mm²' },
+            { label: '2/0 (00)', n: -1, ampChassis: 190, ampBundle: 145, iecEquiv: '70 mm²' },
+            { label: '1/0 (0)', n: 0, ampChassis: 150, ampBundle: 125, iecEquiv: '50 mm²' },
+            { label: '1 AWG', n: 1, ampChassis: 119, ampBundle: 110, iecEquiv: '35 / 50 mm²' },
+            { label: '2 AWG', n: 2, ampChassis: 94, ampBundle: 95, iecEquiv: '35 mm²' },
+            { label: '3 AWG', n: 3, ampChassis: 75, ampBundle: 85, iecEquiv: '25 mm²' },
+            { label: '4 AWG', n: 4, ampChassis: 60, ampBundle: 70, iecEquiv: '25 mm²' },
+            { label: '5 AWG', n: 5, ampChassis: 47, ampBundle: 55, iecEquiv: '16 mm²' },
+            { label: '6 AWG', n: 6, ampChassis: 37, ampBundle: 55, iecEquiv: '16 mm²' },
+            { label: '7 AWG', n: 7, ampChassis: 30, ampBundle: 45, iecEquiv: '10 mm²' },
+            { label: '8 AWG', n: 8, ampChassis: 24, ampBundle: 40, iecEquiv: '10 mm²' },
+            { label: '9 AWG', n: 9, ampChassis: 19, ampBundle: 35, iecEquiv: '6.0 mm²' },
+            { label: '10 AWG', n: 10, ampChassis: 15, ampBundle: 30, iecEquiv: '6.0 mm²' },
+            { label: '11 AWG', n: 11, ampChassis: 12, ampBundle: 25, iecEquiv: '4.0 mm²' },
+            { label: '12 AWG', n: 12, ampChassis: 9.3, ampBundle: 20, iecEquiv: '4.0 mm²' },
+            { label: '13 AWG', n: 13, ampChassis: 7.4, ampBundle: 18, iecEquiv: '2.5 mm²' },
+            { label: '14 AWG', n: 14, ampChassis: 5.9, ampBundle: 15, iecEquiv: '2.5 mm²' },
+            { label: '15 AWG', n: 15, ampChassis: 4.7, ampBundle: 12, iecEquiv: '1.5 mm²' },
+            { label: '16 AWG', n: 16, ampChassis: 3.7, ampBundle: 10, iecEquiv: '1.5 mm²' },
+            { label: '17 AWG', n: 17, ampChassis: 2.9, ampBundle: 8, iecEquiv: '1.0 mm²' },
+            { label: '18 AWG', n: 18, ampChassis: 2.3, ampBundle: 7, iecEquiv: '0.75 / 1.0 mm²' },
+            { label: '19 AWG', n: 19, ampChassis: 1.8, ampBundle: 5.5, iecEquiv: '0.75 mm²' },
+            { label: '20 AWG', n: 20, ampChassis: 1.5, ampBundle: 5, iecEquiv: '0.50 mm²' },
+            { label: '21 AWG', n: 21, ampChassis: 1.2, ampBundle: 4, iecEquiv: '0.50 mm²' },
+            { label: '22 AWG', n: 22, ampChassis: 0.92, ampBundle: 3, iecEquiv: '0.34 mm²' },
+            { label: '23 AWG', n: 23, ampChassis: 0.73, ampBundle: 2.5, iecEquiv: '0.25 mm²' },
+            { label: '24 AWG', n: 24, ampChassis: 0.58, ampBundle: 2.1, iecEquiv: '0.20 / 0.25 mm²' },
+            { label: '25 AWG', n: 25, ampChassis: 0.46, ampBundle: 1.7, iecEquiv: '0.14 mm²' },
+            { label: '26 AWG', n: 26, ampChassis: 0.37, ampBundle: 1.3, iecEquiv: '0.14 mm²' },
+            { label: '27 AWG', n: 27, ampChassis: 0.29, ampBundle: 1.1, iecEquiv: '0.10 mm²' },
+            { label: '28 AWG', n: 28, ampChassis: 0.23, ampBundle: 0.8, iecEquiv: '0.08 mm²' },
+            { label: '29 AWG', n: 29, ampChassis: 0.18, ampBundle: 0.7, iecEquiv: '0.06 mm²' },
+            { label: '30 AWG', n: 30, ampChassis: 0.15, ampBundle: 0.5, iecEquiv: '0.05 mm²' },
+            { label: '32 AWG', n: 32, ampChassis: 0.09, ampBundle: 0.3, iecEquiv: '0.03 mm²' },
+            { label: '34 AWG', n: 34, ampChassis: 0.06, ampBundle: 0.2, iecEquiv: '0.02 mm²' },
+            { label: '36 AWG', n: 36, ampChassis: 0.04, ampBundle: 0.1, iecEquiv: '0.013 mm²' },
+            { label: '38 AWG', n: 38, ampChassis: 0.02, ampBundle: 0.08, iecEquiv: '0.008 mm²' },
+            { label: '40 AWG', n: 40, ampChassis: 0.01, ampBundle: 0.05, iecEquiv: '0.005 mm²' }
+        ].map(item => {
+            const d_in = 0.005 * Math.pow(92, (36 - item.n) / 39);
+            const d_mm = d_in * 25.4;
+            const area_mm2 = (Math.PI / 4) * d_mm * d_mm;
+            // Copper resistivity at 20°C ~ 17.241 Ohm*mm²/km
+            const ohm_km = 17.241 / area_mm2;
+            return {
+                ...item,
+                d_in,
+                d_mm,
+                area_mm2,
+                ohm_km
+            };
+        });
+
+        /**************************************************************
+         * 3. THREADS & TAP DRILL COMPENDIUM DATABASE
+         **************************************************************/
+        const THREADS_DATA = [
+            // Metric Coarse (ISO 261 / DIN 13-1)
+            { name: 'M1', type: 'M', std: 'ISO Metryczny zwykły', majorMm: 1.0, pitchMm: 0.25, drillMm: 0.75, drillIn: '0.0295" (#69)', hex: '2.5 mm' },
+            { name: 'M1.2', type: 'M', std: 'ISO Metryczny zwykły', majorMm: 1.2, pitchMm: 0.25, drillMm: 0.95, drillIn: '0.0374" (#63)', hex: '3.0 mm' },
+            { name: 'M1.6', type: 'M', std: 'ISO Metryczny zwykły', majorMm: 1.6, pitchMm: 0.35, drillMm: 1.25, drillIn: '0.0492" (#55)', hex: '3.2 mm' },
+            { name: 'M2', type: 'M', std: 'ISO Metryczny zwykły', majorMm: 2.0, pitchMm: 0.40, drillMm: 1.60, drillIn: '1/16" (#52)', hex: '4.0 mm' },
+            { name: 'M2.5', type: 'M', std: 'ISO Metryczny zwykły', majorMm: 2.5, pitchMm: 0.45, drillMm: 2.05, drillIn: '0.0807" (#46)', hex: '5.0 mm' },
+            { name: 'M3', type: 'M', std: 'ISO Metryczny zwykły', majorMm: 3.0, pitchMm: 0.50, drillMm: 2.50, drillIn: '0.0984" (#39)', hex: '5.5 mm' },
+            { name: 'M3.5', type: 'M', std: 'ISO Metryczny zwykły', majorMm: 3.5, pitchMm: 0.60, drillMm: 2.90, drillIn: '0.1142" (#32)', hex: '6.0 mm' },
+            { name: 'M4', type: 'M', std: 'ISO Metryczny zwykły', majorMm: 4.0, pitchMm: 0.70, drillMm: 3.30, drillIn: '0.1299" (#30)', hex: '7.0 mm' },
+            { name: 'M5', type: 'M', std: 'ISO Metryczny zwykły', majorMm: 5.0, pitchMm: 0.80, drillMm: 4.20, drillIn: '0.1654" (#19)', hex: '8.0 mm' },
+            { name: 'M6', type: 'M', std: 'ISO Metryczny zwykły', majorMm: 6.0, pitchMm: 1.00, drillMm: 5.00, drillIn: '0.1969" (#9)', hex: '10 mm' },
+            { name: 'M7', type: 'M', std: 'ISO Metryczny zwykły', majorMm: 7.0, pitchMm: 1.00, drillMm: 6.00, drillIn: '0.2362" (B)', hex: '11 mm' },
+            { name: 'M8', type: 'M', std: 'ISO Metryczny zwykły', majorMm: 8.0, pitchMm: 1.25, drillMm: 6.80, drillIn: '0.2677" (H)', hex: '13 mm' },
+            { name: 'M10', type: 'M', std: 'ISO Metryczny zwykły', majorMm: 10.0, pitchMm: 1.50, drillMm: 8.50, drillIn: '0.3346" (Q)', hex: '16 / 17 mm' },
+            { name: 'M12', type: 'M', std: 'ISO Metryczny zwykły', majorMm: 12.0, pitchMm: 1.75, drillMm: 10.20, drillIn: '0.4016" (Y)', hex: '18 / 19 mm' },
+            { name: 'M14', type: 'M', std: 'ISO Metryczny zwykły', majorMm: 14.0, pitchMm: 2.00, drillMm: 12.00, drillIn: '15/32"', hex: '21 / 22 mm' },
+            { name: 'M16', type: 'M', std: 'ISO Metryczny zwykły', majorMm: 16.0, pitchMm: 2.00, drillMm: 14.00, drillIn: '35/64"', hex: '24 mm' },
+            { name: 'M18', type: 'M', std: 'ISO Metryczny zwykły', majorMm: 18.0, pitchMm: 2.50, drillMm: 15.50, drillIn: '39/64"', hex: '27 mm' },
+            { name: 'M20', type: 'M', std: 'ISO Metryczny zwykły', majorMm: 20.0, pitchMm: 2.50, drillMm: 17.50, drillIn: '11/16"', hex: '30 mm' },
+            { name: 'M22', type: 'M', std: 'ISO Metryczny zwykły', majorMm: 22.0, pitchMm: 2.50, drillMm: 19.50, drillIn: '49/64"', hex: '32 / 34 mm' },
+            { name: 'M24', type: 'M', std: 'ISO Metryczny zwykły', majorMm: 24.0, pitchMm: 3.00, drillMm: 21.00, drillIn: '53/64"', hex: '36 mm' },
+            { name: 'M27', type: 'M', std: 'ISO Metryczny zwykły', majorMm: 27.0, pitchMm: 3.00, drillMm: 24.00, drillIn: '15/16"', hex: '41 mm' },
+            { name: 'M30', type: 'M', std: 'ISO Metryczny zwykły', majorMm: 30.0, pitchMm: 3.50, drillMm: 26.50, drillIn: '1 3/64"', hex: '46 mm' },
+            { name: 'M33', type: 'M', std: 'ISO Metryczny zwykły', majorMm: 33.0, pitchMm: 3.50, drillMm: 29.50, drillIn: '1 5/32"', hex: '50 mm' },
+            { name: 'M36', type: 'M', std: 'ISO Metryczny zwykły', majorMm: 36.0, pitchMm: 4.00, drillMm: 32.00, drillIn: '1 17/64"', hex: '55 mm' },
+            { name: 'M42', type: 'M', std: 'ISO Metryczny zwykły', majorMm: 42.0, pitchMm: 4.50, drillMm: 37.50, drillIn: '1 31/64"', hex: '65 mm' },
+            { name: 'M48', type: 'M', std: 'ISO Metryczny zwykły', majorMm: 48.0, pitchMm: 5.00, drillMm: 43.00, drillIn: '1 11/16"', hex: '75 mm' },
+            { name: 'M56', type: 'M', std: 'ISO Metryczny zwykły', majorMm: 56.0, pitchMm: 5.50, drillMm: 50.50, drillIn: '1 63/64"', hex: '85 mm' },
+            { name: 'M64', type: 'M', std: 'ISO Metryczny zwykły', majorMm: 64.0, pitchMm: 6.00, drillMm: 58.00, drillIn: '2 9/32"', hex: '95 mm' },
+            { name: 'M68', type: 'M', std: 'ISO Metryczny zwykły', majorMm: 68.0, pitchMm: 6.00, drillMm: 62.00, drillIn: '2 7/16"', hex: '100 mm' },
+
+            // Metric Fine (MF)
+            { name: 'M6 × 0.75', type: 'MF', std: 'Metryczny drobnozwojny', majorMm: 6.0, pitchMm: 0.75, drillMm: 5.20, drillIn: '0.2047" (#5)', hex: '10 mm' },
+            { name: 'M8 × 1.0', type: 'MF', std: 'Metryczny drobnozwojny', majorMm: 8.0, pitchMm: 1.00, drillMm: 7.00, drillIn: '0.2756" (J)', hex: '13 mm' },
+            { name: 'M10 × 1.0', type: 'MF', std: 'Metryczny drobnozwojny', majorMm: 10.0, pitchMm: 1.00, drillMm: 9.00, drillIn: '0.3543" (T)', hex: '16 / 17 mm' },
+            { name: 'M10 × 1.25', type: 'MF', std: 'Metryczny drobnozwojny', majorMm: 10.0, pitchMm: 1.25, drillMm: 8.80, drillIn: '0.3465" (S)', hex: '16 / 17 mm' },
+            { name: 'M12 × 1.25', type: 'MF', std: 'Metryczny drobnozwojny', majorMm: 12.0, pitchMm: 1.25, drillMm: 10.80, drillIn: '27/64"', hex: '18 / 19 mm' },
+            { name: 'M12 × 1.5', type: 'MF', std: 'Metryczny drobnozwojny', majorMm: 12.0, pitchMm: 1.50, drillMm: 10.50, drillIn: '0.4134" (Z)', hex: '18 / 19 mm' },
+            { name: 'M14 × 1.5', type: 'MF', std: 'Metryczny drobnozwojny', majorMm: 14.0, pitchMm: 1.50, drillMm: 12.50, drillIn: '0.4921"', hex: '21 / 22 mm' },
+            { name: 'M16 × 1.5', type: 'MF', std: 'Metryczny drobnozwojny', majorMm: 16.0, pitchMm: 1.50, drillMm: 14.50, drillIn: '37/64"', hex: '24 mm' },
+            { name: 'M18 × 1.5', type: 'MF', std: 'Metryczny drobnozwojny', majorMm: 18.0, pitchMm: 1.50, drillMm: 16.50, drillIn: '0.6496"', hex: '27 mm' },
+            { name: 'M20 × 1.5', type: 'MF', std: 'Metryczny drobnozwojny', majorMm: 20.0, pitchMm: 1.50, drillMm: 18.50, drillIn: '47/64"', hex: '30 mm' },
+            { name: 'M24 × 2.0', type: 'MF', std: 'Metryczny drobnozwojny', majorMm: 24.0, pitchMm: 2.00, drillMm: 22.00, drillIn: '55/64"', hex: '36 mm' },
+
+            // Unified National Coarse (UNC - ANSI B1.1)
+            { name: '#4-40 UNC', type: 'UNC', std: 'Calowy zunifikowany UNC', majorMm: 2.845, majorIn: '0.112"', tpi: 40, pitchMm: 0.635, drillMm: 2.25, drillIn: '#43 (0.089")', hex: '1/4"' },
+            { name: '#6-32 UNC', type: 'UNC', std: 'Calowy zunifikowany UNC', majorMm: 3.505, majorIn: '0.138"', tpi: 32, pitchMm: 0.794, drillMm: 2.70, drillIn: '#36 (0.1065")', hex: '5/16"' },
+            { name: '#8-32 UNC', type: 'UNC', std: 'Calowy zunifikowany UNC', majorMm: 4.166, majorIn: '0.164"', tpi: 32, pitchMm: 0.794, drillMm: 3.50, drillIn: '#29 (0.136")', hex: '11/32"' },
+            { name: '#10-24 UNC', type: 'UNC', std: 'Calowy zunifikowany UNC', majorMm: 4.826, majorIn: '0.190"', tpi: 24, pitchMm: 1.058, drillMm: 3.80, drillIn: '#25 (0.1495")', hex: '3/8"' },
+            { name: '1/4"-20 UNC', type: 'UNC', std: 'Calowy zunifikowany UNC', majorMm: 6.350, majorIn: '1/4" (0.250")', tpi: 20, pitchMm: 1.270, drillMm: 5.10, drillIn: '#7 (0.201")', hex: '7/16"' },
+            { name: '5/16"-18 UNC', type: 'UNC', std: 'Calowy zunifikowany UNC', majorMm: 7.938, majorIn: '5/16" (0.3125")', tpi: 18, pitchMm: 1.411, drillMm: 6.50, drillIn: 'F (0.257")', hex: '1/2"' },
+            { name: '3/8"-16 UNC', type: 'UNC', std: 'Calowy zunifikowany UNC', majorMm: 9.525, majorIn: '3/8" (0.375")', tpi: 16, pitchMm: 1.588, drillMm: 7.90, drillIn: '5/16" (0.3125")', hex: '9/16"' },
+            { name: '7/16"-14 UNC', type: 'UNC', std: 'Calowy zunifikowany UNC', majorMm: 11.113, majorIn: '7/16" (0.4375")', tpi: 14, pitchMm: 1.814, drillMm: 9.40, drillIn: 'U (0.368")', hex: '5/8"' },
+            { name: '1/2"-13 UNC', type: 'UNC', std: 'Calowy zunifikowany UNC', majorMm: 12.700, majorIn: '1/2" (0.500")', tpi: 13, pitchMm: 1.954, drillMm: 10.80, drillIn: '27/64" (0.4219")', hex: '3/4"' },
+            { name: '5/8"-11 UNC', type: 'UNC', std: 'Calowy zunifikowany UNC', majorMm: 15.875, majorIn: '5/8" (0.625")', tpi: 11, pitchMm: 2.309, drillMm: 13.50, drillIn: '17/32" (0.5312")', hex: '15/16"' },
+            { name: '3/4"-10 UNC', type: 'UNC', std: 'Calowy zunifikowany UNC', majorMm: 19.050, majorIn: '3/4" (0.750")', tpi: 10, pitchMm: 2.540, drillMm: 16.50, drillIn: '21/32" (0.6562")', hex: '1 1/8"' },
+            { name: '7/8"-9 UNC', type: 'UNC', std: 'Calowy zunifikowany UNC', majorMm: 22.225, majorIn: '7/8" (0.875")', tpi: 9, pitchMm: 2.822, drillMm: 19.50, drillIn: '49/64" (0.7656")', hex: '1 5/16"' },
+            { name: '1"-8 UNC', type: 'UNC', std: 'Calowy zunifikowany UNC', majorMm: 25.400, majorIn: '1" (1.000")', tpi: 8, pitchMm: 3.175, drillMm: 22.25, drillIn: '7/8" (0.875")', hex: '1 1/2"' },
+
+            // Unified National Fine (UNF - ANSI B1.1)
+            { name: '#10-32 UNF', type: 'UNF', std: 'Calowy drobnozwojny UNF', majorMm: 4.826, majorIn: '0.190"', tpi: 32, pitchMm: 0.794, drillMm: 4.10, drillIn: '#21 (0.159")', hex: '3/8"' },
+            { name: '1/4"-28 UNF', type: 'UNF', std: 'Calowy drobnozwojny UNF', majorMm: 6.350, majorIn: '1/4" (0.250")', tpi: 28, pitchMm: 0.907, drillMm: 5.50, drillIn: '#3 (0.213")', hex: '7/16"' },
+            { name: '5/16"-24 UNF', type: 'UNF', std: 'Calowy drobnozwojny UNF', majorMm: 7.938, majorIn: '5/16" (0.3125")', tpi: 24, pitchMm: 1.058, drillMm: 6.90, drillIn: 'I (0.272")', hex: '1/2"' },
+            { name: '3/8"-24 UNF', type: 'UNF', std: 'Calowy drobnozwojny UNF', majorMm: 9.525, majorIn: '3/8" (0.375")', tpi: 24, pitchMm: 1.058, drillMm: 8.50, drillIn: 'Q (0.332")', hex: '9/16"' },
+            { name: '7/16"-20 UNF', type: 'UNF', std: 'Calowy drobnozwojny UNF', majorMm: 11.113, majorIn: '7/16" (0.4375")', tpi: 20, pitchMm: 1.270, drillMm: 9.90, drillIn: '25/64" (0.3906")', hex: '5/8"' },
+            { name: '1/2"-20 UNF', type: 'UNF', std: 'Calowy drobnozwojny UNF', majorMm: 12.700, majorIn: '1/2" (0.500")', tpi: 20, pitchMm: 1.270, drillMm: 11.50, drillIn: '29/64" (0.4531")', hex: '3/4"' },
+            { name: '5/8"-18 UNF', type: 'UNF', std: 'Calowy drobnozwojny UNF', majorMm: 15.875, majorIn: '5/8" (0.625")', tpi: 18, pitchMm: 1.411, drillMm: 14.50, drillIn: '37/64" (0.5781")', hex: '15/16"' },
+            { name: '3/4"-16 UNF', type: 'UNF', std: 'Calowy drobnozwojny UNF', majorMm: 19.050, majorIn: '3/4" (0.750")', tpi: 16, pitchMm: 1.588, drillMm: 17.50, drillIn: '11/16" (0.6875")', hex: '1 1/8"' },
+
+            // Pipe Threads: BSP (G) ISO 228 & NPT (ANSI B1.20.1)
+            { name: 'G 1/8" (BSP)', type: 'BSP', std: 'Rurowy walcowy ISO 228 (55°)', majorMm: 9.728, majorIn: '0.383"', tpi: 28, pitchMm: 0.907, drillMm: 8.80, drillIn: '11/32"', hex: 'Hydraulika / Pneumatyka' },
+            { name: 'G 1/4" (BSP)', type: 'BSP', std: 'Rurowy walcowy ISO 228 (55°)', majorMm: 13.157, majorIn: '0.518"', tpi: 19, pitchMm: 1.337, drillMm: 11.80, drillIn: '15/32"', hex: 'Hydraulika / Pneumatyka' },
+            { name: 'G 3/8" (BSP)', type: 'BSP', std: 'Rurowy walcowy ISO 228 (55°)', majorMm: 16.662, majorIn: '0.656"', tpi: 19, pitchMm: 1.337, drillMm: 15.25, drillIn: '19/32"', hex: 'Hydraulika / Pneumatyka' },
+            { name: 'G 1/2" (BSP)', type: 'BSP', std: 'Rurowy walcowy ISO 228 (55°)', majorMm: 20.955, majorIn: '0.825"', tpi: 14, pitchMm: 1.814, drillMm: 19.00, drillIn: '3/4"', hex: 'Hydraulika / Armatura' },
+            { name: 'G 3/4" (BSP)', type: 'BSP', std: 'Rurowy walcowy ISO 228 (55°)', majorMm: 26.441, majorIn: '1.041"', tpi: 14, pitchMm: 1.814, drillMm: 24.50, drillIn: '31/32"', hex: 'Hydraulika / Armatura' },
+            { name: 'G 1" (BSP)', type: 'BSP', std: 'Rurowy walcowy ISO 228 (55°)', majorMm: 33.249, majorIn: '1.309"', tpi: 11, pitchMm: 2.309, drillMm: 30.75, drillIn: '1 13/64"', hex: 'Hydraulika / Armatura' },
+            { name: 'G 1 1/4" (BSP)', type: 'BSP', std: 'Rurowy walcowy ISO 228 (55°)', majorMm: 41.910, majorIn: '1.650"', tpi: 11, pitchMm: 2.309, drillMm: 39.50, drillIn: '1 35/64"', hex: 'Rurociągi' },
+            { name: 'G 1 1/2" (BSP)', type: 'BSP', std: 'Rurowy walcowy ISO 228 (55°)', majorMm: 47.803, majorIn: '1.882"', tpi: 11, pitchMm: 2.309, drillMm: 45.25, drillIn: '1 25/32"', hex: 'Rurociągi' },
+            { name: 'G 2" (BSP)', type: 'BSP', std: 'Rurowy walcowy ISO 228 (55°)', majorMm: 59.614, majorIn: '2.347"', tpi: 11, pitchMm: 2.309, drillMm: 57.00, drillIn: '2 1/4"', hex: 'Rurociągi' },
+            { name: '1/8"-27 NPT', type: 'BSP', std: 'Rurowy stożkowy NPT (60°)', majorMm: 10.287, majorIn: '0.405"', tpi: 27, pitchMm: 0.941, drillMm: 8.50, drillIn: 'R (0.339")', hex: 'Stożek 1:16' },
+            { name: '1/4"-18 NPT', type: 'BSP', std: 'Rurowy stożkowy NPT (60°)', majorMm: 13.716, majorIn: '0.540"', tpi: 18, pitchMm: 1.411, drillMm: 11.10, drillIn: '7/16" (0.4375")', hex: 'Stożek 1:16' },
+            { name: '3/8"-18 NPT', type: 'BSP', std: 'Rurowy stożkowy NPT (60°)', majorMm: 17.145, majorIn: '0.675"', tpi: 18, pitchMm: 1.411, drillMm: 14.50, drillIn: '37/64" (0.5781")', hex: 'Stożek 1:16' },
+            { name: '1/2"-14 NPT', type: 'BSP', std: 'Rurowy stożkowy NPT (60°)', majorMm: 21.336, majorIn: '0.840"', tpi: 14, pitchMm: 1.814, drillMm: 18.00, drillIn: '23/32" (0.7188")', hex: 'Stożek 1:16' },
+            { name: '3/4"-14 NPT', type: 'BSP', std: 'Rurowy stożkowy NPT (60°)', majorMm: 26.670, majorIn: '1.050"', tpi: 14, pitchMm: 1.814, drillMm: 23.25, drillIn: '59/64" (0.9219")', hex: 'Stożek 1:16' },
+            { name: '1"-11.5 NPT', type: 'BSP', std: 'Rurowy stożkowy NPT (60°)', majorMm: 33.401, majorIn: '1.315"', tpi: 11.5, pitchMm: 2.209, drillMm: 29.00, drillIn: '1 5/32" (1.156")', hex: 'Stożek 1:16' }
+        ];
+
+        // Workshop Common Fractional Inches
+        const WORKSHOP_FRACTIONS = [
+            { label: '1/16"', w: 0, n: 1, d: 16 },
+            { label: '1/8"', w: 0, n: 1, d: 8 },
+            { label: '3/16"', w: 0, n: 3, d: 16 },
+            { label: '1/4"', w: 0, n: 1, d: 4 },
+            { label: '5/16"', w: 0, n: 5, d: 16 },
+            { label: '3/8"', w: 0, n: 3, d: 8 },
+            { label: '7/16"', w: 0, n: 7, d: 16 },
+            { label: '1/2"', w: 0, n: 1, d: 2 },
+            { label: '9/16"', w: 0, n: 9, d: 16 },
+            { label: '5/8"', w: 0, n: 5, d: 8 },
+            { label: '3/4"', w: 0, n: 3, d: 4 },
+            { label: '7/8"', w: 0, n: 7, d: 8 },
+            { label: '1"', w: 1, n: 0, d: 2 },
+            { label: '1 1/4"', w: 1, n: 1, d: 4 },
+            { label: '1 1/2"', w: 1, n: 1, d: 2 }
+        ];
+
+        /**************************************************************
+         * 4. STATE & FORMATTERS
+         **************************************************************/
+        let currentCategoryId = 'pressure';
+        let currentPrecision = 'auto';
+        let currentThreadFilter = 'ALL';
+
+        function formatEngineeringNumber(val) {
+            if (val === null || val === undefined || isNaN(val)) return '—';
+            if (val === 0) return '0';
+
+            const abs = Math.abs(val);
+
+            if (currentPrecision === 'sci') {
+                return val.toExponential(4);
+            }
+
+            if (currentPrecision !== 'auto') {
+                const digits = parseInt(currentPrecision, 10);
+                return Number(val.toFixed(digits)).toLocaleString('en-US', {
+                    minimumFractionDigits: digits,
+                    maximumFractionDigits: digits,
+                    useGrouping: false
+                });
+            }
+
+            // Smart 'auto' engineering formatting
+            if (abs >= 1e9 || (abs > 0 && abs < 1e-5)) {
+                return val.toExponential(4);
+            }
+            if (abs >= 1000) {
+                return Number(val.toFixed(2)).toString();
+            }
+            if (abs >= 1) {
+                return Number(val.toFixed(4)).toString();
+            }
+            return Number(val.toPrecision(5)).toString();
+        }
+
+        function convertUnitValue(val, fromUnit, toUnit, category) {
+            if (isNaN(val)) return NaN;
+            if (fromUnit.id === toUnit.id) return val;
+
+            if (category.isCustomConversion) {
+                const baseK = fromUnit.toBase(val);
+                return toUnit.fromBase(baseK);
+            } else {
+                const baseVal = val * fromUnit.factor;
+                return baseVal / toUnit.factor;
+            }
+        }
+
+        /**************************************************************
+         * 5. UI RENDERING & NAVIGATION
+         **************************************************************/
+        function renderSidebar() {
+            const nav = document.getElementById('category-nav');
+            document.getElementById('cat-count-badge').textContent = CATEGORIES.length;
+
+            nav.innerHTML = CATEGORIES.map(cat => {
+                const isActive = cat.id === currentCategoryId;
+                const activeClasses = isActive 
+                    ? 'bg-eng-600 text-white shadow-md shadow-eng-600/20 font-semibold' 
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/80 font-medium';
+                
+                const iconColor = isActive ? 'text-white' : 'text-eng-500 dark:text-eng-400';
+
+                return `
+                    <button 
+                        onclick="selectCategory('${cat.id}')" 
+                        class="flex items-center justify-between gap-2.5 px-3 py-2.5 rounded-xl text-xs sm:text-sm transition-all shrink-0 lg:w-full text-left ${activeClasses}"
+                    >
+                        <div class="flex items-center gap-2.5 truncate">
+                            <i class="fa-solid ${cat.icon} w-4 text-center ${iconColor}"></i>
+                            <span class="truncate">${cat.name}</span>
+                        </div>
+                        ${cat.badge ? `<span class="text-[9px] font-mono px-1.5 py-0.5 rounded uppercase ${isActive ? 'bg-white/20 text-white' : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'}">${cat.badge}</span>` : ''}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function selectCategory(catId, customFromId = null, customToId = null, customVal = null) {
+            const cat = CATEGORIES.find(c => c.id === catId);
+            if (!cat) return;
+
+            currentCategoryId = catId;
+            renderSidebar();
+
+            // Update Header Info
+            document.getElementById('active-cat-icon').innerHTML = `<i class="fa-solid ${cat.icon}"></i>`;
+            document.getElementById('active-cat-title').textContent = cat.name;
+            document.getElementById('active-cat-desc').textContent = cat.desc;
+
+            // Toggle Views
+            const stdView = document.getElementById('standard-converter-view');
+            const awgView = document.getElementById('awg-converter-view');
+            const threadsView = document.getElementById('threads-converter-view');
+            const fracWidget = document.getElementById('fractional-inch-widget');
+
+            stdView.classList.add('hidden');
+            awgView.classList.add('hidden');
+            threadsView.classList.add('hidden');
+            fracWidget.classList.add('hidden');
+
+            if (cat.specialView === 'awg') {
+                awgView.classList.remove('hidden');
+                awgView.classList.add('flex');
+                document.getElementById('active-cat-QuickTags').innerHTML = `
+                    <button onclick="calculateFromAWG('12 AWG')" class="text-xs font-mono px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-amber-500 hover:text-white transition-colors">12 AWG</button>
+                    <button onclick="calculateFromAWG('14 AWG')" class="text-xs font-mono px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-amber-500 hover:text-white transition-colors">14 AWG</button>
+                    <button onclick="calculateFromAWG('18 AWG')" class="text-xs font-mono px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-amber-500 hover:text-white transition-colors">18 AWG</button>
+                    <button onclick="calculateFromAWG('24 AWG')" class="text-xs font-mono px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-amber-500 hover:text-white transition-colors">24 AWG</button>
+                `;
+                return;
+            }
+
+            if (cat.specialView === 'threads') {
+                threadsView.classList.remove('hidden');
+                threadsView.classList.add('flex');
+                document.getElementById('active-cat-QuickTags').innerHTML = `
+                    <button onclick="quickSearchThread('M6')" class="text-xs font-mono px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-500 hover:text-white transition-colors">M6</button>
+                    <button onclick="quickSearchThread('M8')" class="text-xs font-mono px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-500 hover:text-white transition-colors">M8</button>
+                    <button onclick="quickSearchThread('M10')" class="text-xs font-mono px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-500 hover:text-white transition-colors">M10</button>
+                    <button onclick="quickSearchThread('G 1/2')" class="text-xs font-mono px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-500 hover:text-white transition-colors">G 1/2"</button>
+                    <button onclick="quickSearchThread('1/4\"-20')" class="text-xs font-mono px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-500 hover:text-white transition-colors">1/4"-20 UNC</button>
+                `;
+                renderThreadsTable();
+                return;
+            }
+
+            // Standard Unit Converter View
+            stdView.classList.remove('hidden');
+            if (cat.id === 'length') {
+                fracWidget.classList.remove('hidden');
+            }
+
+            // Quick value buttons
+            if (cat.quickValues) {
+                document.getElementById('active-cat-QuickTags').innerHTML = cat.quickValues.map(v => `
+                    <button onclick="setMainValue(${v})" class="text-xs font-mono px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-eng-500 hover:text-white text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-colors">
+                        ${v}
+                    </button>
+                `).join('');
+            }
+
+            // Populate From & To Selects
+            const fromSelect = document.getElementById('main-from-unit');
+            const toSelect = document.getElementById('main-to-unit');
+
+            const optionsHtml = cat.units.map(u => `<option value="${u.id}">${u.symbol} — ${u.name}</option>`).join('');
+            fromSelect.innerHTML = optionsHtml;
+            toSelect.innerHTML = optionsHtml;
+
+            fromSelect.value = customFromId || cat.defaultFrom || cat.units[0].id;
+            toSelect.value = customToId || cat.defaultTo || (cat.units[1] ? cat.units[1].id : cat.units[0].id);
+
+            if (customVal !== null) {
+                document.getElementById('main-input-val').value = customVal;
+            }
+
+            // Clear grid filter
+            document.getElementById('unit-grid-filter').value = '';
+
+            // Render All-Units Grid & Calculate
+            renderAllUnitsGrid();
+            recalculateAll();
+        }
+
+        function renderAllUnitsGrid() {
+            const cat = CATEGORIES.find(c => c.id === currentCategoryId);
+            if (!cat || !cat.units) return;
+
+            const grid = document.getElementById('all-units-grid');
+            grid.innerHTML = cat.units.map(u => `
+                <div 
+                    id="unit-card-${u.id}" 
+                    data-search="${(u.symbol + ' ' + u.name + ' ' + (u.aliases || '')).toLowerCase()}"
+                    class="unit-grid-card card-hover bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 focus-within:border-eng-500 focus-within:ring-2 focus-within:ring-eng-500/20 rounded-xl p-3 flex flex-col justify-between transition-all"
+                >
+                    <div class="flex items-center justify-between gap-2 mb-1.5">
+                        <span class="text-xs font-medium text-slate-500 dark:text-slate-400 truncate" title="${u.name}">
+                            ${u.name}
+                        </span>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <span class="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-eng-500/10 text-eng-600 dark:text-eng-400 border border-eng-500/20">
+                                ${u.symbol}
+                            </span>
+                            <button 
+                                onclick="copyUnitInput('${u.id}', '${u.symbol}')" 
+                                class="text-slate-400 hover:text-eng-500 p-1 transition-colors"
+                                title="Kopiuj wartość"
+                            >
+                                <i class="fa-regular fa-copy text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <input 
+                        type="number" 
+                        id="grid-input-${u.id}" 
+                        step="any"
+                        oninput="onGridInputChange('${u.id}', this.value)"
+                        class="w-full bg-transparent font-mono text-lg sm:text-xl font-bold text-slate-900 dark:text-white focus:outline-none"
+                        placeholder="0"
+                    >
+                </div>
+            `).join('');
+        }
+
+        function recalculateAll(sourceUnitId = null, sourceRawValue = null) {
+            const cat = CATEGORIES.find(c => c.id === currentCategoryId);
+            if (!cat || !cat.units) return;
+
+            const mainInput = document.getElementById('main-input-val');
+            const fromSelect = document.getElementById('main-from-unit');
+            const toSelect = document.getElementById('main-to-unit');
+            const mainOutput = document.getElementById('main-output-val');
+            const formulaBadge = document.getElementById('conversion-formula-badge');
+
+            const fromUnit = cat.units.find(u => u.id === fromSelect.value) || cat.units[0];
+            const toUnit = cat.units.find(u => u.id === toSelect.value) || cat.units[0];
+
+            let activeUnit = fromUnit;
+            let activeVal = parseFloat(mainInput.value);
+
+            if (sourceUnitId) {
+                activeUnit = cat.units.find(u => u.id === sourceUnitId) || fromUnit;
+                activeVal = parseFloat(sourceRawValue);
+                // Also sync main input to match the edited grid card
+                const convertedForMain = convertUnitValue(activeVal, activeUnit, fromUnit, cat);
+                mainInput.value = isNaN(convertedForMain) ? '' : formatEngineeringNumber(convertedForMain);
+            }
+
+            // Update Primary Output
+            const primaryRes = convertUnitValue(parseFloat(mainInput.value), fromUnit, toUnit, cat);
+            mainOutput.textContent = formatEngineeringNumber(primaryRes);
+
+            // Update 1-unit reference formula badge
+            const oneUnitRes = convertUnitValue(1, fromUnit, toUnit, cat);
+            formulaBadge.textContent = `1 ${fromUnit.symbol} = ${formatEngineeringNumber(oneUnitRes)} ${toUnit.symbol}`;
+
+            // Update All Units Grid
+            cat.units.forEach(u => {
+                if (u.id === sourceUnitId) return; // Don't overwrite the field user is currently typing in
+                const inputEl = document.getElementById(`grid-input-${u.id}`);
+                if (!inputEl) return;
+
+                if (isNaN(activeVal)) {
+                    inputEl.value = '';
+                } else {
+                    const res = convertUnitValue(activeVal, activeUnit, u, cat);
+                    inputEl.value = formatEngineeringNumber(res);
+                }
+            });
+        }
+
+        function onMainInputChange() {
+            recalculateAll();
+        }
+
+        function onMainUnitChange() {
+            recalculateAll();
+        }
+
+        function onGridInputChange(unitId, val) {
+            recalculateAll(unitId, val);
+        }
+
+        function swapMainUnits() {
+            const fromSelect = document.getElementById('main-from-unit');
+            const toSelect = document.getElementById('main-to-unit');
+            const temp = fromSelect.value;
+            fromSelect.value = toSelect.value;
+            toSelect.value = temp;
+            recalculateAll();
+        }
+
+        function setMainValue(val) {
+            document.getElementById('main-input-val').value = val;
+            recalculateAll();
+        }
+
+        function applyPreset(catId, fromId, toId, val) {
+            selectCategory(catId, fromId, toId, val);
+        }
+
+        function updatePrecision(prec) {
+            currentPrecision = prec;
+            recalculateAll();
+        }
+
+        function filterUnitGrid(query) {
+            const q = query.trim().toLowerCase();
+            document.querySelectorAll('.unit-grid-card').forEach(card => {
+                const text = card.getAttribute('data-search') || '';
+                card.style.display = text.includes(q) ? 'flex' : 'none';
+            });
+        }
+
+        /**************************************************************
+         * 6. FRACTIONAL INCH WORKSHOP CALCULATOR
+         **************************************************************/
+        function initFractionalInchWidget() {
+            const container = document.getElementById('workshop-fractions-list');
+            container.innerHTML = WORKSHOP_FRACTIONS.map(f => `
+                <button 
+                    onclick="setFractionInch(${f.w}, ${f.n}, ${f.d})" 
+                    class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-amber-500 hover:text-slate-950 text-slate-200 border border-slate-700 font-mono text-xs font-semibold transition-colors"
+                >
+                    ${f.label}
+                </button>
+            `).join('');
+            calcFractionInch();
+        }
+
+        function setFractionInch(w, n, d) {
+            document.getElementById('frac-whole').value = w;
+            document.getElementById('frac-num').value = n;
+            document.getElementById('frac-den').value = d;
+            calcFractionInch(true);
+        }
+
+        function calcFractionInch(pushToMain = false) {
+            const w = parseFloat(document.getElementById('frac-whole').value) || 0;
+            const n = parseFloat(document.getElementById('frac-num').value) || 0;
+            const d = parseFloat(document.getElementById('frac-den').value) || 1;
+
+            const totalInches = w + (n / d);
+            const totalMm = totalInches * 25.4;
+
+            document.getElementById('frac-result-mm').textContent = `${Number(totalMm.toFixed(4))} mm`;
+            document.getElementById('frac-result-dec').textContent = `${Number(totalInches.toFixed(5))}"`;
+
+            if (pushToMain && currentCategoryId === 'length') {
+                document.getElementById('main-from-unit').value = 'in';
+                document.getElementById('main-to-unit').value = 'mm';
+                document.getElementById('main-input-val').value = Number(totalInches.toFixed(6));
+                recalculateAll();
+            }
+        }
+
+        /**************************************************************
+         * 7. AWG WIRE CALCULATOR & TABLE LOGIC
+         **************************************************************/
+        function initAWGView() {
+            const sel = document.getElementById('awg-select-input');
+            sel.innerHTML = AWG_SIZES.map(item => `
+                <option value="${item.label}" ${item.label === '12 AWG' ? 'selected' : ''}>
+                    ${item.label} — ${item.area_mm2.toFixed(2)} mm² (⌀ ${item.d_mm.toFixed(2)} mm)
+                </option>
+            `).join('');
+
+            calculateFromAWG('12 AWG');
+            calculateFromMM2(2.5);
+            renderAWGTable();
+        }
+
+        function calculateFromAWG(label) {
+            const item = AWG_SIZES.find(a => a.label === label) || AWG_SIZES[15];
+            document.getElementById('awg-select-input').value = item.label;
+
+            const cards = document.getElementById('awg-detail-cards');
+            cards.innerHTML = `
+                <div onclick="copyText('${item.area_mm2.toFixed(3)} mm²')" class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 cursor-pointer hover:border-amber-400">
+                    <div class="text-[10px] font-mono uppercase text-amber-600 dark:text-amber-400">Przekrój (mm²)</div>
+                    <div class="font-mono text-xl font-bold text-amber-600 dark:text-amber-400 mt-0.5">${item.area_mm2.toFixed(3)} mm²</div>
+                </div>
+                <div onclick="copyText('${item.d_mm.toFixed(3)} mm')" class="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-3 cursor-pointer hover:border-eng-400">
+                    <div class="text-[10px] font-mono uppercase text-slate-400">Średnica [mm]</div>
+                    <div class="font-mono text-xl font-bold text-slate-900 dark:text-white mt-0.5">⌀ ${item.d_mm.toFixed(3)} mm</div>
+                </div>
+                <div onclick="copyText('${item.d_in.toFixed(4)} in')" class="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-3 cursor-pointer hover:border-eng-400">
+                    <div class="text-[10px] font-mono uppercase text-slate-400">Średnica [cal]</div>
+                    <div class="font-mono text-xl font-bold text-slate-900 dark:text-white mt-0.5">${item.d_in.toFixed(4)}"</div>
+                </div>
+                <div class="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-3">
+                    <div class="text-[10px] font-mono uppercase text-slate-400">Rezystancja Cu</div>
+                    <div class="font-mono text-base font-bold text-slate-800 dark:text-slate-200 mt-0.5">${item.ohm_km < 10 ? item.ohm_km.toFixed(3) : item.ohm_km.toFixed(1)} Ω/km</div>
+                </div>
+                <div class="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-3">
+                    <div class="text-[10px] font-mono uppercase text-slate-400">Prąd (w wiązce / powietrze)</div>
+                    <div class="font-mono text-base font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">${item.ampBundle} A / ${item.ampChassis} A</div>
+                </div>
+                <div class="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-3">
+                    <div class="text-[10px] font-mono uppercase text-slate-400">Szereg IEC 60228</div>
+                    <div class="font-mono text-base font-bold text-eng-600 dark:text-eng-400 mt-0.5">${item.iecEquiv}</div>
+                </div>
+            `;
+        }
+
+        function calculateFromMM2(mm2Val) {
+            const val = parseFloat(mm2Val);
+            const resBox = document.getElementById('mm2-reverse-result');
+            if (isNaN(val) || val <= 0) {
+                resBox.innerHTML = `<span class="text-xs text-slate-400">Wprowadź dodatni przekrój w mm².</span>`;
+                return;
+            }
+
+            // Exact diameter for solid round conductor: d = sqrt(4 * A / pi)
+            const d_mm = Math.sqrt((4 * val) / Math.PI);
+
+            // Find closest AWG and next larger AWG (safe electrical sizing)
+            let closest = AWG_SIZES[0];
+            let minDiff = Math.abs(AWG_SIZES[0].area_mm2 - val);
+            let safeLarger = null;
+
+            for (const item of AWG_SIZES) {
+                const diff = Math.abs(item.area_mm2 - val);
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    closest = item;
+                }
+                if (item.area_mm2 >= val * 0.96) {
+                    safeLarger = item;
+                }
+            }
+
+            resBox.innerHTML = `
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <div class="text-[10px] font-mono uppercase text-slate-400">Najbliższy rozmiar AWG</div>
+                        <div class="font-mono text-lg font-bold text-eng-600 dark:text-eng-400">${closest.label}</div>
+                        <div class="text-xs text-slate-500 font-mono">(${closest.area_mm2.toFixed(2)} mm²)</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] font-mono uppercase text-slate-400">Zalecany bezpieczny (≥ mm²)</div>
+                        <div class="font-mono text-lg font-bold text-emerald-600 dark:text-emerald-400">${safeLarger ? safeLarger.label : 'Ponad 4/0 AWG'}</div>
+                        <div class="text-xs text-slate-500 font-mono">${safeLarger ? `(${safeLarger.area_mm2.toFixed(2)} mm²)` : ''}</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] font-mono uppercase text-slate-400">Średnica drutu (pełny)</div>
+                        <div class="font-mono text-lg font-bold text-slate-800 dark:text-slate-200">⌀ ${d_mm.toFixed(2)} mm</div>
+                        <div class="text-xs text-slate-500 font-mono">${(d_mm / 25.4).toFixed(4)}"</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderAWGTable(filterQuery = '') {
+            const q = filterQuery.trim().toLowerCase();
+            const tbody = document.getElementById('awg-table-body');
+
+            const filtered = AWG_SIZES.filter(item => {
+                if (!q) return true;
+                return (
+                    item.label.toLowerCase().includes(q) ||
+                    item.area_mm2.toFixed(2).includes(q) ||
+                    item.d_mm.toFixed(2).includes(q) ||
+                    item.iecEquiv.toLowerCase().includes(q)
+                );
+            });
+
+            tbody.innerHTML = filtered.map(item => `
+                <tr onclick="calculateFromAWG('${item.label}')" class="hover:bg-eng-50/60 dark:hover:bg-slate-800/60 cursor-pointer transition-colors">
+                    <td class="py-2.5 px-4 font-bold text-amber-600 dark:text-amber-400">${item.label}</td>
+                    <td class="py-2.5 px-4 font-bold text-slate-900 dark:text-white">${item.area_mm2 < 1 ? item.area_mm2.toFixed(4) : item.area_mm2.toFixed(2)} mm²</td>
+                    <td class="py-2.5 px-4">⌀ ${item.d_mm.toFixed(3)} mm</td>
+                    <td class="py-2.5 px-4 text-slate-500 dark:text-slate-400">${item.d_in.toFixed(4)}"</td>
+                    <td class="py-2.5 px-4">${item.ohm_km < 10 ? item.ohm_km.toFixed(3) : item.ohm_km.toFixed(1)} Ω/km</td>
+                    <td class="py-2.5 px-4 text-emerald-600 dark:text-emerald-400">${item.ampBundle} A <span class="text-slate-400 text-[11px]">(wiązka)</span> / ${item.ampChassis} A</td>
+                    <td class="py-2.5 px-4 text-eng-600 dark:text-eng-400">${item.iecEquiv}</td>
+                </tr>
+            `).join('');
+        }
+
+        /**************************************************************
+         * 8. METRIC, UNC/UNF & BSP/NPT THREADS COMPENDIUM LOGIC
+         **************************************************************/
+        function setThreadFilter(type) {
+            currentThreadFilter = type;
+            document.querySelectorAll('.thread-tab-btn').forEach(btn => {
+                const isMatch = btn.getAttribute('data-thread-tab') === type;
+                btn.className = isMatch
+                    ? 'thread-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-eng-600 text-white shadow-sm'
+                    : 'thread-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700';
+            });
+            renderThreadsTable();
+        }
+
+        function quickSearchThread(term) {
+            setThreadFilter('ALL');
+            const input = document.getElementById('thread-search-input');
+            input.value = term;
+            renderThreadsTable();
+        }
+
+        function renderThreadsTable() {
+            const q = (document.getElementById('thread-search-input').value || '').trim().toLowerCase();
+            const tbody = document.getElementById('threads-table-body');
+
+            const filtered = THREADS_DATA.filter(t => {
+                if (currentThreadFilter !== 'ALL' && t.type !== currentThreadFilter) return false;
+                if (!q) return true;
+                const haystack = `${t.name} ${t.std} ${t.majorMm} ${t.pitchMm} ${t.drillMm} ${t.drillIn} ${t.hex}`.toLowerCase();
+                return haystack.includes(q);
+            });
+
+            tbody.innerHTML = filtered.map(t => {
+                const badgeColors = {
+                    'M': 'bg-eng-500/10 text-eng-600 dark:text-eng-400 border-eng-500/20',
+                    'MF': 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',
+                    'UNC': 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+                    'UNF': 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20',
+                    'BSP': 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                }[t.type] || 'bg-slate-500/10 text-slate-400';
+
+                const majorDisplay = t.majorIn 
+                    ? `${t.majorMm.toFixed(2)} mm <span class="text-slate-400">(${t.majorIn})</span>` 
+                    : `${t.majorMm.toFixed(2)} mm`;
+
+                const pitchDisplay = t.tpi 
+                    ? `${t.tpi} TPI <span class="text-slate-400">(${t.pitchMm.toFixed(3)} mm)</span>` 
+                    : `${t.pitchMm.toFixed(2)} mm`;
+
+                return `
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
+                        <td class="py-2.5 px-4 font-bold text-slate-900 dark:text-white">${t.name}</td>
+                        <td class="py-2.5 px-4">
+                            <span class="text-[10px] px-2 py-0.5 rounded border ${badgeColors}">${t.std}</span>
+                        </td>
+                        <td class="py-2.5 px-4">${majorDisplay}</td>
+                        <td class="py-2.5 px-4">${pitchDisplay}</td>
+                        <td onclick="copyText('${t.drillMm.toFixed(2)} mm')" class="py-2.5 px-4 font-bold text-emerald-600 dark:text-emerald-400 cursor-pointer hover:underline" title="Kliknij, aby skopiować wymiar wiertła">
+                            ⌀ ${t.drillMm.toFixed(2)} mm
+                        </td>
+                        <td class="py-2.5 px-4 text-slate-500 dark:text-slate-400">${t.drillIn}</td>
+                        <td class="py-2.5 px-4 text-slate-500 dark:text-slate-400">${t.hex}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function calcCustomTapDrill() {
+            const d = parseFloat(document.getElementById('custom-thread-d').value) || 0;
+            const p = parseFloat(document.getElementById('custom-thread-p').value) || 0;
+            const drill = Math.max(0, d - p);
+            document.getElementById('custom-thread-result').textContent = `⌀ ${drill.toFixed(2)} mm`;
+        }
+
+        /**************************************************************
+         * 9. LIVE GLOBAL SEARCH (UNITS, CATEGORIES, AWG, THREADS)
+         **************************************************************/
+        function handleGlobalSearch(query) {
+            const dropdown = document.getElementById('search-results-dropdown');
+            const clearBtn = document.getElementById('clear-search-btn');
+            const q = query.trim().toLowerCase();
+
+            if (!q) {
+                dropdown.classList.add('hidden');
+                clearBtn.classList.add('hidden');
+                return;
+            }
+
+            clearBtn.classList.remove('hidden');
+            const results = [];
+
+            // 1. Search Units across all categories
+            CATEGORIES.forEach(cat => {
+                if (cat.name.toLowerCase().includes(q)) {
+                    results.push({
+                        type: 'KATEGORIA',
+                        title: cat.name,
+                        subtitle: cat.desc,
+                        icon: cat.icon,
+                        action: () => { selectCategory(cat.id); closeSearchDropdown(); }
+                    });
+                }
+                if (cat.units) {
+                    cat.units.forEach(u => {
+                        const hay = `${u.symbol} ${u.name} ${u.aliases || ''}`.toLowerCase();
+                        if (hay.includes(q)) {
+                            results.push({
+                                type: cat.name.toUpperCase(),
+                                title: `${u.symbol} — ${u.name}`,
+                                subtitle: `Przelicz jednostkę w kategorii ${cat.name}`,
+                                icon: cat.icon,
+                                action: () => {
+                                    selectCategory(cat.id, u.id, cat.defaultTo === u.id ? cat.defaultFrom : cat.defaultTo);
+                                    closeSearchDropdown();
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+
+            // 2. Search AWG Wires
+            AWG_SIZES.forEach(awg => {
+                if (awg.label.toLowerCase().includes(q) || (q.includes('awg') && awg.label.toLowerCase().includes(q.replace('awg', '').trim()))) {
+                    results.push({
+                        type: 'PRZEWÓD AWG',
+                        title: `${awg.label} → ${awg.area_mm2.toFixed(2)} mm²`,
+                        subtitle: `Średnica: ⌀ ${awg.d_mm.toFixed(2)} mm (${awg.d_in.toFixed(4)}") • Odpowiednik: ${awg.iecEquiv}`,
+                        icon: 'fa-plug-circle-bolt',
+                        action: () => {
+                            selectCategory('awg');
+                            calculateFromAWG(awg.label);
+                            closeSearchDropdown();
+                        }
+                    });
+                }
+            });
+
+            // 3. Search Threads
+            THREADS_DATA.forEach(t => {
+                const hay = `${t.name} ${t.std} wiertło ${t.drillMm}`.toLowerCase();
+                if (hay.includes(q)) {
+                    results.push({
+                        type: 'GWINT / WIERTŁO',
+                        title: `${t.name} (${t.std})`,
+                        subtitle: `Zalecane wiertło pod gwint: ⌀ ${t.drillMm.toFixed(2)} mm (${t.drillIn}) • Skok: ${t.tpi ? t.tpi + ' TPI' : t.pitchMm + ' mm'}`,
+                        icon: 'fa-screwdriver-wrench',
+                        action: () => {
+                            selectCategory('threads');
+                            quickSearchThread(t.name);
+                            closeSearchDropdown();
+                        }
+                    });
+                }
+            });
+
+            if (results.length === 0) {
+                dropdown.innerHTML = `
+                    <div class="p-4 text-center text-xs text-slate-400">
+                        Brak wyników dla "<span class="font-mono font-bold text-slate-200">${query}</span>". Spróbuj np. PSI, M8, 12 AWG, Nm, cSt.
+                    </div>
+                `;
+            } else {
+                dropdown.innerHTML = results.slice(0, 15).map((r, idx) => `
+                    <div 
+                        onclick="triggerSearchResult(${idx})" 
+                        class="p-3 hover:bg-eng-50 dark:hover:bg-slate-800 cursor-pointer flex items-center justify-between gap-3 transition-colors"
+                    >
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-8 h-8 rounded-lg bg-eng-500/10 text-eng-500 flex items-center justify-center shrink-0">
+                                <i class="fa-solid ${r.icon} text-xs"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">${r.title}</div>
+                                <div class="text-[11px] text-slate-500 dark:text-slate-400 truncate">${r.subtitle}</div>
+                            </div>
+                        </div>
+                        <span class="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 shrink-0">
+                            ${r.type}
+                        </span>
+                    </div>
+                `).join('');
+                window._currentSearchResults = results.slice(0, 15);
+            }
+
+            dropdown.classList.remove('hidden');
+        }
+
+        function triggerSearchResult(index) {
+            if (window._currentSearchResults && window._currentSearchResults[index]) {
+                window._currentSearchResults[index].action();
+            }
+        }
+
+        function closeSearchDropdown() {
+            document.getElementById('search-results-dropdown').classList.add('hidden');
+        }
+
+        function clearGlobalSearch() {
+            const input = document.getElementById('global-search');
+            input.value = '';
+            handleGlobalSearch('');
+            input.focus();
+        }
+
+        /**************************************************************
+         * 10. CLIPBOARD & THEME UTILITIES
+         **************************************************************/
+        function copyText(text) {
+            if (!text || text === '—') return;
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast(text);
+            } catch (err) {
+                console.error('Copy error', err);
+            }
+            document.body.removeChild(textarea);
+        }
+
+        function copyMainResult() {
+            const val = document.getElementById('main-output-val').textContent.trim();
+            const cat = CATEGORIES.find(c => c.id === currentCategoryId);
+            const toId = document.getElementById('main-to-unit').value;
+            const unit = cat && cat.units ? cat.units.find(u => u.id === toId) : null;
+            copyText(unit ? `${val} ${unit.symbol}` : val);
+        }
+
+        function copyUnitInput(unitId, symbol) {
+            const el = document.getElementById(`grid-input-${unitId}`);
+            if (el && el.value) {
+                copyText(`${el.value} ${symbol}`);
+            }
+        }
+
+        let toastTimeout;
+        function showToast(copiedVal) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-value').textContent = copiedVal;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2200);
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const isDark = html.classList.toggle('dark');
+            const iconClass = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+            document.getElementById('theme-icon-desktop').className = iconClass;
+            document.getElementById('theme-icon-mobile').className = iconClass;
+        }
+
+        // Keyboard shortcut '/' for global search & click outside to close search dropdown
+        document.addEventListener('keydown', (e) => {
+            if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'SELECT') {
+                e.preventDefault();
+                document.getElementById('global-search').focus();
+            } else if (e.key === 'Escape') {
+                closeSearchDropdown();
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            const searchBox = document.getElementById('global-search');
+            const dropdown = document.getElementById('search-results-dropdown');
+            if (!searchBox.contains(e.target) && !dropdown.contains(e.target)) {
+                closeSearchDropdown();
+            }
+        });
+
+        // Initialize application on load
+        window.onload = function() {
+            initFractionalInchWidget();
+            initAWGView();
+            selectCategory('pressure');
+        };
+    </script>
+</body>
+</html>
