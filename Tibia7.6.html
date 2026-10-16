@@ -1,0 +1,2358 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tibia Web RPG - Kroniki Rookgaardu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --tibia-bg: #2b2b2b;
+            --tibia-panel: #3c3c3c;
+            --tibia-border-light: #6e6e6e;
+            --tibia-border-dark: #1a1a1a;
+            --tibia-slot: #222222;
+        }
+
+        body {
+            background-color: #121212;
+            color: #dcdcdc;
+            font-family: 'Inter', sans-serif;
+            user-select: none;
+            overflow: hidden;
+        }
+
+        .pixel-font {
+            font-family: 'VT323', monospace;
+        }
+
+        /* Klasyczne obramowanie w stylu Tibii 7.6 */
+        .tibia-window {
+            background-color: var(--tibia-panel);
+            border-top: 2px solid var(--tibia-border-light);
+            border-left: 2px solid var(--tibia-border-light);
+            border-right: 2px solid var(--tibia-border-dark);
+            border-bottom: 2px solid var(--tibia-border-dark);
+            box-shadow: inset 1px 1px 0px #555, inset -1px -1px 0px #111;
+        }
+
+        .tibia-header {
+            background: linear-gradient(90deg, #2a2a2a 0%, #474747 50%, #2a2a2a 100%);
+            border-bottom: 1px solid #1a1a1a;
+            font-size: 11px;
+            font-weight: 700;
+            color: #c9c9c9;
+            text-shadow: 1px 1px 0 #000;
+            padding: 2px 6px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .tibia-inset {
+            background-color: var(--tibia-slot);
+            border-top: 2px solid var(--tibia-border-dark);
+            border-left: 2px solid var(--tibia-border-dark);
+            border-right: 2px solid var(--tibia-border-light);
+            border-bottom: 2px solid var(--tibia-border-light);
+        }
+
+        .tibia-btn {
+            background-color: #484848;
+            border-top: 2px solid #777;
+            border-left: 2px solid #777;
+            border-right: 2px solid #1b1b1b;
+            border-bottom: 2px solid #1b1b1b;
+            color: #efefef;
+            font-size: 12px;
+            font-weight: 600;
+            text-shadow: 1px 1px 0 #000;
+            transition: filter 0.1s;
+            cursor: pointer;
+        }
+
+        .tibia-btn:hover {
+            filter: brightness(1.15);
+        }
+
+        .tibia-btn:active {
+            border-top: 2px solid #1b1b1b;
+            border-left: 2px solid #1b1b1b;
+            border-right: 2px solid #777;
+            border-bottom: 2px solid #777;
+            transform: translate(1px, 1px);
+        }
+
+        /* Sloty ekwipunku */
+        .eq-slot {
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .eq-slot:hover {
+            background-color: #2f2f2f;
+        }
+
+        /* Custom Scrollbar dla logów i Battle */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e1e1e;
+            border-left: 1px solid #111;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4e4e4e;
+            border-top: 2px solid #777;
+            border-left: 2px solid #777;
+            border-right: 2px solid #222;
+            border-bottom: 2px solid #222;
+        }
+
+        canvas {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col bg-[#1b1b1b] select-none overflow-hidden">
+
+    <!-- GÓRNY PASEK INFORMACYJNY -->
+    <header class="h-7 tibia-window flex items-center justify-between px-3 text-xs shrink-0 z-10">
+        <div class="flex items-center space-x-3">
+            <span class="font-bold text-amber-400 tracking-wider flex items-center gap-1">
+                ⚔️ TIBIA WEB 7.6 (PL)
+            </span>
+            <span id="zone-indicator" class="px-1.5 py-0.5 rounded bg-emerald-900/70 text-emerald-300 border border-emerald-700 text-[10px] font-semibold">
+                🛡️ Strefa Ochronna (Świątynia)
+            </span>
+            <span id="floor-indicator" class="text-stone-400 text-[11px]">
+                Poziom: Powierzchnia (0)
+            </span>
+        </div>
+        <div class="flex items-center space-x-4 text-[11px] text-stone-300">
+            <span>WSAD / Strzałki: Ruch</span>
+            <span>LPM na mapie/Battle: Atak / Interakcja</span>
+            <button id="help-btn" class="tibia-btn px-2 py-0.5 text-[10px]">📜 Pomoc / Zaklęcia</button>
+        </div>
+    </header>
+
+    <!-- GŁÓWNY OBSZAR GRY (Środek + Prawy Panel) -->
+    <div class="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
+        
+        <!-- LEWA/CENTRALNA KOLUMNA: Okno świata + Okno Czat/Logi -->
+        <div class="flex-1 flex flex-col min-w-0 min-h-0 p-1 gap-1 bg-[#222]">
+            
+            <!-- Kontener Canvasa z Mapą -->
+            <div id="canvas-container" class="flex-1 tibia-inset relative flex items-center justify-center overflow-hidden bg-[#0e0e0e]">
+                <canvas id="gameCanvas" class="cursor-crosshair shadow-2xl"></canvas>
+
+                <!-- Nakładka powiadomień na środku ekranu (jak w Tibii białe/czerwone komunikaty) -->
+                <div id="center- announcement" class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center z-20">
+                    <div id="screen-msg" class="pixel-font text-2xl md:text-3xl text-white font-bold text-center px-4 drop-shadow-[0_2px_2px_rgba(0,0,0,1)] opacity-0 transition-opacity duration-300" style="text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;">
+                    </div>
+                </div>
+
+                <!-- Mobilny D-Pad na ekrany dotykowe -->
+                <div class="lg:hidden absolute bottom-3 left-3 grid grid-cols-3 gap-1 w-28 h-28 opacity-75">
+                    <div></div>
+                    <button class="tibia-btn flex items-center justify-center text-lg" onclick="handleMoveInput(0, -1)">▲</button>
+                    <div></div>
+                    <button class="tibia-btn flex items-center justify-center text-lg" onclick="handleMoveInput(-1, 0)">◀</button>
+                    <button class="tibia-btn flex items-center justify-center text-xs" onclick="useStairsUnderPlayer()">🪜</button>
+                    <button class="tibia-btn flex items-center justify-center text-lg" onclick="handleMoveInput(1, 0)">▶</button>
+                    <div></div>
+                    <button class="tibia-btn flex items-center justify-center text-lg" onclick="handleMoveInput(0, 1)">▼</button>
+                    <div></div>
+                </div>
+            </div>
+
+            <!-- DOLNY PANEL: Okno Czatu i Logów (Default / Server Log) -->
+            <div class="h-40 md:h-44 tibia-window flex flex-col shrink-0">
+                <!-- Zakładki Czatu -->
+                <div class="flex items-center justify-between bg-[#2b2b2b] border-b border-[#1a1a1a] px-1 pt-1">
+                    <div class="flex space-x-1">
+                        <button id="tab-default" onclick="switchChatTab('default')" class="px-3 py-0.5 text-xs font-bold bg-[#3c3c3c] text-amber-300 border-t border-l border-[#6e6e6e] border-r border-[#1a1a1a]">
+                            Default (Czat & Logi)
+                        </button>
+                        <button id="tab-loot" onclick="switchChatTab('loot')" class="px-3 py-0.5 text-xs font-semibold bg-[#252525] text-stone-400 hover:text-white border-t border-l border-[#444]">
+                            Server Log / Loot
+                        </button>
+                    </div>
+                    <div class="text-[11px] text-stone-400 pr-2 hidden sm:block">
+                        Wpisz <span class="text-amber-300 font-mono">exura</span>, <span class="text-amber-300 font-mono">exori</span>, <span class="text-amber-300 font-mono">utani hur</span> lub <span class="text-emerald-300 font-mono">hi / heal / trade</span> przy NPC
+                    </div>
+                </div>
+
+                <!-- Treść wiadomości -->
+                <div id="chat-messages" class="flex-1 tibia-inset m-1 p-2 overflow-y-auto font-mono text-xs space-y-1 leading-relaxed select-text">
+                    <!-- Wiadomości generowane dynamicznie -->
+                </div>
+
+                <!-- Pole wprowadzania tekstu / zaklęć -->
+                <form id="chat-form" class="flex items-center px-1 pb-1 gap-1">
+                    <span class="text-xs font-bold text-amber-300 px-1.5">GramJ:</span>
+                    <input 
+                        type="text" 
+                        id="chat-input" 
+                        placeholder="Wpisz zaklęcie (exura, exori) lub hi / gm / miod..." 
+                        autocomplete="off"
+                        class="flex-1 tibia-inset px-2 py-1 text-xs text-amber-200 focus:outline-none focus:border-amber-500 font-mono"
+                    />
+                    <button type="submit" class="tibia-btn px-3 py-1 text-xs">Wyślij</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- PRAWA KOLUMNA: Klasyczny Panel Boczny Tibii -->
+        <aside class="w-full lg:w-72 tibia-window flex flex-col p-1 gap-1.5 shrink-0 overflow-y-auto max-h-[42vh] lg:max-h-none">
+            
+            <!-- 1. STATUS POSTACI (HP, MP, LVL, EXP, ZŁOTO) -->
+            <div class="tibia-window p-2 flex flex-col gap-1.5">
+                <div class="flex items-center justify-between border-b border-stone-600 pb-1">
+                    <div>
+                        <div class="text-xs font-bold text-amber-400 leading-tight" id="ui-player-name">GramJ</div>
+                        <div class="text-[10px] text-stone-400">Królewski Rycerz (Elite Knight)</div>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs font-bold text-white bg-stone-800 px-1.5 py-0.5 border border-stone-600 rounded">
+                            Poziom <span id="ui-level" class="text-amber-400">1</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Pasek Zdrowia (HP) -->
+                <div>
+                    <div class="flex justify-between text-[11px] font-bold mb-0.5">
+                        <span class="text-red-400">Hit Points (HP)</span>
+                        <span id="ui-hp-text" class="text-white font-mono">150 / 150</span>
+                    </div>
+                    <div class="w-full h-3.5 tibia-inset p-0.5">
+                        <div id="ui-hp-bar" class="h-full bg-gradient-to-r from-red-700 via-red-500 to-red-400 transition-all duration-150" style="width: 100%;"></div>
+                    </div>
+                </div>
+
+                <!-- Pasek Many (MP) -->
+                <div>
+                    <div class="flex justify-between text-[11px] font-bold mb-0.5">
+                        <span class="text-sky-400">Mana Points (MP)</span>
+                        <span id="ui-mp-text" class="text-white font-mono">60 / 60</span>
+                    </div>
+                    <div class="w-full h-3.5 tibia-inset p-0.5">
+                        <div id="ui-mp-bar" class="h-full bg-gradient-to-r from-blue-800 via-blue-500 to-sky-400 transition-all duration-150" style="width: 100%;"></div>
+                    </div>
+                </div>
+
+                <!-- Pasek Doświadczenia (EXP) i Statystyki -->
+                <div>
+                    <div class="flex justify-between text-[10px] text-stone-300 mb-0.5">
+                        <span>Doświadczenie (EXP):</span>
+                        <span id="ui-exp-text" class="font-mono text-amber-300">0 / 100</span>
+                    </div>
+                    <div class="w-full h-2 tibia-inset">
+                        <div id="ui-exp-bar" class="h-full bg-amber-500 transition-all duration-200" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-1 pt-1 text-[11px] text-center">
+                    <div class="tibia-inset py-0.5 px-1">
+                        <span class="text-stone-400 block text-[9px]">ATAK</span>
+                        <span id="ui-atk" class="font-bold text-red-300">12</span>
+                    </div>
+                    <div class="tibia-inset py-0.5 px-1">
+                        <span class="text-stone-400 block text-[9px]">OBRONA</span>
+                        <span id="ui-def" class="font-bold text-sky-300">8</span>
+                    </div>
+                    <div class="tibia-inset py-0.5 px-1">
+                        <span class="text-stone-400 block text-[9px]">ZŁOTO (GP)</span>
+                        <span id="ui-gold" class="font-bold text-yellow-400">25</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. EKWIPUNEK (Paperdoll jak w Tibii) + SZYBKIE AKCJE -->
+            <div class="tibia-window flex flex-col">
+                <div class="tibia-header flex justify-between items-center">
+                    <span>Ekwipunek (Equipment)</span>
+                    <button onclick="openShopModal()" class="text-[10px] text-amber-300 hover:underline">🛒 Sklep Xodet</button>
+                </div>
+                <div class="p-2 flex items-center justify-between gap-2">
+                    <!-- Układ krzyżowy slotów ekwipunku -->
+                    <div class="grid grid-cols-3 gap-1 bg-[#2b2b2b] p-1.5 border border-[#1a1a1a]">
+                        <div class="eq-slot tibia-inset" id="slot-amulet" title="Naszyjnik">
+                            <span class="text-xs opacity-30">📿</span>
+                        </div>
+                        <div class="eq-slot tibia-inset" id="slot-helmet" title="Hełm"></div>
+                        <div class="eq-slot tibia-inset" id="slot-backpack" title="Plecak (20 miejsc)">
+                            <span class="text-lg">🎒</span>
+                        </div>
+
+                        <div class="eq-slot tibia-inset" id="slot-weapon" title="Prawa ręka (Broń)"></div>
+                        <div class="eq-slot tibia-inset" id="slot-armor" title="Zbroja"></div>
+                        <div class="eq-slot tibia-inset" id="slot-shield" title="Lewa ręka (Tarcza)"></div>
+
+                        <div class="eq-slot tibia-inset" id="slot-ring" title="Pierścień">
+                            <span class="text-xs opacity-30">💍</span>
+                        </div>
+                        <div class="eq-slot tibia-inset" id="slot-legs" title="Nogawice">
+                            <span class="text-sm opacity-60">👖</span>
+                        </div>
+                        <div class="eq-slot tibia-inset" id="slot-boots" title="Buty"></div>
+                    </div>
+
+                    <!-- Przyciski Zaklęć i Akcji (Hotkeys) -->
+                    <div class="flex-1 flex flex-col gap-1">
+                        <button onclick="castSpell('exura')" class="tibia-btn py-1 px-2 text-left flex justify-between items-center" title="Leczy ~35 HP (Koszt: 20 MP)">
+                            <span>✨ Exura</span>
+                            <span class="text-[10px] text-sky-300">20 MP</span>
+                        </button>
+                        <button onclick="castSpell('exori')" class="tibia-btn py-1 px-2 text-left flex justify-between items-center" title="Uderzenie falą wokół postaci (Koszt: 35 MP)">
+                            <span>💥 Exori</span>
+                            <span class="text-[10px] text-sky-300">35 MP</span>
+                        </button>
+                        <button onclick="castSpell('utani hur')" class="tibia-btn py-1 px-2 text-left flex justify-between items-center" title="Przyspieszenie ruchu na 20s (Koszt: 25 MP)">
+                            <span>⚡ Utani Hur</span>
+                            <span class="text-[10px] text-sky-300">25 MP</span>
+                        </button>
+                        <button onclick="useQuickPotion('hp')" class="tibia-btn py-1 px-2 text-left flex justify-between items-center text-red-200" title="Użyj Mikstury Życia z plecaka">
+                            <span>🧪 Health Potion</span>
+                            <span id="hotkey-hp-count" class="text-[10px] bg-black/40 px-1 rounded">x3</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. PLECAK (BACKPACK INVENTORY) -->
+            <div class="tibia-window flex flex-col">
+                <div class="tibia-header flex justify-between items-center">
+                    <span>🎒 Brown Backpack (Kliknij aby użyć/założyć)</span>
+                </div>
+                <div id="backpack-grid" class="p-1.5 grid grid-cols-5 gap-1 bg-[#2a2a2a]">
+                    <!-- 10 slotów plecaka generowanych w JS -->
+                </div>
+            </div>
+
+            <!-- 4. LISTA BATTLE (Potwory w zasięgu wzroku) -->
+            <div class="tibia-window flex-1 flex flex-col min-h-[140px]">
+                <div class="tibia-header flex justify-between items-center">
+                    <span>⚔️ Battle List (Zasięg wzroku)</span>
+                    <span id="battle-count" class="text-[10px] text-stone-400">0 celów</span>
+                </div>
+                <div id="battle-list" class="flex-1 tibia-inset m-1 p-1 overflow-y-auto space-y-1">
+                    <!-- Dynamiczna lista potworów -->
+                </div>
+            </div>
+
+        </aside>
+    </div>
+
+    <!-- MODAL SKLEPU / NPC HANDLARZA -->
+    <div id="shop-modal" class="fixed inset-0 bg-black/75 hidden items-center justify-center z-50 p-4">
+        <div class="tibia-window w-full max-w-md flex flex-col">
+            <div class="tibia-header flex justify-between items-center py-1.5 px-3">
+                <span>🧙‍♂️ Kupiec Xodet & Uzdrowiciel Cipfried (Handel)</span>
+                <button onclick="closeShopModal()" class="text-red-400 font-bold hover:text-red-200">✕</button>
+            </div>
+            <div class="p-3 space-y-3 text-xs">
+                <div class="flex justify-between items-center tibia-inset p-2 bg-[#1c1c1c]">
+                    <span>Twoje złoto w sakwie:</span>
+                    <span class="font-bold text-yellow-400 text-sm"><span id="shop-gold-display">0</span> gp</span>
+                </div>
+
+                <div class="space-y-1.5 max-h-72 overflow-y-auto pr-1" id="shop-items-list">
+                    <!-- Lista towarów generowana w JS -->
+                </div>
+
+                <div class="flex justify-between items-center pt-2 border-t border-stone-600">
+                    <button onclick="npcHealPlayer()" class="tibia-btn px-3 py-1.5 text-emerald-300">
+                        💚 Poproś Mnicha o darmowe uleczenie
+                    </button>
+                    <button onclick="closeShopModal()" class="tibia-btn px-4 py-1.5">Zamknij</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL POMOCY / KSIĘGI ZAKLĘĆ -->
+    <div id="help-modal" class="fixed inset-0 bg-black/75 hidden items-center justify-center z-50 p-4">
+        <div class="tibia-window w-full max-w-lg flex flex-col">
+            <div class="tibia-header flex justify-between items-center py-1.5 px-3">
+                <span>📜 Księga Przygód i Zaklęć (Tibia Web RPG)</span>
+                <button onclick="closeHelpModal()" class="text-red-400 font-bold hover:text-red-200">✕</button>
+            </div>
+            <div class="p-4 space-y-3 text-xs leading-relaxed text-stone-200 max-h-[80vh] overflow-y-auto">
+                <p class="text-amber-300 font-semibold">Witaj w świecie inspirowanym klasyczną Tibią, bohaterze <span class="text-white font-bold">GramJ</span>!</p>
+                <ul class="list-disc pl-5 space-y-1">
+                    <li><b>Poruszanie się:</b> Klawisze <b>WASD</b> lub <b>Strzałki</b>. Wejście na żółte schody lub ciemną dziurę w ziemi przenosi Cię pomiędzy powierzchnią a podziemiami (Dungeon).</li>
+                    <li><b>Nowe Potwory:</b> Uważaj na brodate krasnoludy <b>Miodus</b>, pryszczatego potwora <b>Koryt</b> (pluje toksyczną ropą!) oraz wielkiego, grubego <b>Kowala</b> z młotem kowalskim!</li>
+                    <li><b>Game Master:</b> W północno-wschodnim rogu mapy (prawy górny róg powierzchni) na magicznym dywanie stoi <b>GM Obsessive</b> – kliknij na niego lub napisz do niego na czacie!</li>
+                    <li><b>Walka:</b> Kliknij na potwora na mapie lub na liście <b>Battle</b> po prawej stronie. Pojawi się wokół niego <span class="text-red-400 font-bold">czerwona ramka</span>. Twoja postać będzie automatycznie atakować cel.</li>
+                </ul>
+                <div class="tibia-inset p-2.5 space-y-1.5">
+                    <div class="font-bold text-sky-300 border-b border-stone-700 pb-1">Słowa Magiczne (Wpisz na czacie lub użyj przycisków):</div>
+                    <div><code class="text-amber-300 font-bold">exura</code> (20 MP) – Leczenie lekkich ran (+30~45 HP).</div>
+                    <div><code class="text-amber-300 font-bold">exura gran</code> (40 MP) – Intensywne leczenie (+75~100 HP).</div>
+                    <div><code class="text-amber-300 font-bold">exori</code> (35 MP) – Berserk! Zadaje obrażenia wszystkim potworom na sąsiednich kratkach wokół Ciebie.</div>
+                    <div><code class="text-amber-300 font-bold">exori flam</code> (25 MP) – Ognisty pocisk w zaznaczony cel (zasięg 4 kratek).</div>
+                    <div><code class="text-amber-300 font-bold">utani hur</code> (25 MP) – Przyspiesza ruch postaci na 25 sekund.</div>
+                </div>
+                <div class="text-right pt-2">
+                    <button onclick="closeHelpModal()" class="tibia-btn px-5 py-1.5">Rozumiem, ruszam do walki!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /***********************************************************************
+         * 1. KONFIGURACJA ŚWIATA, PRZEDMIOTÓW I POTWORÓW
+         ***********************************************************************/
+        const TILE_SIZE = 44; // Rozmiar kafelka w pikselach
+        const VIEWPORT_TILES_X = 15; // Liczba kafelków widocznych w poziomie (jak w Tibii)
+        const VIEWPORT_TILES_Y = 11; // Liczba kafelków widocznych w pionie
+        const MAP_WIDTH = 34;
+        const MAP_HEIGHT = 26;
+
+        // Typy kafelków
+        const TILES = {
+            GRASS: 0,
+            TEMPLE_FLOOR: 1,
+            WALL: 2,
+            WATER: 3,
+            DIRT: 4,
+            STAIRS_DOWN: 5,
+            STAIRS_UP: 6,
+            CAVE_FLOOR: 7,
+            CAVE_WALL: 8,
+            LAVA: 9,
+            TREE: 10,
+            PATH: 11
+        };
+
+        // Baza przedmiotów (Ekwipunek i przedmioty użytkowe)
+        const ITEMS_DB = {
+            // Bronie
+            'club': { id: 'club', name: 'Ćwiczebna Maczuga (Club)', slot: 'weapon', atk: 7, def: 0, icon: '🏏', price: 15, desc: 'Atak: +7' },
+            'rapier': { id: 'rapier', name: 'Krótki Rapier (Rapier)', slot: 'weapon', atk: 11, def: 1, icon: '🗡️', price: 45, desc: 'Atak: +11, Obr: +1' },
+            'sabre': { id: 'sabre', name: 'Szabla Orków (Sabre)', slot: 'weapon', atk: 15, def: 2, icon: '⚔️', price: 90, desc: 'Atak: +15, Obr: +2' },
+            'dwarven_axe': { id: 'dwarven_axe', name: 'Topór Miodusa (Dwarven Axe)', slot: 'weapon', atk: 20, def: 3, icon: '🪓', price: 150, desc: 'Atak: +20, Obr: +3' },
+            'fire_sword': { id: 'fire_sword', name: 'Płomienny Miecz (Fire Sword)', slot: 'weapon', atk: 26, def: 4, icon: '🔥', price: 280, desc: 'Atak: +26, Obr: +4' },
+            'kowal_hammer': { id: 'kowal_hammer', name: 'Wielki Młot Kowala (War Hammer)', slot: 'weapon', atk: 34, def: 5, icon: '🔨', price: 420, desc: 'Atak: +34, Obr: +5' },
+            
+            // Tarcze
+            'wooden_shield': { id: 'wooden_shield', name: 'Drewniana Tarcza', slot: 'shield', atk: 0, def: 5, icon: '🛡️', price: 20, desc: 'Obrona: +5' },
+            'dwarven_shield': { id: 'dwarven_shield', name: 'Krasnoludzka Tarcza Miodusa', slot: 'shield', atk: 0, def: 9, icon: '🪙', price: 75, desc: 'Obrona: +9' },
+            'plate_shield': { id: 'plate_shield', name: 'Stalowa Tarcza (Plate Shield)', slot: 'shield', atk: 0, def: 11, icon: '🔰', price: 110, desc: 'Obrona: +11' },
+            'dragon_shield': { id: 'dragon_shield', name: 'Smocza Tarcza (Dragon Shield)', slot: 'shield', atk: 2, def: 18, icon: '🐉', price: 320, desc: 'Obrona: +18, Atak: +2' },
+
+            // Zbroje
+            'jacket': { id: 'jacket', name: 'Skórzany Kubrak (Jacket)', slot: 'armor', atk: 0, def: 3, icon: '🧥', price: 15, desc: 'Obrona: +3' },
+            'chain_armor': { id: 'chain_armor', name: 'Kolczuga (Chain Armor)', slot: 'armor', atk: 0, def: 8, icon: '⛓️', price: 85, desc: 'Obrona: +8' },
+            'knight_armor': { id: 'knight_armor', name: 'Zbroja Rycerska (Knight Armor)', slot: 'armor', atk: 0, def: 15, icon: '🥋', price: 240, desc: 'Obrona: +15' },
+            'kowal_apron': { id: 'kowal_apron', name: 'Ciężki Pancerz Kowala', slot: 'armor', atk: 2, def: 21, icon: '🦺', price: 380, desc: 'Obrona: +21, Atak: +2' },
+
+            // Hełmy
+            'leather_helmet': { id: 'leather_helmet', name: 'Skórzany Hełm', slot: 'helmet', atk: 0, def: 2, icon: '🪖', price: 12, desc: 'Obrona: +2' },
+            'steel_helmet': { id: 'steel_helmet', name: 'Stalowy Hełm', slot: 'helmet', atk: 0, def: 6, icon: '👑', price: 75, desc: 'Obrona: +6' },
+
+            // Buty
+            'leather_boots': { id: 'leather_boots', name: 'Skórzane Buty', slot: 'boots', atk: 0, def: 2, speed: 1, icon: '🥾', price: 20, desc: 'Obrona: +2' },
+            'boots_of_haste': { id: 'boots_of_haste', name: 'Buty Szybkości (BoH)', slot: 'boots', atk: 0, def: 4, speed: 3, icon: '👟', price: 220, desc: 'Obrona: +4, Szybki chód!' },
+
+            // Mikstury i jedzenie
+            'hp_potion': { id: 'hp_potion', name: 'Health Potion', type: 'consumable', effect: 'hp', amount: 65, icon: '🧪', price: 20, desc: 'Odnawia +65 HP' },
+            'mp_potion': { id: 'mp_potion', name: 'Mana Potion', type: 'consumable', effect: 'mp', amount: 55, icon: '⚗️', price: 20, desc: 'Odnawia +55 MP' },
+            'meat': { id: 'meat', name: 'Pieczone Mięso (Meat)', type: 'consumable', effect: 'food', amount: 30, icon: '🍖', price: 8, desc: 'Odnawia +30 HP i +15 MP' },
+            'honey_mead': { id: 'honey_mead', name: 'Złocisty Miód Miodusa', type: 'consumable', effect: 'food', amount: 75, icon: '🍯', price: 25, desc: 'Odnawia +75 HP i +35 MP' }
+        };
+
+        // Baza potworów
+        const MONSTER_TYPES = {
+            'rat': {
+                name: 'Rat',
+                plName: 'Szczur (Rat)',
+                maxHp: 25,
+                atkMin: 2,
+                atkMax: 6,
+                exp: 20,
+                speed: 950,
+                color: '#9c8b75',
+                goldMin: 2,
+                goldMax: 7,
+                quotes: ['Meep!', 'Squeak!'],
+                drops: [
+                    { id: 'meat', chance: 0.45 },
+                    { id: 'rapier', chance: 0.12 }
+                ]
+            },
+            'miodus': {
+                name: 'Miodus',
+                plName: 'Miodus (Krasnolud)',
+                maxHp: 90,
+                atkMin: 8,
+                atkMax: 18,
+                exp: 65,
+                speed: 820,
+                color: '#d97706',
+                goldMin: 10,
+                goldMax: 28,
+                quotes: ['Gdzie mój miód?!', 'Za brodę przodków!', 'Oddawaj baryłkę, GramJ!'],
+                drops: [
+                    { id: 'honey_mead', chance: 0.55 },
+                    { id: 'dwarven_shield', chance: 0.22 },
+                    { id: 'dwarven_axe', chance: 0.15 }
+                ]
+            },
+            'koryt': {
+                name: 'Koryt',
+                plName: 'Koryt (Pryszczaty)',
+                maxHp: 135,
+                atkMin: 12,
+                atkMax: 25,
+                exp: 110,
+                speed: 800,
+                color: '#65a30d',
+                rangedSlime: true,
+                goldMin: 15,
+                goldMax: 38,
+                quotes: ['Zaraz mi pęknie pryszcz!', 'Nie dotykaj mojej wysypki!', 'Pryszczata furia!'],
+                drops: [
+                    { id: 'hp_potion', chance: 0.45 },
+                    { id: 'mp_potion', chance: 0.40 },
+                    { id: 'chain_armor', chance: 0.18 }
+                ]
+            },
+            'kowal': {
+                name: 'Kowal',
+                plName: 'Kowal (Gruby)',
+                maxHp: 290,
+                atkMin: 20,
+                atkMax: 40,
+                exp: 260,
+                speed: 920,
+                color: '#475569',
+                goldMin: 35,
+                goldMax: 90,
+                quotes: ['Zaraz cię przekuję na kowadle!', 'Masa to potęga!', 'Uderzenie młota!'],
+                drops: [
+                    { id: 'meat', chance: 0.80 },
+                    { id: 'kowal_hammer', chance: 0.22 },
+                    { id: 'kowal_apron', chance: 0.20 },
+                    { id: 'knight_armor', chance: 0.25 }
+                ]
+            },
+            'troll': {
+                name: 'Troll',
+                plName: 'Leśny Troll',
+                maxHp: 55,
+                atkMin: 5,
+                atkMax: 12,
+                exp: 40,
+                speed: 850,
+                color: '#854d27',
+                goldMin: 5,
+                goldMax: 16,
+                quotes: ['Uga buga!', 'Dawaj złoto!'],
+                drops: [
+                    { id: 'meat', chance: 0.4 },
+                    { id: 'hp_potion', chance: 0.25 },
+                    { id: 'steel_helmet', chance: 0.12 }
+                ]
+            },
+            'orc': {
+                name: 'Orc Warrior',
+                plName: 'Ork Wojownik',
+                maxHp: 115,
+                atkMin: 10,
+                atkMax: 22,
+                exp: 85,
+                speed: 780,
+                color: '#3f8a36',
+                goldMin: 12,
+                goldMax: 32,
+                quotes: ['Alkram!', 'Grrrr!'],
+                drops: [
+                    { id: 'sabre', chance: 0.20 },
+                    { id: 'chain_armor', chance: 0.15 },
+                    { id: 'plate_shield', chance: 0.14 },
+                    { id: 'hp_potion', chance: 0.35 }
+                ]
+            },
+            'skeleton': {
+                name: 'Demon Skeleton',
+                plName: 'Kościej (Skeleton)',
+                maxHp: 170,
+                atkMin: 15,
+                atkMax: 30,
+                exp: 145,
+                speed: 750,
+                color: '#d4d4d4',
+                goldMin: 20,
+                goldMax: 50,
+                quotes: ['Śmierć żywym...'],
+                drops: [
+                    { id: 'knight_armor', chance: 0.14 },
+                    { id: 'mp_potion', chance: 0.4 },
+                    { id: 'hp_potion', chance: 0.4 }
+                ]
+            },
+            'dragon': {
+                name: 'Dragon',
+                plName: 'Smok (Dragon)',
+                maxHp: 420,
+                atkMin: 26,
+                atkMax: 52,
+                exp: 450,
+                speed: 700,
+                color: '#c92a2a',
+                rangedFire: true,
+                goldMin: 60,
+                goldMax: 150,
+                quotes: ['FCHHHHH!', 'GROOAAAR!'],
+                drops: [
+                    { id: 'fire_sword', chance: 0.28 },
+                    { id: 'dragon_shield', chance: 0.28 },
+                    { id: 'boots_of_haste', chance: 0.22 },
+                    { id: 'hp_potion', chance: 0.7 }
+                ]
+            }
+        };
+
+        /***********************************************************************
+         * 2. STAN GRY (GRACZ, MAPY, POTWORY, EFEKTY)
+         ***********************************************************************/
+        const player = {
+            name: 'GramJ',
+            x: 16,
+            y: 12,
+            drawX: 16,
+            drawY: 12,
+            floor: 0, // 0 = Powierzchnia, 1 = Podziemia (Dungeon)
+            dir: 'down',
+            level: 1,
+            exp: 0,
+            nextExp: 100,
+            hp: 150,
+            maxHp: 150,
+            mp: 60,
+            maxMp: 60,
+            baseAtk: 9,
+            baseDef: 5,
+            gold: 45,
+            targetId: null,
+            lastMoveTime: 0,
+            moveCooldown: 210, // ms na ruch kafelkowy
+            hasteUntil: 0,
+            lastAttackTime: 0,
+            gmGiftClaimed: false,
+            equipment: {
+                helmet: ITEMS_DB['leather_helmet'],
+                armor: ITEMS_DB['jacket'],
+                weapon: ITEMS_DB['club'],
+                shield: ITEMS_DB['wooden_shield'],
+                boots: ITEMS_DB['leather_boots']
+            },
+            backpack: [
+                { id: 'hp_potion', count: 3 },
+                { id: 'mp_potion', count: 2 },
+                { id: 'honey_mead', count: 2 },
+                { id: 'rapier', count: 1 }
+            ]
+        };
+
+        const npcs = [
+            {
+                id: 'cipfried',
+                name: 'Mnich Cipfried',
+                role: 'Uzdrowiciel Świątynny',
+                x: 15,
+                y: 11,
+                floor: 0,
+                color: '#c28d4e',
+                dialog: 'Niech bogowie Cię błogosławią, GramJ! Kliknij na mnie, aby w pełni uleczyć rany.'
+            },
+            {
+                id: 'xodet',
+                name: 'Kupiec Xodet',
+                role: 'Handlarz Ekwipunkiem i Miksturami',
+                x: 18,
+                y: 11,
+                floor: 0,
+                color: '#4e7ac2',
+                dialog: 'Witaj GramJ! Kliknij na mnie, aby otworzyć sklep z uzbrojeniem i miksturami.'
+            },
+            {
+                id: 'gm_obsessive',
+                name: 'GM Obsessive',
+                role: 'Game Master (Administrator Świata)',
+                x: 30,
+                y: 3,
+                floor: 0,
+                isGM: true,
+                color: '#1d4ed8',
+                dialog: 'Witaj GramJ! Pilnuję porządku z rogu mapy. Żadnych botów na Miodusach!'
+            }
+        ];
+
+        // Dwie warstwy mapy: 0 (Powierzchnia) i 1 (Podziemia)
+        const maps = [[], []];
+        const protectionZones = [[], []];
+        let monsters = [];
+        let corpses = []; // Ciała potworów lub łup na ziemi
+        let floatingTexts = []; // Pływające liczby obrażeń / leczenia / mówienia
+        let visualEffects = []; // Animacje trafień, krwi, ognia, magii
+        let currentChatTab = 'default';
+
+        /***********************************************************************
+         * 3. GENEROWANIE ŚWIATA (POWIERZCHNIA + LOCHY)
+         ***********************************************************************/
+        function initMaps() {
+            for (let f = 0; f < 2; f++) {
+                maps[f] = [];
+                protectionZones[f] = [];
+                for (let y = 0; y < MAP_HEIGHT; y++) {
+                    maps[f][y] = [];
+                    protectionZones[f][y] = [];
+                    for (let x = 0; x < MAP_WIDTH; x++) {
+                        protectionZones[f][y][x] = false;
+                        if (f === 0) {
+                            // Otoczenie wodą na granicach mapy powierzchni
+                            if (x <= 1 || y <= 1 || x >= MAP_WIDTH - 2 || y >= MAP_HEIGHT - 2) {
+                                maps[0][y][x] = TILES.WATER;
+                            } else {
+                                maps[0][y][x] = TILES.GRASS;
+                            }
+                        } else {
+                            // Podziemia otoczone skałą
+                            if (x <= 1 || y <= 1 || x >= MAP_WIDTH - 2 || y >= MAP_HEIGHT - 2) {
+                                maps[1][y][x] = TILES.CAVE_WALL;
+                            } else {
+                                maps[1][y][x] = TILES.CAVE_FLOOR;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // --- BUDOWANIE POWIERZCHNI (POZIOM 0) ---
+            // Świątynia na środku (x: 13..20, y: 9..15)
+            for (let y = 9; y <= 15; y++) {
+                for (let x = 13; x <= 20; x++) {
+                    const isBorder = (y === 9 || y === 15 || x === 13 || x === 20);
+                    const isDoor = (y === 15 && (x === 16 || x === 17)) || (x === 20 && y === 12) || (x === 13 && y === 12);
+                    if (isBorder && !isDoor) {
+                        maps[0][y][x] = TILES.WALL;
+                    } else {
+                        maps[0][y][x] = TILES.TEMPLE_FLOOR;
+                        protectionZones[0][y][x] = true;
+                    }
+                }
+            }
+
+            // Brukowane ścieżki ze świątyni
+            for (let x = 5; x <= 28; x++) {
+                if (maps[0][12][x] === TILES.GRASS) maps[0][12][x] = TILES.PATH;
+            }
+            for (let y = 15; y <= 21; y++) {
+                maps[0][y][16] = TILES.PATH;
+                maps[0][y][17] = TILES.PATH;
+            }
+
+            // Zejście do kanałów ze szczurami (Blisko świątyni na południu)
+            maps[0][19][14] = TILES.STAIRS_DOWN;
+            // Główne zejście do Głębokich Podziemi (Na wschodzie)
+            maps[0][12][28] = TILES.STAIRS_DOWN;
+
+            // Drzewa i skały w lesie na powierzchni
+            const treeCoords = [
+                [5,4],[6,4],[8,5],[10,4],[23,4],[25,5],[4,8],[7,8],[24,7],
+                [5,16],[8,18],[10,21],[22,17],[25,19],[28,17],[6,22],[26,22],[12,6],[21,6]
+            ];
+            treeCoords.forEach(([tx, ty]) => {
+                if (maps[0][ty] && maps[0][ty][tx] === TILES.GRASS) {
+                    maps[0][ty][tx] = TILES.TREE;
+                }
+            });
+
+            // Specjalny Piedestał Game Mastera "Obsessive" w północno-wschodnim rogu mapy (x: 28..31, y: 2..5)
+            for (let y = 2; y <= 5; y++) {
+                for (let x = 28; x <= 31; x++) {
+                    maps[0][y][x] = TILES.TEMPLE_FLOOR;
+                    protectionZones[0][y][x] = true;
+                }
+            }
+            // Ścieżka prowadząca do rogu GM Obsessive
+            for (let y = 5; y <= 12; y++) {
+                maps[0][y][29] = TILES.PATH;
+            }
+
+            // --- BUDOWANIE PODZIEMI (POZIOM 1) ---
+            // Drabiny powrotne na powierzchnię
+            maps[1][19][14] = TILES.STAIRS_UP;
+            maps[1][12][28] = TILES.STAIRS_UP;
+
+            // Ściany jaskini i jeziora lawy w komnacie Smoka (zachodnia część lochów)
+            for (let y = 4; y < 22; y++) {
+                if (y !== 11 && y !== 12 && y !== 13) {
+                    maps[1][y][11] = TILES.CAVE_WALL;
+                    maps[1][y][21] = TILES.CAVE_WALL;
+                }
+            }
+            // Lawa w leżu smoka (lewa strona podziemi)
+            const lavaCoords = [[4,5],[5,5],[4,6],[8,4],[4,18],[5,19],[6,19],[8,20]];
+            lavaCoords.forEach(([lx, ly]) => {
+                maps[1][ly][lx] = TILES.LAVA;
+            });
+        }
+
+        // Definicja punktów odradzania potworów (Spawny)
+        const SPAWN_POINTS = [
+            // Powierzchnia: Szczury przy ścieżce południowej
+            { type: 'rat', floor: 0, x: 13, y: 18 },
+            { type: 'rat', floor: 0, x: 19, y: 18 },
+            // Powierzchnia: Krasnoludy "Miodus" (wokół drogi i wzgórz)
+            { type: 'miodus', floor: 0, x: 10, y: 11 },
+            { type: 'miodus', floor: 0, x: 10, y: 15 },
+            { type: 'miodus', floor: 0, x: 16, y: 6 },
+            { type: 'miodus', floor: 0, x: 22, y: 9 },
+            // Powierzchnia: Pryszczaty potwór "Koryt"
+            { type: 'koryt', floor: 0, x: 7, y: 19 },
+            { type: 'koryt', floor: 0, x: 21, y: 19 },
+            { type: 'koryt', floor: 0, x: 25, y: 13 },
+            // Powierzchnia: Gruby potwór "Kowal" (strzeże wschodniego zejścia do podziemi i północnego zachodu)
+            { type: 'kowal', floor: 0, x: 27, y: 15 },
+            { type: 'kowal', floor: 0, x: 6, y: 6 },
+            // Powierzchnia: Leśne Trolle i Orki
+            { type: 'troll', floor: 0, x: 5, y: 12 },
+            { type: 'orc', floor: 0, x: 24, y: 21 },
+
+            // Podziemia (Poziom 1): Krasnoludy "Miodus", "Koryt" i "Kowal" w kopalniach
+            { type: 'miodus', floor: 1, x: 14, y: 17 },
+            { type: 'miodus', floor: 1, x: 24, y: 10 },
+            { type: 'koryt', floor: 1, x: 25, y: 16 },
+            { type: 'kowal', floor: 1, x: 17, y: 12 },
+            // Podziemia: Kościeje (Demon Skeletons) w środkowej krypcie
+            { type: 'skeleton', floor: 1, x: 16, y: 7 },
+            { type: 'skeleton', floor: 1, x: 18, y: 16 },
+            // Podziemia: Komnata Smoka na zachodzie
+            { type: 'dragon', floor: 1, x: 6, y: 10 },
+            { type: 'dragon', floor: 1, x: 7, y: 15 }
+        ];
+
+        let nextMonsterUid = 1;
+
+        function spawnAllMonsters() {
+            SPAWN_POINTS.forEach((sp, idx) => {
+                spawnMonsterFromPoint(sp, idx);
+            });
+        }
+
+        function spawnMonsterFromPoint(sp, spawnIndex) {
+            const tpl = MONSTER_TYPES[sp.type];
+            monsters.push({
+                uid: nextMonsterUid++,
+                spawnIndex: spawnIndex,
+                type: sp.type,
+                name: tpl.name,
+                plName: tpl.plName,
+                x: sp.x,
+                y: sp.y,
+                drawX: sp.x,
+                drawY: sp.y,
+                floor: sp.floor,
+                hp: tpl.maxHp,
+                maxHp: tpl.maxHp,
+                atkMin: tpl.atkMin,
+                atkMax: tpl.atkMax,
+                exp: tpl.exp,
+                speed: tpl.speed,
+                color: tpl.color,
+                rangedFire: tpl.rangedFire || false,
+                rangedSlime: tpl.rangedSlime || false,
+                quotes: tpl.quotes || [],
+                lastMove: performance.now() + Math.random() * 500,
+                lastAtk: performance.now()
+            });
+        }
+
+        /***********************************************************************
+         * 4. LOGIKA STATYSTYK, RUCHU I WALKI
+         ***********************************************************************/
+        function getPlayerTotalAtk() {
+            let bonus = 0;
+            Object.values(player.equipment).forEach(item => {
+                if (item && item.atk) bonus += item.atk;
+            });
+            return player.baseAtk + bonus + Math.floor(player.level * 1.5);
+        }
+
+        function getPlayerTotalDef() {
+            let bonus = 0;
+            Object.values(player.equipment).forEach(item => {
+                if (item && item.def) bonus += item.def;
+            });
+            return player.baseDef + bonus + player.level;
+        }
+
+        function isTileWalkable(floor, x, y, ignoreMonsters = false) {
+            if (x < 0 || y < 0 || x >= MAP_WIDTH || y >= MAP_HEIGHT) return false;
+            const t = maps[floor][y][x];
+            if (t === TILES.WALL || t === TILES.WATER || t === TILES.CAVE_WALL || t === TILES.LAVA || t === TILES.TREE) {
+                return false;
+            }
+            // Sprawdzenie kolizji z NPC
+            if (npcs.some(n => n.floor === floor && n.x === x && n.y === y)) {
+                return false;
+            }
+            // Sprawdzenie kolizji z potworami
+            if (!ignoreMonsters && monsters.some(m => m.floor === floor && m.x === x && m.y === y)) {
+                return false;
+            }
+            return true;
+        }
+
+        function handleMoveInput(dx, dy) {
+            const now = performance.now();
+            const isHasted = now < player.hasteUntil;
+            const bootsSpeed = (player.equipment.boots && player.equipment.boots.speed) ? player.equipment.boots.speed * 15 : 0;
+            const effectiveCooldown = Math.max(95, (isHasted ? 130 : player.moveCooldown) - bootsSpeed);
+
+            if (now - player.lastMoveTime < effectiveCooldown) return;
+
+            if (dx < 0) player.dir = 'left';
+            if (dx > 0) player.dir = 'right';
+            if (dy < 0) player.dir = 'up';
+            if (dy > 0) player.dir = 'down';
+
+            const nx = player.x + dx;
+            const ny = player.y + dy;
+
+            // Sprawdzenie czy na docelowym polu stoi NPC (interakcja przy wejściu)
+            const npcAtTile = npcs.find(n => n.floor === player.floor && n.x === nx && n.y === ny);
+            if (npcAtTile) {
+                interactWithNpc(npcAtTile);
+                player.lastMoveTime = now;
+                return;
+            }
+
+            if (isTileWalkable(player.floor, nx, ny)) {
+                player.x = nx;
+                player.y = ny;
+                player.lastMoveTime = now;
+
+                // Sprawdzenie czy weszliśmy na schody / drabinę
+                const steppedTile = maps[player.floor][ny][nx];
+                if (steppedTile === TILES.STAIRS_DOWN) {
+                    changeFloor(1);
+                } else if (steppedTile === TILES.STAIRS_UP) {
+                    changeFloor(0);
+                }
+
+                // Sprawdzenie czy leżą tu łupy/ciało do podniesienia
+                checkAutoLootAt(player.floor, nx, ny);
+                updateZoneIndicator();
+                updateBattleListUI();
+            }
+        }
+
+        function useStairsUnderPlayer() {
+            const t = maps[player.floor][player.y][player.x];
+            if (t === TILES.STAIRS_DOWN) changeFloor(1);
+            else if (t === TILES.STAIRS_UP) changeFloor(0);
+        }
+
+        function changeFloor(newFloor) {
+            player.floor = newFloor;
+            player.targetId = null; // Reset celu przy zmianie piętra
+            addLogMessage(
+                newFloor === 1 
+                    ? 'Zchodzisz po drabinie do mrocznych podziemi. Uważaj na Kościeje i Smoki!' 
+                    : 'Wspinasz się po drabinie z powrotem na słoneczną powierzchnię.',
+                'text-amber-300'
+            );
+            updateZoneIndicator();
+            updateBattleListUI();
+        }
+
+        function updateZoneIndicator() {
+            const isPz = protectionZones[player.floor][player.y][player.x];
+            const zEl = document.getElementById('zone-indicator');
+            const fEl = document.getElementById('floor-indicator');
+
+            if (isPz) {
+                zEl.className = 'px-1.5 py-0.5 rounded bg-emerald-900/70 text-emerald-300 border border-emerald-700 text-[10px] font-semibold';
+                zEl.innerHTML = '🛡️ Strefa Ochronna (Świątynia)';
+            } else {
+                zEl.className = 'px-1.5 py-0.5 rounded bg-red-950/80 text-red-300 border border-red-800 text-[10px] font-semibold';
+                zEl.innerHTML = '⚔️ Strefa Walki (Uważaj na potwory)';
+            }
+
+            fEl.textContent = player.floor === 0 ? 'Poziom: Powierzchnia (0)' : 'Poziom: Podziemia (-1)';
+        }
+
+        /***********************************************************************
+         * 5. SYSTEM WALKI, ZAKLĘĆ I AWANSU POZIOMÓW
+         ***********************************************************************/
+        function processCombat(now) {
+            // 1. Atak gracza w zaznaczony cel
+            if (player.targetId) {
+                const target = monsters.find(m => m.uid === player.targetId && m.floor === player.floor);
+                if (!target) {
+                    player.targetId = null;
+                    updateBattleListUI();
+                } else {
+                    const dist = Math.max(Math.abs(player.x - target.x), Math.abs(player.y - target.y));
+                    if (dist <= 1 && now - player.lastAttackTime >= 1150) {
+                        player.lastAttackTime = now;
+                        const maxDmg = getPlayerTotalAtk();
+                        const dmg = Math.max(1, Math.floor(Math.random() * (maxDmg * 0.75) + maxDmg * 0.35));
+                        dealDamageToMonster(target, dmg, 'physical');
+                    }
+                }
+            }
+
+            // 2. AI oraz ataki potworów na tym samym piętrze
+            const isPlayerInPz = protectionZones[player.floor][player.y][player.x];
+
+            monsters.forEach(m => {
+                if (m.floor !== player.floor) return;
+
+                const dist = Math.max(Math.abs(player.x - m.x), Math.abs(player.y - m.y));
+
+                // Poruszanie się potwora
+                if (now - m.lastMove >= m.speed) {
+                    m.lastMove = now;
+
+                    // Jeśli gracz jest w zasięgu wzroku (<= 7 kratek) i nie jest w świątyni, potwór idzie do gracza
+                    if (dist > 1 && dist <= 7 && !isPlayerInPz) {
+                        const stepX = Math.sign(player.x - m.x);
+                        const stepY = Math.sign(player.y - m.y);
+                        
+                        // Próba ruchu po skosie lub w jednej osi
+                        const candidates = [
+                            [m.x + stepX, m.y + stepY],
+                            [m.x + stepX, m.y],
+                            [m.x, m.y + stepY]
+                        ];
+
+                        for (const [cx, cy] of candidates) {
+                            if (
+                                (cx !== player.x || cy !== player.y) &&
+                                !protectionZones[m.floor][cy][cx] &&
+                                maps[m.floor][cy][cx] !== TILES.STAIRS_DOWN &&
+                                maps[m.floor][cy][cx] !== TILES.STAIRS_UP &&
+                                isTileWalkable(m.floor, cx, cy)
+                            ) {
+                                m.x = cx;
+                                m.y = cy;
+                                break;
+                            }
+                        }
+                    } else if (dist > 7 || isPlayerInPz) {
+                        // Losowy spacer potwora
+                        if (Math.random() < 0.35) {
+                            const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+                            const [rx, ry] = dirs[Math.floor(Math.random() * dirs.length)];
+                            const cx = m.x + rx;
+                            const cy = m.y + ry;
+                            if (
+                                isTileWalkable(m.floor, cx, cy) &&
+                                !protectionZones[m.floor][cy][cx] &&
+                                maps[m.floor][cy][cx] !== TILES.STAIRS_DOWN &&
+                                maps[m.floor][cy][cx] !== TILES.STAIRS_UP &&
+                                (cx !== player.x || cy !== player.y)
+                            ) {
+                                m.x = cx;
+                                m.y = cy;
+                            }
+                        }
+                    }
+                }
+
+                // Atak potwora na gracza
+                if (!isPlayerInPz && now - m.lastAtk >= 1450) {
+                    // Losowa odzywka potwora (np. Miodus, Kowal, Koryt)
+                    if (dist <= 5 && m.quotes && m.quotes.length > 0 && Math.random() < 0.14) {
+                        const q = m.quotes[Math.floor(Math.random() * m.quotes.length)];
+                        addFloatingText(m.x, m.y, m.floor, q, '#fb923c');
+                    }
+
+                    if (dist <= 1) {
+                        m.lastAtk = now;
+                        const rawDmg = Math.floor(Math.random() * (m.atkMax - m.atkMin + 1)) + m.atkMin;
+                        const mitigation = Math.floor(getPlayerTotalDef() * 0.45);
+                        const finalDmg = Math.max(0, rawDmg - mitigation);
+
+                        if (finalDmg === 0) {
+                            // Zablokowano tarczą (Puff!)
+                            addVisualEffect(player.x, player.y, player.floor, 'shield_block');
+                        } else {
+                            damagePlayer(finalDmg, m.plName);
+                        }
+                    } else if (m.rangedFire && dist <= 4 && Math.random() < 0.45) {
+                        // Zionięcie ogniem przez Smoka z dystansu
+                        m.lastAtk = now;
+                        const fireDmg = Math.floor(Math.random() * 22) + 15;
+                        addVisualEffect(player.x, player.y, player.floor, 'fire');
+                        addFloatingText(m.x, m.y, m.floor, 'FCHHHHH!', '#ff922b');
+                        damagePlayer(fireDmg, `${m.plName} (Ogień)`);
+                    } else if (m.rangedSlime && dist <= 3 && Math.random() < 0.45) {
+                        // Strzał z pryszcza potwora Koryt z dystansu
+                        m.lastAtk = now;
+                        const slimeDmg = Math.floor(Math.random() * 14) + 8;
+                        addVisualEffect(player.x, player.y, player.floor, 'slime');
+                        addFloatingText(m.x, m.y, m.floor, 'PLASK!', '#a3e635');
+                        damagePlayer(slimeDmg, `${m.plName} (Toksyczny Pryszcz)`);
+                    }
+                }
+            });
+        }
+
+        function dealDamageToMonster(monster, dmg, type = 'physical') {
+            monster.hp = Math.max(0, monster.hp - dmg);
+            addFloatingText(monster.x, monster.y, monster.floor, `-${dmg}`, '#ff3b3b');
+            addVisualEffect(monster.x, monster.y, monster.floor, type === 'fire' ? 'fire' : 'blood');
+            addLogMessage(`Zadajesz ${dmg} pkt. obrażeń celowi: ${monster.plName}.`, 'text-stone-300');
+
+            if (monster.hp <= 0) {
+                killMonster(monster);
+            }
+            updateBattleListUI();
+        }
+
+        function killMonster(monster) {
+            // Usunięcie z aktywnych potworów
+            monsters = monsters.filter(m => m.uid !== monster.uid);
+            if (player.targetId === monster.uid) {
+                player.targetId = null;
+            }
+
+            // Generowanie łupu (Loot)
+            const tpl = MONSTER_TYPES[monster.type];
+            const goldDrop = Math.floor(Math.random() * (tpl.goldMax - tpl.goldMin + 1)) + tpl.goldMin;
+            const droppedItems = [];
+
+            tpl.drops.forEach(d => {
+                if (Math.random() <= d.chance) {
+                    droppedItems.push(d.id);
+                }
+            });
+
+            // Automatyczne dodanie złota i komunikat w stylu Tibii
+            player.gold += goldDrop;
+            let lootText = `${goldDrop} gold coins`;
+            droppedItems.forEach(itemId => {
+                const it = ITEMS_DB[itemId];
+                lootText += `, ${it.name}`;
+                addItemToBackpack(itemId, 1);
+            });
+
+            addLogMessage(`Loot of a ${monster.name.toLowerCase()}: ${lootText}.`, 'text-emerald-400 font-semibold', true);
+
+            // Pozostawienie ciała na ziemi na 25 sekund
+            corpses.push({
+                x: monster.x,
+                y: monster.y,
+                floor: monster.floor,
+                name: monster.name,
+                color: monster.color,
+                expiresAt: performance.now() + 20000
+            });
+
+            // Przyznanie doświadczenia
+            gainExperience(monster.exp);
+
+            // Zaplanowanie odrodzenia potwora (Respawn za 14 sekund)
+            const sp = SPAWN_POINTS[monster.spawnIndex];
+            setTimeout(() => {
+                spawnMonsterFromPoint(sp, monster.spawnIndex);
+                updateBattleListUI();
+            }, 14000);
+        }
+
+        function gainExperience(amount) {
+            player.exp += amount;
+            addFloatingText(player.x, player.y, player.floor, `+${amount} EXP`, '#ffffff');
+
+            while (player.exp >= player.nextExp) {
+                player.level++;
+                player.nextExp = Math.floor(player.nextExp * 1.65 + 60);
+                player.maxHp += 30;
+                player.maxMp += 15;
+                player.hp = player.maxHp;
+                player.mp = player.maxMp;
+
+                const advMsg = `You advanced from Level ${player.level - 1} to Level ${player.level}.`;
+                showScreenAnnouncement(advMsg);
+                addLogMessage(advMsg, 'text-white font-bold bg-amber-900/40 px-1');
+                addVisualEffect(player.x, player.y, player.floor, 'heal');
+            }
+            updatePlayerStatsUI();
+        }
+
+        function damagePlayer(dmg, sourceName) {
+            player.hp = Math.max(0, player.hp - dmg);
+            addFloatingText(player.x, player.y, player.floor, `-${dmg}`, '#ff2a2a');
+            addVisualEffect(player.x, player.y, player.floor, 'blood');
+            addLogMessage(`Tracisz ${dmg} punktów życia przez atak: ${sourceName}.`, 'text-red-400');
+
+            if (player.hp <= 0) {
+                handlePlayerDeath();
+            }
+            updatePlayerStatsUI();
+        }
+
+        function handlePlayerDeath() {
+            showScreenAnnouncement('Alas! Brave adventurer, you have met a sad fate.\nOdrodziłeś się w świątyni Cipfrieda.');
+            addLogMessage('Zginąłeś! Mnich Cipfried wskrzesił Cię w świątyni.', 'text-red-500 font-bold');
+            player.floor = 0;
+            player.x = 16;
+            player.y = 12;
+            player.drawX = 16;
+            player.drawY = 12;
+            player.hp = player.maxHp;
+            player.mp = player.maxMp;
+            player.targetId = null;
+            updateZoneIndicator();
+            updatePlayerStatsUI();
+            updateBattleListUI();
+        }
+
+        /***********************************************************************
+         * 6. SYSTEM ZAKLĘĆ (EXURA, EXORI, UTANI HUR) I MIKSTUR
+         ***********************************************************************/
+        function castSpell(spellRaw) {
+            const spell = spellRaw.trim().toLowerCase();
+
+            if (spell === 'exura') {
+                if (player.mp < 20) {
+                    addLogMessage('Nie masz wystarczająco many (Wymagane: 20 MP).', 'text-sky-300');
+                    return true;
+                }
+                player.mp -= 20;
+                const heal = Math.floor(Math.random() * 18) + 28 + player.level * 3;
+                player.hp = Math.min(player.maxHp, player.hp + heal);
+                addFloatingText(player.x, player.y, player.floor, 'exura', '#fbbf24');
+                addFloatingText(player.x, player.y - 0.3, player.floor, `+${heal}`, '#4ade80');
+                addVisualEffect(player.x, player.y, player.floor, 'heal');
+                updatePlayerStatsUI();
+                return true;
+            }
+
+            if (spell === 'exura gran') {
+                if (player.mp < 40) {
+                    addLogMessage('Nie masz wystarczająco many (Wymagane: 40 MP).', 'text-sky-300');
+                    return true;
+                }
+                player.mp -= 40;
+                const heal = Math.floor(Math.random() * 35) + 65 + player.level * 5;
+                player.hp = Math.min(player.maxHp, player.hp + heal);
+                addFloatingText(player.x, player.y, player.floor, 'exura gran', '#fbbf24');
+                addFloatingText(player.x, player.y - 0.3, player.floor, `+${heal}`, '#4ade80');
+                addVisualEffect(player.x, player.y, player.floor, 'heal');
+                updatePlayerStatsUI();
+                return true;
+            }
+
+            if (spell === 'exori') {
+                if (player.mp < 35) {
+                    addLogMessage('Nie masz wystarczająco many na czar Exori (Wymagane: 35 MP).', 'text-sky-300');
+                    return true;
+                }
+                player.mp -= 35;
+                addFloatingText(player.x, player.y, player.floor, 'exori', '#fbbf24');
+
+                // Efekt na wszystkie 8 kratek wokół gracza
+                for (let dy = -1; dy <= 1; dy++) {
+                    for (let dx = -1; dx <= 1; dx++) {
+                        if (dx === 0 && dy === 0) continue;
+                        const tx = player.x + dx;
+                        const ty = player.y + dy;
+                        addVisualEffect(tx, ty, player.floor, 'exori');
+                        const m = monsters.find(mon => mon.floor === player.floor && mon.x === tx && mon.y === ty);
+                        if (m) {
+                            const dmg = Math.floor(getPlayerTotalAtk() * 1.25 + Math.random() * 15);
+                            dealDamageToMonster(m, dmg, 'physical');
+                        }
+                    }
+                }
+                updatePlayerStatsUI();
+                return true;
+            }
+
+            if (spell === 'exori flam') {
+                if (player.mp < 25) {
+                    addLogMessage('Nie masz wystarczająco many na czar Exori Flam (Wymagane: 25 MP).', 'text-sky-300');
+                    return true;
+                }
+                const target = monsters.find(m => m.uid === player.targetId && m.floor === player.floor);
+                if (!target) {
+                    addLogMessage('Najpierw zaznacz potwora na liście Battle lub na mapie!', 'text-amber-300');
+                    return true;
+                }
+                const dist = Math.max(Math.abs(player.x - target.x), Math.abs(player.y - target.y));
+                if (dist > 4) {
+                    addLogMessage('Cel jest zbyt daleko (Maksymalny zasięg: 4 kratki).', 'text-amber-300');
+                    return true;
+                }
+                player.mp -= 25;
+                addFloatingText(player.x, player.y, player.floor, 'exori flam', '#fbbf24');
+                const dmg = Math.floor(22 + player.level * 4 + Math.random() * 16);
+                dealDamageToMonster(target, dmg, 'fire');
+                updatePlayerStatsUI();
+                return true;
+            }
+
+            if (spell === 'utani hur') {
+                if (player.mp < 25) {
+                    addLogMessage('Nie masz wystarczająco many na czar Utani Hur (Wymagane: 25 MP).', 'text-sky-300');
+                    return true;
+                }
+                player.mp -= 25;
+                player.hasteUntil = performance.now() + 25000;
+                addFloatingText(player.x, player.y, player.floor, 'utani hur', '#fbbf24');
+                addVisualEffect(player.x, player.y, player.floor, 'heal');
+                addLogMessage('Czujesz przypływ magicznej szybkości (Haste na 25 sekund)!', 'text-sky-300');
+                updatePlayerStatsUI();
+                return true;
+            }
+
+            return false;
+        }
+
+        function useQuickPotion(type) {
+            const itemId = type === 'hp' ? 'hp_potion' : 'mp_potion';
+            const slotIdx = player.backpack.findIndex(s => s && s.id === itemId && s.count > 0);
+            if (slotIdx === -1) {
+                addLogMessage(`Nie masz już ${type === 'hp' ? 'Health Potion' : 'Mana Potion'} w plecaku!`, 'text-red-400');
+                return;
+            }
+            useBackpackItem(slotIdx);
+        }
+
+        /***********************************************************************
+         * 7. ZARZĄDZANIE PLECAKIEM I EKWIPUNKIEM
+         ***********************************************************************/
+        function addItemToBackpack(itemId, count = 1) {
+            const itemDef = ITEMS_DB[itemId];
+            if (!itemDef) return false;
+
+            // Jeśli to przedmiot skumulowany (mikstura/mięso)
+            if (itemDef.type === 'consumable') {
+                const existing = player.backpack.find(s => s && s.id === itemId);
+                if (existing) {
+                    existing.count += count;
+                    renderInventoryUI();
+                    return true;
+                }
+            }
+
+            if (player.backpack.length < 15) {
+                player.backpack.push({ id: itemId, count: count });
+                renderInventoryUI();
+                return true;
+            } else {
+                addLogMessage('Twój plecak jest pełny!', 'text-red-400');
+                return false;
+            }
+        }
+
+        function useBackpackItem(index) {
+            const entry = player.backpack[index];
+            if (!entry) return;
+            const item = ITEMS_DB[entry.id];
+            if (!item) return;
+
+            if (item.type === 'consumable') {
+                if (item.effect === 'hp') {
+                    player.hp = Math.min(player.maxHp, player.hp + item.amount);
+                    addFloatingText(player.x, player.y, player.floor, 'Aaaah...', '#fbbf24');
+                    addFloatingText(player.x, player.y - 0.3, player.floor, `+${item.amount} HP`, '#4ade80');
+                    addVisualEffect(player.x, player.y, player.floor, 'heal');
+                } else if (item.effect === 'mp') {
+                    player.mp = Math.min(player.maxMp, player.mp + item.amount);
+                    addFloatingText(player.x, player.y, player.floor, 'Aaaah...', '#38bdf8');
+                    addVisualEffect(player.x, player.y, player.floor, 'heal');
+                } else if (item.effect === 'food') {
+                    player.hp = Math.min(player.maxHp, player.hp + item.amount);
+                    player.mp = Math.min(player.maxMp, player.mp + Math.floor(item.amount * 0.5));
+                    addFloatingText(player.x, player.y, player.floor, item.id === 'honey_mead' ? 'Gulp! Miód!' : 'Munch.', '#fbbf24');
+                }
+
+                entry.count--;
+                if (entry.count <= 0) {
+                    player.backpack.splice(index, 1);
+                }
+                updatePlayerStatsUI();
+                renderInventoryUI();
+            } else if (item.slot) {
+                // Zakładanie przedmiotu do slotu ekwipunku
+                const currentEquipped = player.equipment[item.slot];
+                player.equipment[item.slot] = item;
+                player.backpack.splice(index, 1);
+                if (currentEquipped) {
+                    player.backpack.push({ id: currentEquipped.id, count: 1 });
+                }
+                addLogMessage(`Zakładasz przedmiot: ${item.name} (${item.desc}).`, 'text-amber-300');
+                updatePlayerStatsUI();
+                renderInventoryUI();
+            }
+        }
+
+        function checkAutoLootAt(floor, x, y) {
+            const cIndex = corpses.findIndex(c => c.floor === floor && c.x === x && c.y === y);
+            if (cIndex !== -1) {
+                const c = corpses[cIndex];
+                addFloatingText(x, y, floor, 'Przeszukano', '#a3e635');
+                corpses.splice(cIndex, 1);
+            }
+        }
+
+        /***********************************************************************
+         * 8. INTERAKCJA Z NPC I SKLEP
+         ***********************************************************************/
+        function interactWithNpc(npc) {
+            if (npc.id === 'cipfried') {
+                npcHealPlayer();
+            } else if (npc.id === 'xodet') {
+                openShopModal();
+            } else if (npc.id === 'gm_obsessive') {
+                interactWithGM();
+            }
+        }
+
+        function interactWithGM() {
+            addVisualEffect(player.x, player.y, player.floor, 'heal');
+            addFloatingText(30, 3, 0, 'GM Obsessive czuwa!', '#ef4444');
+
+            if (!player.gmGiftClaimed) {
+                player.gmGiftClaimed = true;
+                player.gold += 100;
+                addItemToBackpack('honey_mead', 3);
+                player.hp = player.maxHp;
+                player.mp = player.maxMp;
+                showScreenAnnouncement('GM Obsessive: Witaj GramJ! Otrzymujesz Błogosławieństwo GM oraz 100 GP!');
+                addLogMessage('GM Obsessive [Broadcast]: Gracz GramJ odwiedził mój róg mapy! Przyznaję 100 gold coins oraz 3x Złocisty Miód Miodusa!', 'text-red-400 font-bold');
+            } else {
+                const gmQuotes = [
+                    'GM Obsessive: GramJ, pamiętaj – nie bij krasnoludów Miodus na AFK!',
+                    'GM Obsessive: Uważaj na Kowala, jest tak gruby że zajmuje cały korytarz, a Koryt strzela pryszczami!',
+                    'GM Obsessive: Sprawdzam Twoje logi, GramJ... Czysto! Przywracam Ci pełne HP i MP!'
+                ];
+                const msg = gmQuotes[Math.floor(Math.random() * gmQuotes.length)];
+                player.hp = player.maxHp;
+                player.mp = player.maxMp;
+                addLogMessage(msg, 'text-red-400 font-bold');
+                showScreenAnnouncement(msg);
+            }
+            updatePlayerStatsUI();
+        }
+
+        function npcHealPlayer() {
+            player.hp = player.maxHp;
+            player.mp = player.maxMp;
+            addVisualEffect(player.x, player.y, player.floor, 'heal');
+            addFloatingText(15, 11, 0, 'Niech bogowie Cię uleczą, GramJ!', '#4ade80');
+            addLogMessage('Mnich Cipfried: Twoje rany i mana zostały w pełni uleczone, GramJ!', 'text-emerald-400 font-semibold');
+            updatePlayerStatsUI();
+        }
+
+        function openShopModal() {
+            document.getElementById('shop-gold-display').textContent = player.gold;
+            const listEl = document.getElementById('shop-items-list');
+            listEl.innerHTML = '';
+
+            const shopCatalog = [
+                'hp_potion', 'mp_potion', 'meat', 'honey_mead',
+                'rapier', 'sabre', 'dwarven_axe', 'fire_sword', 'kowal_hammer',
+                'dwarven_shield', 'plate_shield', 'dragon_shield',
+                'chain_armor', 'knight_armor', 'kowal_apron',
+                'steel_helmet', 'boots_of_haste'
+            ];
+
+            shopCatalog.forEach(itemId => {
+                const item = ITEMS_DB[itemId];
+                const row = document.createElement('div');
+                row.className = 'tibia-inset p-2 flex items-center justify-between bg-[#252525]';
+                row.innerHTML = `
+                    <div class="flex items-center gap-2.5">
+                        <span class="text-xl w-8 h-8 flex items-center justify-center bg-[#181818] border border-stone-700">${item.icon}</span>
+                        <div>
+                            <div class="font-bold text-stone-100">${item.name}</div>
+                            <div class="text-[10px] text-amber-300">${item.desc}</div>
+                        </div>
+                    </div>
+                    <button onclick="buyItemFromShop('${item.id}')" class="tibia-btn px-3 py-1 text-yellow-300 shrink-0">
+                        Kup (${item.price} gp)
+                    </button>
+                `;
+                listEl.appendChild(row);
+            });
+
+            const modal = document.getElementById('shop-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeShopModal() {
+            const modal = document.getElementById('shop-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function buyItemFromShop(itemId) {
+            const item = ITEMS_DB[itemId];
+            if (!item) return;
+
+            if (player.gold < item.price) {
+                addLogMessage(`Kupiec Xodet: Nie masz wystarczająco złota na ${item.name} (Koszt: ${item.price} gp).`, 'text-red-400');
+                return;
+            }
+
+            if (addItemToBackpack(itemId, 1)) {
+                player.gold -= item.price;
+                document.getElementById('shop-gold-display').textContent = player.gold;
+                addLogMessage(`Kupiłeś ${item.name} za ${item.price} gold coins.`, 'text-emerald-300');
+                updatePlayerStatsUI();
+            }
+        }
+
+        /***********************************************************************
+         * 9. AKTUALIZACJA INTERFEJSU (UI)
+         ***********************************************************************/
+        function updatePlayerStatsUI() {
+            document.getElementById('ui-level').textContent = player.level;
+            document.getElementById('ui-hp-text').textContent = `${player.hp} / ${player.maxHp}`;
+            document.getElementById('ui-hp-bar').style.width = `${Math.max(0, (player.hp / player.maxHp) * 100)}%`;
+
+            document.getElementById('ui-mp-text').textContent = `${player.mp} / ${player.maxMp}`;
+            document.getElementById('ui-mp-bar').style.width = `${Math.max(0, (player.mp / player.maxMp) * 100)}%`;
+
+            document.getElementById('ui-exp-text').textContent = `${player.exp} / ${player.nextExp}`;
+            document.getElementById('ui-exp-bar').style.width = `${Math.min(100, (player.exp / player.nextExp) * 100)}%`;
+
+            document.getElementById('ui-atk').textContent = getPlayerTotalAtk();
+            document.getElementById('ui-def').textContent = getPlayerTotalDef();
+            document.getElementById('ui-gold').textContent = player.gold;
+
+            // Licznik mikstur na przycisku Hotkey
+            const hpEntry = player.backpack.find(s => s && s.id === 'hp_potion');
+            document.getElementById('hotkey-hp-count').textContent = `x${hpEntry ? hpEntry.count : 0}`;
+        }
+
+        function renderInventoryUI() {
+            // Sloty ekwipunku
+            const eqSlots = ['helmet', 'armor', 'weapon', 'shield', 'boots'];
+            eqSlots.forEach(slotName => {
+                const el = document.getElementById(`slot-${slotName}`);
+                const item = player.equipment[slotName];
+                if (item) {
+                    el.innerHTML = `<span class="text-xl drop-shadow">${item.icon}</span>`;
+                    el.title = `${item.name} (${item.desc})`;
+                } else {
+                    el.innerHTML = `<span class="text-xs opacity-25">▫️</span>`;
+                    el.title = `Pusty slot: ${slotName}`;
+                }
+            });
+
+            // Siatka plecaka (10 widocznych slotów)
+            const grid = document.getElementById('backpack-grid');
+            grid.innerHTML = '';
+
+            for (let i = 0; i < 10; i++) {
+                const entry = player.backpack[i];
+                const slotDiv = document.createElement('div');
+                slotDiv.className = 'eq-slot tibia-inset relative';
+
+                if (entry) {
+                    const item = ITEMS_DB[entry.id];
+                    slotDiv.innerHTML = `
+                        <span class="text-lg">${item.icon}</span>
+                        ${entry.count > 1 ? `<span class="absolute bottom-0 right-0.5 text-[10px] font-mono font-bold text-amber-300 drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">${entry.count}</span>` : ''}
+                    `;
+                    slotDiv.title = `${item.name} - ${item.desc} (Kliknij LPM aby użyć/założyć)`;
+                    slotDiv.onclick = () => useBackpackItem(i);
+                }
+                grid.appendChild(slotDiv);
+            }
+            updatePlayerStatsUI();
+        }
+
+        function updateBattleListUI() {
+            const listEl = document.getElementById('battle-list');
+            const visibleMonsters = monsters.filter(m => 
+                m.floor === player.floor &&
+                Math.abs(m.x - player.x) <= 7 &&
+                Math.abs(m.y - player.y) <= 5
+            );
+
+            document.getElementById('battle-count').textContent = `${visibleMonsters.length} w pobliżu`;
+            listEl.innerHTML = '';
+
+            if (visibleMonsters.length === 0) {
+                listEl.innerHTML = `<div class="text-[11px] text-stone-500 text-center py-4 italic">Brak potworów w zasięgu wzroku</div>`;
+                return;
+            }
+
+            visibleMonsters.forEach(m => {
+                const isTarget = player.targetId === m.uid;
+                const hpPercent = Math.max(0, Math.round((m.hp / m.maxHp) * 100));
+                const barColor = hpPercent > 60 ? '#22c55e' : (hpPercent > 25 ? '#eab308' : '#ef4444');
+
+                const item = document.createElement('div');
+                item.className = `p-1.5 flex items-center gap-2 cursor-pointer border ${isTarget ? 'bg-red-950/70 border-red-500' : 'bg-[#2a2a2a] border-stone-700 hover:bg-[#343434]'}`;
+                item.onclick = () => toggleTargetMonster(m.uid);
+
+                item.innerHTML = `
+                    <div class="w-4 h-4 rounded-sm shrink-0 border border-black" style="background-color: ${m.color};"></div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-center text-[11px] font-bold leading-none mb-1">
+                            <span class="${isTarget ? 'text-red-300' : 'text-stone-200'} truncate">${m.plName}</span>
+                            ${isTarget ? '<span class="text-[9px] text-red-400 font-mono">🎯 ATAK</span>' : ''}
+                        </div>
+                        <div class="w-full h-1.5 bg-black border border-stone-700">
+                            <div class="h-full" style="width: ${hpPercent}%; background-color: ${barColor};"></div>
+                        </div>
+                    </div>
+                `;
+                listEl.appendChild(item);
+            });
+        }
+
+        function toggleTargetMonster(uid) {
+            if (player.targetId === uid) {
+                player.targetId = null;
+            } else {
+                player.targetId = uid;
+                const m = monsters.find(mon => mon.uid === uid);
+                if (m) {
+                    addLogMessage(`Zaznaczono cel ataku: ${m.plName}.`, 'text-red-300');
+                }
+            }
+            updateBattleListUI();
+        }
+
+        /***********************************************************************
+         * 10. CZAT, KOMUNIKATY I EFEKTY WIZUALNE
+         ***********************************************************************/
+        const chatLogHistory = [];
+
+        function addLogMessage(text, colorClass = 'text-stone-300', isLoot = false) {
+            const now = new Date();
+            const timeStr = now.toTimeString().slice(0, 5);
+            chatLogHistory.push({ time: timeStr, text, colorClass, isLoot });
+            if (chatLogHistory.length > 60) chatLogHistory.shift();
+            renderChatMessages();
+        }
+
+        function renderChatMessages() {
+            const container = document.getElementById('chat-messages');
+            container.innerHTML = '';
+
+            const filtered = currentChatTab === 'loot' 
+                ? chatLogHistory.filter(m => m.isLoot)
+                : chatLogHistory;
+
+            filtered.forEach(msg => {
+                const div = document.createElement('div');
+                div.className = `${msg.colorClass}`;
+                div.innerHTML = `<span class="text-stone-500 mr-1">${msg.time}</span> ${msg.text}`;
+                container.appendChild(div);
+            });
+
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function switchChatTab(tab) {
+            currentChatTab = tab;
+            const btnDef = document.getElementById('tab-default');
+            const btnLoot = document.getElementById('tab-loot');
+
+            if (tab === 'default') {
+                btnDef.className = 'px-3 py-0.5 text-xs font-bold bg-[#3c3c3c] text-amber-300 border-t border-l border-[#6e6e6e] border-r border-[#1a1a1a]';
+                btnLoot.className = 'px-3 py-0.5 text-xs font-semibold bg-[#252525] text-stone-400 hover:text-white border-t border-l border-[#444]';
+            } else {
+                btnLoot.className = 'px-3 py-0.5 text-xs font-bold bg-[#3c3c3c] text-emerald-300 border-t border-l border-[#6e6e6e] border-r border-[#1a1a1a]';
+                btnDef.className = 'px-3 py-0.5 text-xs font-semibold bg-[#252525] text-stone-400 hover:text-white border-t border-l border-[#444]';
+            }
+            renderChatMessages();
+        }
+
+        function showScreenAnnouncement(text) {
+            const el = document.getElementById('screen-msg');
+            el.innerText = text;
+            el.style.opacity = '1';
+            setTimeout(() => {
+                el.style.opacity = '0';
+            }, 3400);
+        }
+
+        function addFloatingText(x, y, floor, text, color) {
+            floatingTexts.push({
+                x, y, floor, text, color,
+                createdAt: performance.now(),
+                duration: 1100
+            });
+        }
+
+        function addVisualEffect(x, y, floor, type) {
+            visualEffects.push({
+                x, y, floor, type,
+                createdAt: performance.now(),
+                duration: 380
+            });
+        }
+
+        /***********************************************************************
+         * 11. RENDEROWANIE GRAFIKI NA CANVASIE 2D (STYL TIBIA 7.6)
+         ***********************************************************************/
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = VIEWPORT_TILES_X * TILE_SIZE;
+            canvas.height = VIEWPORT_TILES_Y * TILE_SIZE;
+            const container = document.getElementById('canvas-container');
+            const scaleX = container.clientWidth / canvas.width;
+            const scaleY = container.clientHeight / canvas.height;
+            const scale = Math.min(scaleX, scaleY);
+            canvas.style.width = `${Math.floor(canvas.width * scale)}px`;
+            canvas.style.height = `${Math.floor(canvas.height * scale)}px`;
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        function drawTile(screenX, screenY, tileType, worldX, worldY) {
+            const hash = (worldX * 37 + worldY * 17) % 7;
+
+            switch (tileType) {
+                case TILES.GRASS:
+                    ctx.fillStyle = hash % 2 === 0 ? '#3b6e28' : '#366624';
+                    ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+                    // Kępki trawy
+                    ctx.fillStyle = '#4c8535';
+                    ctx.fillRect(screenX + 8 + hash * 2, screenY + 10, 3, 5);
+                    ctx.fillRect(screenX + 26, screenY + 28 - hash, 4, 4);
+                    break;
+
+                case TILES.PATH:
+                    ctx.fillStyle = '#756857';
+                    ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+                    ctx.strokeStyle = '#5c5042';
+                    ctx.strokeRect(screenX + 2, screenY + 2, TILE_SIZE - 4, TILE_SIZE - 4);
+                    break;
+
+                case TILES.TEMPLE_FLOOR:
+                    // Szachownica świątynna
+                    ctx.fillStyle = (worldX + worldY) % 2 === 0 ? '#cfc9bc' : '#b0a99b';
+                    ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+                    ctx.strokeStyle = '#8f887a';
+                    ctx.strokeRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+                    break;
+
+                case TILES.WALL:
+                    ctx.fillStyle = '#6e6a63';
+                    ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+                    ctx.fillStyle = '#8c877e';
+                    ctx.fillRect(screenX + 2, screenY + 2, TILE_SIZE - 4, 16);
+                    ctx.fillRect(screenX + 2, screenY + 22, 18, 18);
+                    ctx.fillRect(screenX + 24, screenY + 22, 18, 18);
+                    break;
+
+                case TILES.WATER:
+                    ctx.fillStyle = '#1d4e89';
+                    ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+                    ctx.fillStyle = '#336db5';
+                    const waveOffset = Math.sin(performance.now() / 400 + worldX) * 3;
+                    ctx.fillRect(screenX + 8 + waveOffset, screenY + 14, 14, 3);
+                    ctx.fillRect(screenX + 18 - waveOffset, screenY + 30, 12, 3);
+                    break;
+
+                case TILES.TREE:
+                    // Trawa pod drzewem
+                    ctx.fillStyle = '#366624';
+                    ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+                    // Pień
+                    ctx.fillStyle = '#5c3a21';
+                    ctx.fillRect(screenX + 16, screenY + 24, 12, 16);
+                    // Korona drzewa
+                    ctx.fillStyle = '#1e4d17';
+                    ctx.beginPath();
+                    ctx.arc(screenX + 22, screenY + 18, 16, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#2d6b23';
+                    ctx.beginPath();
+                    ctx.arc(screenX + 19, screenY + 15, 11, 0, Math.PI * 2);
+                    ctx.fill();
+                    break;
+
+                case TILES.CAVE_FLOOR:
+                    ctx.fillStyle = hash % 2 === 0 ? '#423932' : '#3b322c';
+                    ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+                    ctx.fillStyle = '#2e2621';
+                    ctx.fillRect(screenX + 12, screenY + 16, 4, 4);
+                    break;
+
+                case TILES.CAVE_WALL:
+                    ctx.fillStyle = '#241e1a';
+                    ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+                    ctx.fillStyle = '#332b26';
+                    ctx.fillRect(screenX + 4, screenY + 4, TILE_SIZE - 8, TILE_SIZE - 8);
+                    break;
+
+                case TILES.LAVA:
+                    ctx.fillStyle = '#b8250b';
+                    ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+                    ctx.fillStyle = '#ff7b00';
+                    ctx.fillRect(screenX + 6, screenY + 10, 14, 10);
+                    ctx.fillRect(screenX + 20, screenY + 24, 16, 12);
+                    break;
+
+                case TILES.STAIRS_DOWN:
+                    ctx.fillStyle = '#52473b';
+                    ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+                    // Ciemna dziura ze schodami w dół
+                    ctx.fillStyle = '#0f0f0f';
+                    ctx.fillRect(screenX + 6, screenY + 6, TILE_SIZE - 12, TILE_SIZE - 12);
+                    ctx.fillStyle = '#d4a338';
+                    ctx.fillRect(screenX + 10, screenY + 12, TILE_SIZE - 20, 4);
+                    ctx.fillRect(screenX + 10, screenY + 20, TILE_SIZE - 20, 4);
+                    ctx.fillRect(screenX + 10, screenY + 28, TILE_SIZE - 20, 4);
+                    break;
+
+                case TILES.STAIRS_UP:
+                    ctx.fillStyle = '#423932';
+                    ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+                    // Drabina w górę
+                    ctx.strokeStyle = '#eab308';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.moveTo(screenX + 13, screenY + 6);
+                    ctx.lineTo(screenX + 13, screenY + 38);
+                    ctx.moveTo(screenX + 31, screenY + 6);
+                    ctx.lineTo(screenX + 31, screenY + 38);
+                    for (let r = 11; r <= 33; r += 7) {
+                        ctx.moveTo(screenX + 13, screenY + r);
+                        ctx.lineTo(screenX + 31, screenY + r);
+                    }
+                    ctx.stroke();
+                    ctx.lineWidth = 1;
+                    break;
+            }
+        }
+
+        function drawNameAndHealthBar(screenX, screenY, name, hpPercent, isFriendlyNpc = false) {
+            const centerX = screenX + TILE_SIZE / 2;
+            const topY = screenY - 10;
+
+            ctx.font = 'bold 11px Inter, sans-serif';
+            ctx.textAlign = 'center';
+
+            // Kolor paska i napisu w zależności od % HP (dokładnie jak w Tibii)
+            let color = '#00c000';
+            if (isFriendlyNpc) {
+                color = '#38bdf8';
+            } else if (hpPercent <= 20) {
+                color = '#b80000';
+            } else if (hpPercent <= 50) {
+                color = '#d97706';
+            } else if (hpPercent <= 75) {
+                color = '#eab308';
+            }
+
+            // Czarna obwódka tekstu
+            ctx.fillStyle = '#000000';
+            ctx.fillText(name, centerX - 1, topY - 4);
+            ctx.fillText(name, centerX + 1, topY - 4);
+            ctx.fillText(name, centerX, topY - 5);
+            ctx.fillText(name, centerX, topY - 3);
+
+            ctx.fillStyle = color;
+            ctx.fillText(name, centerX, topY - 4);
+
+            // Pasek życia (28x4 px)
+            const barW = 28;
+            const barH = 4;
+            const barX = Math.floor(centerX - barW / 2);
+            const barY = topY;
+
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(barX - 1, barY - 1, barW + 2, barH + 2);
+            ctx.fillStyle = color;
+            ctx.fillRect(barX, barY, Math.round((barW * hpPercent) / 100), barH);
+        }
+
+        function drawCharacterSprite(screenX, screenY, mainColor, secondaryColor, weaponIcon = null) {
+            // Cień pod postacią
+            ctx.fillStyle = 'rgba(0,0,0,0.35)';
+            ctx.beginPath();
+            ctx.ellipse(screenX + 22, screenY + 37, 12, 5, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Buty / Nogi
+            ctx.fillStyle = '#1f1f1f';
+            ctx.fillRect(screenX + 14, screenY + 28, 6, 8);
+            ctx.fillRect(screenX + 24, screenY + 28, 6, 8);
+
+            // Tułów / Zbroja (z czarnym konturem)
+            ctx.fillStyle = '#000';
+            ctx.fillRect(screenX + 11, screenY + 15, 22, 15);
+            ctx.fillStyle = mainColor;
+            ctx.fillRect(screenX + 13, screenY + 17, 18, 11);
+
+            // Głowa
+            ctx.fillStyle = '#000';
+            ctx.fillRect(screenX + 13, screenY + 4, 18, 13);
+            ctx.fillStyle = '#f3c6a5';
+            ctx.fillRect(screenX + 15, screenY + 6, 14, 9);
+
+            // Hełm / Włosy
+            ctx.fillStyle = secondaryColor;
+            ctx.fillRect(screenX + 14, screenY + 4, 16, 4);
+
+            // Oczy
+            ctx.fillStyle = '#000';
+            ctx.fillRect(screenX + 17, screenY + 10, 2, 2);
+            ctx.fillRect(screenX + 25, screenY + 10, 2, 2);
+
+            // Miecz i tarcza po bokach
+            if (weaponIcon) {
+                ctx.fillStyle = '#cbd5e1';
+                ctx.fillRect(screenX + 6, screenY + 12, 4, 14);
+                ctx.fillStyle = '#eab308';
+                ctx.fillRect(screenX + 32, screenY + 16, 7, 10);
+            }
+        }
+
+        function drawMonsterSprite(screenX, screenY, monster) {
+            // Czerwona ramka zaznaczenia celu (klasyczna ramka z Tibii)
+            if (player.targetId === monster.uid) {
+                ctx.strokeStyle = '#ff1e1e';
+                ctx.lineWidth = 2.5;
+                ctx.strokeRect(screenX + 2, screenY + 2, TILE_SIZE - 4, TILE_SIZE - 4);
+                ctx.lineWidth = 1;
+            }
+
+            // Cień
+            ctx.fillStyle = 'rgba(0,0,0,0.4)';
+            ctx.beginPath();
+            ctx.ellipse(screenX + 22, screenY + 37, monster.type === 'kowal' ? 17 : 13, 5, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            if (monster.type === 'rat') {
+                ctx.fillStyle = '#000';
+                ctx.fillRect(screenX + 13, screenY + 20, 18, 12);
+                ctx.fillStyle = monster.color;
+                ctx.fillRect(screenX + 15, screenY + 22, 14, 8);
+                // Czerwone oczka i ogon
+                ctx.fillStyle = '#ef4444';
+                ctx.fillRect(screenX + 16, screenY + 24, 2, 2);
+                ctx.fillStyle = '#d6a29c';
+                ctx.fillRect(screenX + 29, screenY + 26, 7, 2);
+            } else if (monster.type === 'miodus') {
+                // Krasnolud "Miodus": Krępy, z rudą/złotą długą brodą, rogatym hełmem i toporem
+                ctx.fillStyle = '#1f1f1f';
+                ctx.fillRect(screenX + 14, screenY + 30, 6, 6);
+                ctx.fillRect(screenX + 24, screenY + 30, 6, 6);
+                // Tułów krasnoluda
+                ctx.fillStyle = '#000';
+                ctx.fillRect(screenX + 10, screenY + 18, 24, 14);
+                ctx.fillStyle = '#92400e';
+                ctx.fillRect(screenX + 12, screenY + 20, 20, 10);
+                // Głowa
+                ctx.fillStyle = '#f3c6a5';
+                ctx.fillRect(screenX + 14, screenY + 10, 16, 10);
+                // Bujna miodowo-ruda broda krasnoluda
+                ctx.fillStyle = '#f59e0b';
+                ctx.fillRect(screenX + 13, screenY + 16, 18, 11);
+                ctx.fillStyle = '#d97706';
+                ctx.fillRect(screenX + 15, screenY + 18, 14, 8);
+                // Stalowy hełm krasnoludzki
+                ctx.fillStyle = '#94a3b8';
+                ctx.fillRect(screenX + 12, screenY + 6, 20, 6);
+                // Topór i kufel miodu
+                ctx.fillStyle = '#cbd5e1';
+                ctx.fillRect(screenX + 5, screenY + 14, 6, 12);
+                ctx.fillStyle = '#fbbf24';
+                ctx.fillRect(screenX + 33, screenY + 20, 6, 8);
+            } else if (monster.type === 'kowal') {
+                // Gruby potwór "Kowal": Bardzo szeroki brzuch, fartuch kowalski i wielki młot
+                ctx.fillStyle = '#1f1f1f';
+                ctx.fillRect(screenX + 10, screenY + 30, 8, 7);
+                ctx.fillRect(screenX + 26, screenY + 30, 8, 7);
+                // Ogromny gruby brzuch
+                ctx.fillStyle = '#000';
+                ctx.fillRect(screenX + 4, screenY + 14, 36, 19);
+                ctx.fillStyle = '#eab68c'; // masywne ramiona/brzuch
+                ctx.fillRect(screenX + 6, screenY + 16, 32, 15);
+                // Ciemny skórzany fartuch kowala
+                ctx.fillStyle = '#334155';
+                ctx.fillRect(screenX + 10, screenY + 17, 24, 14);
+                // Głowa
+                ctx.fillStyle = '#000';
+                ctx.fillRect(screenX + 13, screenY + 4, 18, 12);
+                ctx.fillStyle = '#e5a97c';
+                ctx.fillRect(screenX + 15, screenY + 6, 14, 9);
+                // Groźne brwi i oczy
+                ctx.fillStyle = '#000';
+                ctx.fillRect(screenX + 16, screenY + 9, 3, 2);
+                ctx.fillRect(screenX + 25, screenY + 9, 3, 2);
+                // Ciężki młot kowalski w łapie
+                ctx.fillStyle = '#78350f';
+                ctx.fillRect(screenX + 3, screenY + 10, 3, 18);
+                ctx.fillStyle = '#94a3b8';
+                ctx.fillRect(screenX + 1, screenY + 7, 9, 6);
+            } else if (monster.type === 'koryt') {
+                // Pryszczaty potwór "Koryt": Zielonkawa skóra cała obsypana czerwono-żółtymi pryszczami
+                ctx.fillStyle = '#000';
+                ctx.fillRect(screenX + 9, screenY + 8, 26, 27);
+                ctx.fillStyle = '#65a30d';
+                ctx.fillRect(screenX + 11, screenY + 10, 22, 23);
+                // Oczy
+                ctx.fillStyle = '#000';
+                ctx.fillRect(screenX + 15, screenY + 14, 3, 3);
+                ctx.fillRect(screenX + 26, screenY + 14, 3, 3);
+                // Wyraźne pryszcze i krosty (czerwona obwódka + żółty czubek)
+                const pimples = [[13,11],[28,11],[21,16],[14,22],[27,21],[19,27],[25,28],[12,28]];
+                pimples.forEach(([px, py]) => {
+                    ctx.fillStyle = '#dc2626';
+                    ctx.fillRect(screenX + px, screenY + py, 4, 4);
+                    ctx.fillStyle = '#fef08a';
+                    ctx.fillRect(screenX + px + 1, screenY + py + 1, 2, 2);
+                });
+            } else if (monster.type === 'dragon') {
+                // Duży sylwetkowy smok ze skrzydłami
+                ctx.fillStyle = '#000';
+                ctx.fillRect(screenX + 6, screenY + 8, 32, 28);
+                ctx.fillStyle = '#b91c1c';
+                ctx.fillRect(screenX + 8, screenY + 10, 28, 24);
+                // Skrzydła
+                ctx.fillStyle = '#ef4444';
+                ctx.fillRect(screenX + 4, screenY + 12, 8, 16);
+                ctx.fillRect(screenX + 32, screenY + 12, 8, 16);
+                // Żółte ślepia
+                ctx.fillStyle = '#fde047';
+                ctx.fillRect(screenX + 16, screenY + 15, 3, 3);
+                ctx.fillRect(screenX + 25, screenY + 15, 3, 3);
+            } else {
+                // Humanoidalne potwory (Troll, Ork, Kościej)
+                drawCharacterSprite(screenX, screenY, monster.color, '#27272a', true);
+            }
+
+            const hpPercent = Math.max(0, (monster.hp / monster.maxHp) * 100);
+            drawNameAndHealthBar(screenX, screenY, monster.name, hpPercent, false);
+        }
+
+        function renderGameLoop(now) {
+            // Płynna interpolacja pozycji gracza i potworów
+            player.drawX += (player.x - player.drawX) * 0.35;
+            player.drawY += (player.y - player.drawY) * 0.35;
+
+            monsters.forEach(m => {
+                m.drawX += (m.x - m.drawX) * 0.28;
+                m.drawY += (m.y - m.drawY) * 0.28;
+            });
+
+            // Przetworzenie walki i AI
+            processCombat(now);
+
+            // Kamera wycentrowana na graczu
+            const halfW = Math.floor(VIEWPORT_TILES_X / 2);
+            const halfH = Math.floor(VIEWPORT_TILES_Y / 2);
+            const camX = player.drawX - halfW;
+            const camY = player.drawY - halfH;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 1. Rysowanie widocznych kafelków mapy
+            const startTileX = Math.floor(camX) - 1;
+            const endTileX = startTileX + VIEWPORT_TILES_X + 2;
+            const startTileY = Math.floor(camY) - 1;
+            const endTileY = startTileY + VIEWPORT_TILES_Y + 2;
+
+            for (let ty = startTileY; ty <= endTileY; ty++) {
+                for (let tx = startTileX; tx <= endTileX; tx++) {
+                    const screenX = Math.round((tx - camX) * TILE_SIZE);
+                    const screenY = Math.round((ty - camY) * TILE_SIZE);
+
+                    if (tx >= 0 && ty >= 0 && tx < MAP_WIDTH && ty < MAP_HEIGHT) {
+                        drawTile(screenX, screenY, maps[player.floor][ty][tx], tx, ty);
+                    } else {
+                        ctx.fillStyle = '#090909';
+                        ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+                    }
+                }
+            }
+
+            // 2. Rysowanie ciał potworów na ziemi
+            corpses = corpses.filter(c => now < c.expiresAt);
+            corpses.forEach(c => {
+                if (c.floor !== player.floor) return;
+                const sx = Math.round((c.x - camX) * TILE_SIZE);
+                const sy = Math.round((c.y - camY) * TILE_SIZE);
+                ctx.fillStyle = 'rgba(153, 27, 27, 0.7)';
+                ctx.beginPath();
+                ctx.ellipse(sx + 22, sy + 28, 14, 7, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = c.color || '#78716c';
+                ctx.fillRect(sx + 12, sy + 20, 20, 10);
+            });
+
+            // 3. Rysowanie NPC (w tym GM Obsessive w rogu mapy)
+            npcs.forEach(n => {
+                if (n.floor !== player.floor) return;
+                const sx = Math.round((n.x - camX) * TILE_SIZE);
+                const sy = Math.round((n.y - camY) * TILE_SIZE);
+                if (n.isGM) {
+                    // Złota poświata pod Game Masterem Obsessive
+                    ctx.strokeStyle = '#fbbf24';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(sx + 3, sy + 3, TILE_SIZE - 6, TILE_SIZE - 6);
+                    ctx.lineWidth = 1;
+                    drawCharacterSprite(sx, sy, '#1d4ed8', '#facc15', false);
+                } else {
+                    drawCharacterSprite(sx, sy, n.color, '#e2e8f0', false);
+                }
+                drawNameAndHealthBar(sx, sy, n.name, 100, true);
+            });
+
+            // 4. Rysowanie Potworów
+            monsters.forEach(m => {
+                if (m.floor !== player.floor) return;
+                const sx = Math.round((m.drawX - camX) * TILE_SIZE);
+                const sy = Math.round((m.drawY - camY) * TILE_SIZE);
+                drawMonsterSprite(sx, sy, m);
+            });
+
+            // 5. Rysowanie Gracza na środku ekranu
+            const pScreenX = Math.round((player.drawX - camX) * TILE_SIZE);
+            const pScreenY = Math.round((player.drawY - camY) * TILE_SIZE);
+            drawCharacterSprite(pScreenX, pScreenY, '#2563eb', '#f59e0b', true);
+            const playerHpPercent = Math.max(0, (player.hp / player.maxHp) * 100);
+            drawNameAndHealthBar(pScreenX, pScreenY, player.name, playerHpPercent, false);
+
+            // 6. Rysowanie efektów wizualnych (Krew, Leczenie, Ogień, Exori, Blok tarczą)
+            visualEffects = visualEffects.filter(ef => now - ef.createdAt < ef.duration);
+            visualEffects.forEach(ef => {
+                if (ef.floor !== player.floor) return;
+                const sx = Math.round((ef.x - camX) * TILE_SIZE);
+                const sy = Math.round((ef.y - camY) * TILE_SIZE);
+                const progress = (now - ef.createdAt) / ef.duration;
+
+                if (ef.type === 'blood') {
+                    ctx.fillStyle = '#dc2626';
+                    ctx.beginPath();
+                    ctx.arc(sx + 22, sy + 22, 6 + progress * 8, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (ef.type === 'heal') {
+                    ctx.strokeStyle = '#38bdf8';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(sx + 22, sy + 22, 8 + progress * 12, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.lineWidth = 1;
+                } else if (ef.type === 'fire') {
+                    ctx.fillStyle = 'rgba(249, 115, 22, 0.75)';
+                    ctx.beginPath();
+                    ctx.arc(sx + 22, sy + 22, 14, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (ef.type === 'slime') {
+                    ctx.fillStyle = 'rgba(132, 204, 22, 0.8)';
+                    ctx.beginPath();
+                    ctx.arc(sx + 22, sy + 22, 13, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (ef.type === 'exori') {
+                    ctx.strokeStyle = '#e2e8f0';
+                    ctx.lineWidth = 3;
+                    ctx.strokeRect(sx + 6, sy + 6, TILE_SIZE - 12, TILE_SIZE - 12);
+                    ctx.lineWidth = 1;
+                } else if (ef.type === 'shield_block') {
+                    ctx.fillStyle = '#d4d4d8';
+                    ctx.beginPath();
+                    ctx.arc(sx + 22, sy + 22, 9, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+
+            // 7. Rysowanie pływających tekstów nad głowami (obrażenia, zaklęcia, EXP)
+            floatingTexts = floatingTexts.filter(ft => now - ft.createdAt < ft.duration);
+            floatingTexts.forEach(ft => {
+                if (ft.floor !== player.floor) return;
+                const progress = (now - ft.createdAt) / ft.duration;
+                const sx = Math.round((ft.x - camX) * TILE_SIZE) + TILE_SIZE / 2;
+                const sy = Math.round((ft.y - camY) * TILE_SIZE) - Math.round(progress * 26);
+
+                ctx.font = 'bold 13px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#000';
+                ctx.fillText(ft.text, sx + 1, sy + 1);
+                ctx.fillStyle = ft.color;
+                ctx.fillText(ft.text, sx, sy);
+            });
+
+            requestAnimationFrame(renderGameLoop);
+        }
+
+        /***********************************************************************
+         * 12. OBSŁUGA KLAWIATURY, MYSZY I CZATU
+         ***********************************************************************/
+        window.addEventListener('keydown', (e) => {
+            // Jeśli fokus jest w polu czatu, nie ruszaj postacią przez WASD
+            if (document.activeElement === document.getElementById('chat-input')) {
+                if (e.key === 'Escape') {
+                    document.getElementById('chat-input').blur();
+                }
+                return;
+            }
+
+            switch (e.key.toLowerCase()) {
+                case 'w':
+                case 'arrowup':
+                    e.preventDefault();
+                    handleMoveInput(0, -1);
+                    break;
+                case 's':
+                case 'arrowdown':
+                    e.preventDefault();
+                    handleMoveInput(0, 1);
+                    break;
+                case 'a':
+                case 'arrowleft':
+                    e.preventDefault();
+                    handleMoveInput(-1, 0);
+                    break;
+                case 'd':
+                case 'arrowright':
+                    e.preventDefault();
+                    handleMoveInput(1, 0);
+                    break;
+                case 'f1':
+                    e.preventDefault();
+                    castSpell('exura');
+                    break;
+                case 'f2':
+                    e.preventDefault();
+                    castSpell('exori');
+                    break;
+                case 'enter':
+                    document.getElementById('chat-input').focus();
+                    break;
+            }
+        });
+
+        // Kliknięcie na Canvasie (Zaznaczanie potwora, rozmowa z NPC lub ruch o 1 kratkę)
+        canvas.addEventListener('mousedown', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+
+            const clickX = (e.clientX - rect.left) * scaleX;
+            const clickY = (e.clientY - rect.top) * scaleY;
+
+            const halfW = Math.floor(VIEWPORT_TILES_X / 2);
+            const halfH = Math.floor(VIEWPORT_TILES_Y / 2);
+            const tileX = Math.floor(clickX / TILE_SIZE + (player.drawX - halfW));
+            const tileY = Math.floor(clickY / TILE_SIZE + (player.drawY - halfH));
+
+            // 1. Sprawdź czy kliknięto na potwora
+            const clickedMonster = monsters.find(m => m.floor === player.floor && m.x === tileX && m.y === tileY);
+            if (clickedMonster) {
+                toggleTargetMonster(clickedMonster.uid);
+                return;
+            }
+
+            // 2. Sprawdź czy kliknięto na NPC
+            const clickedNpc = npcs.find(n => n.floor === player.floor && n.x === tileX && n.y === tileY);
+            if (clickedNpc) {
+                interactWithNpc(clickedNpc);
+                return;
+            }
+
+            // 3. Ruch w kierunku klikniętego kafelka
+            const dx = Math.sign(tileX - player.x);
+            const dy = Math.sign(tileY - player.y);
+            if (dx !== 0 || dy !== 0) {
+                handleMoveInput(dx, dy);
+            }
+        });
+
+        // Obsługa formularza czatu (zaklęcia oraz rozmowa z NPC)
+        document.getElementById('chat-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const input = document.getElementById('chat-input');
+            const msg = input.value.trim();
+            if (!msg) return;
+            input.value = '';
+
+            // 1. Sprawdź czy wpisano zaklęcie (exura, exori, utani hur...)
+            if (castSpell(msg)) {
+                return;
+            }
+
+            // 2. Sprawdź komendy rozmowy z NPC (hi, heal, trade, gm)
+            const lower = msg.toLowerCase();
+            addFloatingText(player.x, player.y, player.floor, msg, '#fef08a');
+            addLogMessage(`GramJ: ${msg}`, 'text-amber-200');
+
+            if (lower === 'hi' || lower === 'hello' || lower === 'cześć' || lower === 'siema') {
+                const distToGM = Math.max(Math.abs(player.x - 30), Math.abs(player.y - 3));
+                if (player.floor === 0 && distToGM <= 5) {
+                    interactWithGM();
+                } else {
+                    addLogMessage('Mnich Cipfried: Witaj GramJ! Wpisz "heal" aby się uleczyć, "trade" u Xodeta lub odwiedź GM Obsessive w prawym górnym rogu mapy!', 'text-sky-300');
+                }
+            } else if (lower === 'gm' || lower === 'obsessive') {
+                interactWithGM();
+            } else if (lower === 'heal' || lower === 'ulecz') {
+                npcHealPlayer();
+            } else if (lower === 'trade' || lower === 'sklep') {
+                openShopModal();
+            }
+        });
+
+        // Obsługa modala pomocy
+        document.getElementById('help-btn').addEventListener('click', () => {
+            const modal = document.getElementById('help-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        });
+
+        function closeHelpModal() {
+            const modal = document.getElementById('help-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // Pasywna regeneracja HP i Many co 3 sekundy
+        setInterval(() => {
+            if (player.hp < player.maxHp) player.hp = Math.min(player.maxHp, player.hp + 2);
+            if (player.mp < player.maxMp) player.mp = Math.min(player.maxMp, player.mp + 3);
+            updatePlayerStatsUI();
+            updateBattleListUI();
+        }, 3000);
+
+        /***********************************************************************
+         * 13. INICJALIZACJA GRY PO ZAŁADOWANIU OKNA
+         ***********************************************************************/
+        window.onload = function () {
+            initMaps();
+            spawnAllMonsters();
+            resizeCanvas();
+            renderInventoryUI();
+            updateZoneIndicator();
+            updateBattleListUI();
+
+            addLogMessage('Witaj w Tibia Web RPG, GramJ! Znajdujesz się w bezpiecznej świątyni.', 'text-amber-300 font-bold');
+            addLogMessage('NOWOŚĆ: Poluj na krasnoludy "Miodus", pryszczatego potwora "Koryt" oraz potężnego grubego "Kowala"!', 'text-emerald-300 font-semibold');
+            addLogMessage('W północno-wschodnim rogu mapy (x:30, y:3) czuwa Game Master: GM Obsessive! Odwiedź go lub wpisz "gm" na czacie.', 'text-red-400 font-semibold');
+
+            requestAnimationFrame(renderGameLoop);
+        };
+    </script>
+</body>
+</html>
