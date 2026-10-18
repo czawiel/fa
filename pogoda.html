@@ -76,10 +76,9 @@
             background: #0f172a !important;
             font-family: 'Inter', sans-serif !important;
         }
-        .tab-active {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            color: white;
-            box-shadow: 0 4px 15px -3px rgba(59, 130, 246, 0.45);
+        /* Ciemny motyw dla darmowych kafelków OpenStreetMap */
+        .dark-map-tiles {
+            filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
         }
     </style>
 </head>
@@ -1342,7 +1341,7 @@
         }
 
 // ============================================================================
-        // 6. MAPA POGODOWA LEAFLET
+        // 6. MAPA POGODOWA LEAFLET (DARMOWA, BEZ KLUCZA API)
         // ============================================================================
         function initWeatherMap() {
             if (mapInstance) return;
@@ -1353,19 +1352,19 @@
                 zoomControl: true
             });
 
-            // Ciemna mapa podkładowa z wyłączonym przekazywaniem domeny (brak blokady API KEY REQUIRED)
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
-                subdomains: 'abcd',
+            // W 100% darmowa mapa OpenStreetMap w trybie ciemnym (nie wymaga żadnego klucza API)
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors',
                 maxZoom: 19,
-                referrerPolicy: 'no-referrer'
+                className: 'dark-map-tiles'
             }).addTo(mapInstance);
 
+            // Warstwa pogodowa OpenWeatherMap (Temperatura, Opady, Chmury, Wiatr) - zostaje bez zmian!
             owmTileLayer = L.tileLayer(
                 `https://tile.openweathermap.org/map/${currentMapLayerName}/{z}/{x}/{y}.png?appid=${OPENWEATHER_API_KEY}`,
                 {
                     attribution: 'Dane radarowe &copy; OpenWeatherMap',
-                    opacity: 0.72,
+                    opacity: 0.75,
                     maxZoom: 18
                 }
             ).addTo(mapInstance);
