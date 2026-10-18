@@ -1,0 +1,2025 @@
+<!DOCTYPE html>
+<html lang="pl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MeteoPolska Pro | Zaawansowana Aplikacja Pogodowa</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Leaflet CSS & JS for Interactive Weather Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- SQL.js (Lokalny bufor awaryjny SQLite) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        slate: {
+                            850: '#151e2e',
+                            900: '#0f172a',
+                            950: '#020617',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #090d16;
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(71, 85, 105, 0.8);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(100, 116, 139, 1);
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.72);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .hero-overlay {
+            background: linear-gradient(180deg, rgba(9, 13, 22, 0.25) 0%, rgba(9, 13, 22, 0.65) 55%, rgba(9, 13, 22, 0.96) 100%);
+        }
+        #weather-map {
+            height: 440px;
+            width: 100%;
+            z-index: 10;
+        }
+        .leaflet-container {
+            background: #0f172a !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+        .tab-active {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            box-shadow: 0 4px 15px -3px rgba(59, 130, 246, 0.45);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-blue-500 selection:text-white">
+
+    <!-- Header & Search Bar -->
+    <header class="sticky top-0 z-40 glass-panel border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col md:flex-row items-center justify-between gap-4">
+            <!-- Brand -->
+            <div class="flex items-center justify-between w-full md:w-auto">
+                <a href="#"><div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/25">
+                        <i data-lucide="cloud-sun-rain" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h1 class="text-lg font-bold tracking-tight text-white">MeteoPolska <span class="text-blue-400">PRO</span></h1>
+                        </div>
+                        <p class="text-xs text-slate-400">16 dni • Godzinowa 72h • Archiwum 7 dni</p>
+                    </div>
+                </div></a>
+                <button onclick="detectUserLocation()" title="Wykryj moją lokalizację" class="md:hidden p-2.5 rounded-xl bg-blue-600/20 text-blue-400 border border-blue-500/30 hover:bg-blue-600/30 transition">
+                    <i data-lucide="locate-fixed" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <a href="https://fabryka.tech/"><img src="logw1.svg" style="height:16px" alt="Logo"/></a>
+            <!-- Search Input & Geolocation -->
+            <div class="relative w-full md:max-w-md lg:max-w-lg flex items-center gap-2">
+                <div class="relative flex-1">
+                    <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                    <input 
+                        id="city-search-input" 
+                        type="text" 
+                        placeholder="Wpisz miasto, adres lub miejsce (np. Płock, Warszawa, Gdańsk)..." 
+                        autocomplete="off"
+                        class="w-full pl-10 pr-20 py-2.5 bg-slate-900/90 border border-white/15 rounded-xl text-sm text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
+                    />
+                    <button 
+                        id="search-submit-btn"
+                        onclick="triggerSearch()"
+                        class="absolute right-1.5 top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-medium text-white transition"
+                    >
+                        Szukaj
+                    </button>
+                    <!-- Autocomplete dropdown -->
+                    <div id="search-results-dropdown" class="hidden absolute left-0 right-0 mt-2 glass-panel rounded-xl shadow-2xl border border-white/15 overflow-hidden z-50 max-h-72 overflow-y-auto">
+                    </div>
+                </div>
+
+                <button 
+                    onclick="detectUserLocation()" 
+                    class="hidden md:flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 text-xs font-medium transition shrink-0"
+                    title="Automatyczne wykrywanie lokalizacji GPS"
+                >
+                    <i data-lucide="locate-fixed" class="w-4 h-4 text-blue-400"></i>
+                    <span>Moja lokalizacja</span>
+                </button>
+            </div>
+            
+            <!-- Quick Popular Cities -->
+            <div style="display: none" class="hidden xl:flex items-center gap-1.5 text-xs">
+                <span class="text-slate-500 mr-1">Szybki wybór:</span>
+                <button onclick="loadLocationByCoords(52.5468, 19.7064, 'Płock', 'PL')" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 transition">Płock</button>
+                <button onclick="loadLocationByCoords(52.2297, 21.0122, 'Warszawa', 'PL')" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 transition">Warszawa</button>
+                <button onclick="loadLocationByCoords(50.0647, 19.9450, 'Kraków', 'PL')" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 transition">Kraków</button>
+                <button onclick="loadLocationByCoords(54.3520, 18.6466, 'Gdańsk', 'PL')" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 transition">Gdańsk</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- Status / Toast Message Box -->
+        <div id="status-toast" class="hidden rounded-xl p-3.5 border flex items-center justify-between gap-3 text-sm transition-all">
+            <div class="flex items-center gap-2.5">
+                <i id="status-toast-icon" data-lucide="info" class="w-5 h-5 shrink-0"></i>
+                <span id="status-toast-text"></span>
+            </div>
+            <button onclick="hideToast()" class="text-slate-400 hover:text-white">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <!-- Dynamic Hero Section -->
+        <section id="hero-weather-section" class="relative rounded-3xl overflow-hidden shadow-2xl border border-white/15 min-h-[380px] flex flex-col justify-between transition-all">
+            <div id="hero-bg-image" class="absolute inset-0 bg-cover bg-center transition-all duration-700 scale-105" style="background-image: url('01d.jpg');"></div>
+            <div class="absolute inset-0 hero-overlay"></div>
+
+            <!-- Top Bar inside Hero -->
+            <div class="relative z-10 p-6 sm:p-8 flex flex-wrap items-start justify-between gap-4">
+                <div>
+                    <div class="flex flex-wrap items-center gap-2 mb-3">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/55 backdrop-blur-md border border-white/15 text-xs text-blue-300">
+                            <i data-lucide="map-pin" class="w-3.5 h-3.5 text-blue-400"></i>
+                            <span id="location-badge-source">Lokalizacja GPS</span>
+                            <span class="text-slate-500">•</span>
+                            <span id="current-coords-label">52.23°N, 21.01°E</span>
+                        </div>
+
+                        <!-- Wskaźnik Dzień / Noc w głównym banerze -->
+                        <span id="hero-daynight-badge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/25 border border-amber-400/40 text-amber-200 text-xs font-bold backdrop-blur-md">
+                            ☀️ Pora: Dzień
+                        </span>
+
+                        <!-- Przycisk powrotu do aktualnej pogody, gdy przeglądamy klikniętą godzinę/dzień/archiwum -->
+                        <button id="hero-reset-live-btn" onclick="resetHeroToCurrentLiveWeather()" class="hidden inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-lg transition">
+                            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                            <span>Wróć do aktualnej pogody na żywo</span>
+                        </button>
+                    </div>
+
+                    <h2 id="current-city-name" class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white drop-shadow-md">
+                        Warszawa, PL
+                    </h2>
+                    <p id="current-date-label" class="text-sm sm:text-base text-slate-200 mt-1 drop-shadow font-medium">
+                        Ładowanie aktualnej daty i czasu...
+                    </p>
+                </div>
+            </div>
+
+            <!-- Bottom Main Weather Stats inside Hero -->
+            <div class="relative z-10 p-6 sm:p-8 pt-0 grid grid-cols-1 lg:grid-cols-12 gap-6 items-end">
+                <div class="lg:col-span-5 flex items-center gap-5">
+                    <div class="text-6xl sm:text-7xl font-black tracking-tighter text-white drop-shadow-lg" id="current-temp-val">
+                        --°C
+                    </div>
+                    <div class="space-y-1">
+                        <div class="text-lg sm:text-xl font-bold text-white drop-shadow" id="current-condition-title">
+                            Pobieranie danych...
+                        </div>
+                        <div class="text-sm text-slate-200 flex items-center gap-3">
+                            <span>Odczuwalna: <strong id="current-feels-like" class="text-white">--°C</strong></span>
+                            <span>•</span>
+                            <span>Min/Max: <strong id="current-minmax" class="text-white">--° / --°</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6 Detailed Metric Pills -->
+                <div class="lg:col-span-7 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <div class="bg-black/45 backdrop-blur-md border border-white/10 rounded-2xl p-3.5 flex items-center gap-3">
+                        <div class="p-2.5 rounded-xl bg-blue-500/20 text-blue-300">
+                            <i data-lucide="wind" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-300">Wiatr</p>
+                            <p id="stat-wind" class="text-sm sm:text-base font-bold text-white">-- km/h</p>
+                        </div>
+                    </div>
+                    <div class="bg-black/45 backdrop-blur-md border border-white/10 rounded-2xl p-3.5 flex items-center gap-3">
+                        <div class="p-2.5 rounded-xl bg-cyan-500/20 text-cyan-300">
+                            <i data-lucide="droplets" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-300">Wilgotność</p>
+                            <p id="stat-humidity" class="text-sm sm:text-base font-bold text-white">--%</p>
+                        </div>
+                    </div>
+                    <div class="bg-black/45 backdrop-blur-md border border-white/10 rounded-2xl p-3.5 flex items-center gap-3">
+                        <div class="p-2.5 rounded-xl bg-indigo-500/20 text-indigo-300">
+                            <i data-lucide="gauge" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-300">Ciśnienie</p>
+                            <p id="stat-pressure" class="text-sm sm:text-base font-bold text-white">-- hPa</p>
+                        </div>
+                    </div>
+                    <div class="bg-black/45 backdrop-blur-md border border-white/10 rounded-2xl p-3.5 flex items-center gap-3">
+                        <div class="p-2.5 rounded-xl bg-sky-500/20 text-sky-300">
+                            <i data-lucide="cloud-rain" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-300">Opady / Szansa</p>
+                            <p id="stat-precip" class="text-sm sm:text-base font-bold text-white">0.0 mm (0%)</p>
+                        </div>
+                    </div>
+                    <div class="bg-black/45 backdrop-blur-md border border-white/10 rounded-2xl p-3.5 flex items-center gap-3">
+                        <div class="p-2.5 rounded-xl bg-amber-500/20 text-amber-300">
+                            <i data-lucide="sunrise" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-300">Wschód / Zachód</p>
+                            <p id="stat-sun" class="text-sm sm:text-base font-bold text-white">--:-- / --:--</p>
+                        </div>
+                    </div>
+                    <div class="bg-black/45 backdrop-blur-md border border-white/10 rounded-2xl p-3.5 flex items-center gap-3">
+                        <div class="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-300">
+                            <i data-lucide="eye" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-300">Widoczność / Pora</p>
+                            <p id="stat-vis" class="text-sm sm:text-base font-bold text-white">-- km / Dzień</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Navigation Tabs -->
+        <nav class="flex flex-wrap items-center gap-2 p-1.5 glass-panel rounded-2xl border border-white/10">
+            <button onclick="switchTab('hourly')" id="tab-btn-hourly" class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/5 transition flex items-center justify-center gap-2">
+                <i data-lucide="clock" class="w-4 h-4"></i>
+                <span>Pogoda Godzinowa (72h) + Mapa</span>
+            </button>
+            <button onclick="switchTab('longterm')" id="tab-btn-longterm" class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/5 transition flex items-center justify-center gap-2">
+                <i data-lucide="calendar-days" class="w-4 h-4"></i>
+                <span>Pogoda Długoterminowa (16 dni)</span>
+            </button>
+            <button onclick="switchTab('archive')" id="tab-btn-archive" class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/5 transition flex items-center justify-center gap-2">
+                <i data-lucide="history" class="w-4 h-4"></i>
+                <span>Archiwum Pogody (Ostatnie 7 dni)</span>
+            </button>
+        </nav>
+
+        <!-- TAB 1: HOURLY FORECAST (72H) & INTERACTIVE MAP -->
+        <div id="tab-content-hourly" class="hidden space-y-6">
+            <section class="glass-panel rounded-3xl p-6 border border-white/10 space-y-5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <h3 class="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+                            <i data-lucide="clock-4" class="w-5 h-5 text-blue-400"></i>
+                            <span>Prognoza godzinowa</span>
+                        </h3>
+                        <p class="text-xs sm:text-sm text-slate-400">Kliknij w wybraną godzinę, aby wyświetlić jej zdjęcie i pełne parametry w głównym górnym banerze pogodowym</p>
+                    </div>
+                    <div class="inline-flex rounded-xl bg-slate-900 p-1 border border-white/10 self-start">
+                        <button onclick="setHourlyHorizon(24)" id="horizon-24" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition">24 godz.</button>
+                        <button onclick="setHourlyHorizon(48)" id="horizon-48" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white transition">48 godz.</button>
+                        <button onclick="setHourlyHorizon(72)" id="horizon-72" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition">72 godz.</button>
+                    </div>
+                </div>
+
+                <div id="hourly-scroll-container" class="flex items-stretch gap-3.5 overflow-x-auto pb-3 pt-1 select-none"></div>
+
+                <div class="pt-3 border-t border-white/10">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-blue-400 flex items-center gap-1.5">
+                            <i data-lucide="radio" class="w-3.5 h-3.5"></i>
+                            Bezpośredni odczyt 3-godzinny
+                        </span>
+                        <span class="text-xs text-slate-400">Kliknij kartę, aby pokazać w górnym banerze</span>
+                    </div>
+                    <div id="owm-3h-container" class="flex items-stretch gap-3 overflow-x-auto pb-2 select-none"></div>
+                </div>
+            </section>
+
+            <!-- Interactive Map Section -->
+            <section class="glass-panel rounded-3xl p-6 border border-white/10 space-y-4">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    <div>
+                        <h3 class="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+                            <i data-lucide="map" class="w-5 h-5 text-blue-400"></i>
+                            <span>Interaktywna Mapa Pogodowa</span>
+                        </h3>
+                        <p class="text-xs sm:text-sm text-slate-400">Kliknij w dowolne miejsce na mapie, aby pobrać pogodę dla wybranego punktu.</p>
+                    </div>
+
+                    <!-- Map Weather Layers Switcher -->
+                    <div class="flex flex-wrap items-center gap-1.5 bg-slate-900/90 p-1.5 rounded-xl border border-white/10">
+                        <button onclick="setWeatherMapLayer('temp_new')" id="layer-btn-temp_new" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600 text-white transition flex items-center gap-1.5">
+                            <i data-lucide="thermometer" class="w-3.5 h-3.5"></i> Temperatura
+                        </button>
+                        <button onclick="setWeatherMapLayer('precipitation_new')" id="layer-btn-precipitation_new" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/5 transition flex items-center gap-1.5">
+                            <i data-lucide="cloud-rain" class="w-3.5 h-3.5"></i> Opady
+                        </button>
+                        <button onclick="setWeatherMapLayer('clouds_new')" id="layer-btn-clouds_new" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/5 transition flex items-center gap-1.5">
+                            <i data-lucide="cloud" class="w-3.5 h-3.5"></i> Chmury
+                        </button>
+                        <button onclick="setWeatherMapLayer('wind_new')" id="layer-btn-wind_new" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/5 transition flex items-center gap-1.5">
+                            <i data-lucide="wind" class="w-3.5 h-3.5"></i> Wiatr
+                        </button>
+                    </div>
+                </div>
+
+                <div class="relative rounded-2xl overflow-hidden border border-white/15 shadow-inner">
+                    <div id="weather-map"></div>
+                    <div class="absolute bottom-3 left-3 z-[400] bg-slate-900/85 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/15 text-xs text-slate-300 pointer-events-none">
+                        Wskazówka: Kliknij dowolny punkt na mapie, aby pobrać dla niego pogodę
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- TAB 2: LONG-TERM FORECAST (UP TO 16 DAYS) -->
+        <div id="tab-content-longterm" class="hidden space-y-6">
+            <section class="glass-panel rounded-3xl p-6 border border-white/10 space-y-5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                        <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                            <i data-lucide="calendar-range" class="w-5 h-5 text-blue-400"></i>
+                            <span>Pogoda długoterminowa – 16 dni do przodu</span>
+                        </h3>
+                        <p class="text-xs sm:text-sm text-slate-400">Kliknij w wybrany dzień, aby wyświetlić jego zdjęcie oraz szczegółowe informacje pogodowe w głównym górnym banerze</p>
+                    </div>
+                    <div class="text-xs text-blue-300 bg-blue-500/10 px-3.5 py-2 rounded-xl border border-blue-500/20">
+                        Kliknięcie karty aktualizuje główny baner na górze strony
+                    </div>
+                </div>
+
+                <div id="longterm-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            </section>
+        </div>
+
+        <!-- TAB 3: ARCHIVE WEATHER (LAST 7 DAYS) -->
+        <div id="tab-content-archive" class="hidden space-y-6">
+            <section class="glass-panel rounded-3xl p-6 border border-white/10 space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                            <i data-lucide="history" class="w-5 h-5 text-emerald-400"></i>
+                            <span>Pogoda archiwalna z ostatnich 7 dni</span>
+                        </h3>
+                        <p class="text-xs sm:text-sm text-slate-400">Kliknij w dzień lub godzinę archiwalną, aby pokazać jej zdjęcie i dane pogodowe w głównym górnym banerze</p>
+                    </div>
+                    <span class="px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-medium self-start">
+                        Dane z ostatnich 168 godzin (7 dób)
+                    </span>
+                </div>
+
+                <div id="archive-days-grid" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3"></div>
+
+                <div class="bg-slate-900/75 rounded-2xl p-5 border border-white/10 space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                            <h4 class="text-base font-bold text-white flex items-center gap-2">
+                                <i data-lucide="clock" class="w-4 h-4 text-emerald-400"></i>
+                                <span>Szczegółowy przebieg godzinowy z dnia archiwalnego: <span id="archive-selected-date-label" class="text-emerald-400">--</span></span>
+                            </h4>
+                            <p class="text-xs text-slate-400">Kliknij wybraną godzinę archiwalną, aby wyświetlić jej zdjęcie oraz parametry w głównym górnym banerze</p>
+                        </div>
+                    </div>
+
+                    <div id="archive-hourly-container" class="flex items-stretch gap-3 overflow-x-auto pb-2 select-none"></div>
+                </div>
+            </section>
+        </div>
+
+    </main>
+
+    <!-- Application Logic -->
+    <script>
+        // ============================================================================
+        // 1. KLUCZE API + KONFIGURACJA ODCZYTU Z BAZY TURSO (READ-ONLY)
+        // ============================================================================
+        const OPENWEATHER_API_KEY = "3d0de424c618d6b82fd371aa43fea911";
+        const CARTO_API_KEY = "cb1_4nak_1_41e64b7ede0c5acdc7294390";
+
+        const NEW_TURSO_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicm8iLCJpYXQiOjE3OTIzNDE1MDgsImlkIjoiMDFhMTRhYjYtNjIwMS03Nzk4LTk5OWQtN2MxMDk0NTkzODUwIiwia2lkIjoibVU3UXpkTWNJemp0cy00b3ZpUkZNWmx5QUh5ZVU1RmRPVXdhdHhyTDI3RSIsInJpZCI6ImJjNTk3YzQwLWY5M2YtNGYzYS04YzQ5LTNkNzU0NGY0N2UzYSJ9.AoSGxNNNADx-OqPYkDKcKPtfRrN9PxEkXs25BOzczp-c_bzj3YJL-XOm9cql3XCEkV1xhxK5g2435KaTBbnNBg";
+        const WEATHER_DB_TURSO_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicm8iLCJpYXQiOjE3OTIzNDE1MDgsImlkIjoiMDFhMTRhYjYtNjIwMS03Nzk4LTk5OWQtN2MxMDk0NTkzODUwIiwia2lkIjoibVU3UXpkTWNJemp0cy00b3ZpUkZNWmx5QUh5ZVU1RmRPVXdhdHhyTDI3RSIsInJpZCI6ImJjNTk3YzQwLWY5M2YtNGYzYS04YzQ5LTNkNzU0NGY0N2UzYSJ9.AoSGxNNNADx-OqPYkDKcKPtfRrN9PxEkXs25BOzczp-c_bzj3YJL-XOm9cql3XCEkV1xhxK5g2435KaTBbnNBg";
+
+        const DEFAULT_TURSO_LIBSQL_URL = "libsql://weather-cesar87.aws-eu-north-1.turso.io";
+        const FALLBACK_RSS_LIBSQL_URL = "libsql://rss-cesar87.aws-eu-north-1.turso.io";
+
+        let TURSO_LIBSQL_URL = DEFAULT_TURSO_LIBSQL_URL;
+        let TURSO_AUTH_TOKEN = NEW_TURSO_TOKEN;
+
+        function toHttpPipelineUrl(libsqlUrl) {
+            const cleanHost = libsqlUrl
+                .trim()
+                .replace(/^libsql:\/\//i, "https://")
+                .replace(/^wss:\/\//i, "https://")
+                .replace(/\/+$/, "");
+            return `${cleanHost}/v2/pipeline`;
+        }
+
+        /**
+         * Obsługa przewijania pasków poziomych rolką myszki (wheel scroll)
+         */
+        function enableHorizontalWheelScroll() {
+            const scrollContainers = [
+                'hourly-scroll-container',
+                'owm-3h-container',
+                'archive-hourly-container'
+            ];
+
+            scrollContainers.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+
+                el.addEventListener('wheel', function(e) {
+                    if (e.deltaY !== 0) {
+                        const maxScrollLeft = el.scrollWidth - el.clientWidth;
+                        if (maxScrollLeft > 0) {
+                            e.preventDefault();
+                            el.scrollLeft += e.deltaY;
+                        }
+                    }
+                }, { passive: false });
+            });
+        }
+
+        /**
+         * Rozpoznawanie pory dnia (Dzień / Noc) oraz usuwanie dopisków w nawiasach (Dzień) i (Noc)
+         */
+        function normalizeDayNightPeriod(code, rawPeriod, rawLabel = "") {
+            const p = String(rawPeriod || "").toLowerCase();
+            const c = String(code || "").toLowerCase();
+            const l = String(rawLabel || "").toLowerCase();
+            if (p === "noc" || c.endsWith("n") || c.endsWith("_n") || l.includes("(noc)") || l.includes("/ noc") || l.includes("w nocy")) {
+                return "Noc";
+            }
+            return "Dzień";
+        }
+
+        function stripDayNightParentheses(label) {
+            return String(label || "")
+                .replace(/\s*\(\s*(?:Dzień|Noc)\s*\)/gi, "")
+                .trim();
+        }
+
+        function createAtmosphericSvgDataUri(code, title, period = "Dzień", gradStart = "#1e293b", gradEnd = "#090d16", accentColor = "#38bdf8") {
+            const cleanTitle = stripDayNightParentheses(title);
+            const safeTitle = String(cleanTitle).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            const periodBadge = period === "Noc" ? "PORA: NOC" : "PORA: DZIEŃ";
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540">
+                <defs>
+                    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="${gradStart}"/>
+                        <stop offset="100%" stop-color="${gradEnd}"/>
+                    </linearGradient>
+                </defs>
+                <rect width="960" height="540" fill="url(#g)"/>
+                <circle cx="780" cy="120" r="180" fill="${accentColor}" opacity="0.14"/>
+                <circle cx="180" cy="420" r="220" fill="${accentColor}" opacity="0.08"/>
+                <g fill="none" stroke="${accentColor}" stroke-width="2" opacity="0.25">
+                    <line x1="200" y1="100" x2="160" y2="500"/>
+                    <line x1="350" y1="60" x2="310" y2="500"/>
+                    <line x1="500" y1="120" x2="460" y2="500"/>
+                    <line x1="650" y1="80" x2="610" y2="500"/>
+                    <line x1="800" y1="140" x2="760" y2="500"/>
+                </g>
+                <rect x="150" y="180" width="660" height="180" rx="24" fill="#0f172a" fill-opacity="0.82" stroke="#ffffff" stroke-opacity="0.2"/>
+                <text x="480" y="235" text-anchor="middle" fill="#38bdf8" font-family="Inter, sans-serif" font-size="20" font-weight="700">KOD POGODY: ${code} • ${periodBadge}</text>
+                <text x="480" y="285" text-anchor="middle" fill="#ffffff" font-family="Inter, sans-serif" font-size="18" font-weight="600">${safeTitle}</text>
+            </svg>`;
+            return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+        }
+
+        // ============================================================================
+        // 2. PEŁNY KATALOG KODÓW POGODY (BEZ NAWIASÓW DZIEŃ / NOC W ETYKIETACH)
+        // ============================================================================
+        const EXTENDED_OWM_CONDITIONS = [
+            { id: 200, baseIcon: "11", category: "thunder", label: "Burza z lekkimi opadami deszczu" },
+            { id: 201, baseIcon: "11", category: "thunder", label: "Burza z opadami deszczu" },
+            { id: 202, baseIcon: "11", category: "thunder", label: "Gwałtowna burza z ulewnym deszczem" },
+            { id: 210, baseIcon: "11", category: "thunder", label: "Lekka burza atmosferyczna" },
+            { id: 211, baseIcon: "11", category: "thunder", label: "Burza z piorunami" },
+            { id: 212, baseIcon: "11", category: "thunder", label: "Silna burza z wyładowaniami" },
+            { id: 221, baseIcon: "11", category: "thunder", label: "Poszarpana burza frontowa" },
+            { id: 230, baseIcon: "11", category: "thunder", label: "Burza z lekką mżawką" },
+            { id: 231, baseIcon: "11", category: "thunder", label: "Burza z mżawką" },
+            { id: 232, baseIcon: "11", category: "thunder", label: "Burza z silną mżawką i gradem" },
+
+            { id: 300, baseIcon: "09", category: "drizzle_rain", label: "Lekka mżawka" },
+            { id: 301, baseIcon: "09", category: "drizzle_rain", label: "Umiarkowana mżawka" },
+            { id: 302, baseIcon: "09", category: "drizzle_rain", label: "Intensywna, gęsta mżawka" },
+            { id: 310, baseIcon: "09", category: "drizzle_rain", label: "Lekki deszcz z mżawką" },
+            { id: 311, baseIcon: "09", category: "drizzle_rain", label: "Deszcz z mżawką" },
+            { id: 312, baseIcon: "09", category: "drizzle_rain", label: "Intensywny deszcz z mżawką" },
+            { id: 313, baseIcon: "09", category: "drizzle_rain", label: "Przelotny deszcz i mżawka" },
+            { id: 314, baseIcon: "09", category: "drizzle_rain", label: "Ulewny przelotny deszcz z mżawką" },
+            { id: 321, baseIcon: "09", category: "drizzle_rain", label: "Przelotna mżawka" },
+
+            { id: 500, baseIcon: "10", category: "drizzle_rain", label: "Lekki deszcz" },
+            { id: 501, baseIcon: "10", category: "drizzle_rain", label: "Umiarkowany deszcz" },
+            { id: 502, baseIcon: "10", category: "drizzle_rain", label: "Intensywny, ulewny deszcz" },
+            { id: 503, baseIcon: "10", category: "drizzle_rain", label: "Bardzo silna ulewa" },
+            { id: 504, baseIcon: "10", category: "drizzle_rain", label: "Nawalny, ekstremalny deszcz" },
+            { id: 511, baseIcon: "13", category: "snow", label: "Marznący deszcz (gołoledź)" },
+            { id: 520, baseIcon: "09", category: "drizzle_rain", label: "Lekki deszcz przelotny" },
+            { id: 521, baseIcon: "09", category: "drizzle_rain", label: "Przelotne opady deszczu" },
+            { id: 522, baseIcon: "09", category: "drizzle_rain", label: "Silne oberwanie chmury (przelotny deszcz)" },
+            { id: 531, baseIcon: "09", category: "drizzle_rain", label: "Nieregularne, poszarpane opady deszczu" },
+
+            { id: 600, baseIcon: "13", category: "snow", label: "Lekkie opady śniegu" },
+            { id: 601, baseIcon: "13", category: "snow", label: "Opady śniegu" },
+            { id: 602, baseIcon: "13", category: "snow", label: "Intensywne opady śniegu (śnieżyca)" },
+            { id: 611, baseIcon: "13", category: "snow", label: "Deszcz ze śniegiem (krupy śnieżne)" },
+            { id: 612, baseIcon: "13", category: "snow", label: "Lekki przelotny deszcz ze śniegiem" },
+            { id: 613, baseIcon: "13", category: "snow", label: "Przelotny deszcz ze śniegiem" },
+            { id: 615, baseIcon: "13", category: "snow", label: "Lekki deszcz i śnieg" },
+            { id: 616, baseIcon: "13", category: "snow", label: "Opady deszczu ze śniegiem" },
+            { id: 620, baseIcon: "13", category: "snow", label: "Lekka przelotna śnieżyca" },
+            { id: 621, baseIcon: "13", category: "snow", label: "Przelotne opady śniegu" },
+            { id: 622, baseIcon: "13", category: "snow", label: "Gwałtowna przelotna śnieżyca" },
+
+            { id: 701, baseIcon: "50", category: "atmosphere", label: "Zamglenie (lekka mgła)" },
+            { id: 711, baseIcon: "50", category: "atmosphere", label: "Zadymienie / smog" },
+            { id: 721, baseIcon: "50", category: "atmosphere", label: "Zmętnienie powietrza (Haze)" },
+            { id: 731, baseIcon: "50", category: "atmosphere", label: "Wiry pyłowe / zamieć piaskowa" },
+            { id: 741, baseIcon: "50", category: "atmosphere", label: "Gęsta mgła" },
+            { id: 751, baseIcon: "50", category: "atmosphere", label: "Pył / piasek w powietrzu" },
+            { id: 761, baseIcon: "50", category: "atmosphere", label: "Zapylenie atmosferyczne" },
+            { id: 762, baseIcon: "50", category: "atmosphere", label: "Popiół wulkaniczny" },
+            { id: 771, baseIcon: "50", category: "atmosphere", label: "Szkwał / porywisty wiatr burzowy" },
+            { id: 781, baseIcon: "50", category: "atmosphere", label: "Tornado / trąba powietrzna" },
+
+            { id: 800, baseIcon: "01", category: "clouds", label: "Bezchmurnie / Czyste niebo" },
+            { id: 801, baseIcon: "02", category: "clouds", label: "Niewielkie zachmurzenie (11–25%)" },
+            { id: 802, baseIcon: "03", category: "clouds", label: "Rozproszone chmury kłębiaste (25–50%)" },
+            { id: 803, baseIcon: "04", category: "clouds", label: "Umiarkowane / duże zachmurzenie (51–84%)" },
+            { id: 804, baseIcon: "04", category: "clouds", label: "Całkowite zachmurzenie (85–100%)" }
+        ];
+
+        function getDefaultWeatherCodesDok() {
+            const base = {
+                "01d": { code: "01d", label: "Słonecznie", period: "Dzień", category: "base18", provided: true, fromSql: false, fileName: "01d.jpg", imageUrl: "01d.jpg" },
+                "01n": { code: "01n", label: "Czyste niebo", period: "Noc", category: "base18", provided: true, fromSql: false, fileName: "01n.jpg", imageUrl: "01n.jpg" },
+                "02d": { code: "02d", label: "Lekkie zachmurzenie", period: "Dzień", category: "base18", provided: true, fromSql: false, fileName: "02d.jpg", imageUrl: "02d.jpg" },
+                "02n": { code: "02n", label: "Lekkie zachmurzenie", period: "Noc", category: "base18", provided: true, fromSql: false, fileName: "02n.jpg", imageUrl: "02n.jpg" },
+                "03d": { code: "03d", label: "Rozproszone / umiarkowane chmury", period: "Dzień", category: "base18", provided: true, fromSql: false, fileName: "03d.webp", imageUrl: "03d.webp" },
+                "03n": { code: "03n", label: "Rozproszone / umiarkowane chmury", period: "Noc", category: "base18", provided: true, fromSql: false, fileName: "03n.jpg", imageUrl: "03n.jpg" },
+                "04d": { code: "04d", label: "Chmury – gęste zachmurzenie", period: "Dzień", category: "base18", provided: true, fromSql: false, fileName: "04d.jpg", imageUrl: "04d.jpg" },
+                "04n": { code: "04n", label: "Chmury – gęste zachmurzenie", period: "Noc", category: "base18", provided: true, fromSql: false, fileName: "04n.jpg", imageUrl: "04n.jpg" },
+                "09d": { code: "09d", label: "Przelotne opady / deszcz", period: "Dzień", category: "base18", provided: false, fromSql: false, fileName: "Brak (np. 09d.jpg)", imageUrl: createAtmosphericSvgDataUri("09d", "Przelotne opady / deszcz", "Dzień", "#1e3a5f", "#0f172a", "#38bdf8") },
+                "09n": { code: "09n", label: "Przelotne opady / deszcz", period: "Noc", category: "base18", provided: false, fromSql: false, fileName: "Brak (np. 09n.jpg)", imageUrl: createAtmosphericSvgDataUri("09n", "Przelotne opady / deszcz", "Noc", "#0f172a", "#020617", "#0284c7") },
+                "10d": { code: "10d", label: "Deszcz", period: "Dzień", category: "base18", provided: false, fromSql: false, fileName: "Brak (np. 10d.jpg)", imageUrl: createAtmosphericSvgDataUri("10d", "Deszcz", "Dzień", "#1e293b", "#0f172a", "#60a5fa") },
+                "10n": { code: "10n", label: "Deszcz", period: "Noc", category: "base18", provided: false, fromSql: false, fileName: "Brak (np. 10n.jpg)", imageUrl: createAtmosphericSvgDataUri("10n", "Deszcz", "Noc", "#090d16", "#020617", "#3b82f6") },
+                "11d": { code: "11d", label: "Burza", period: "Dzień", category: "base18", provided: false, fromSql: false, fileName: "Brak (np. 11d.jpg)", imageUrl: createAtmosphericSvgDataUri("11d", "Burza", "Dzień", "#312e81", "#0f172a", "#facc15") },
+                "11n": { code: "11n", label: "Burza", period: "Noc", category: "base18", provided: false, fromSql: false, fileName: "Brak (np. 11n.jpg)", imageUrl: createAtmosphericSvgDataUri("11n", "Burza", "Noc", "#1e1b4b", "#020617", "#eab308") },
+                "13d": { code: "13d", label: "Śnieg", period: "Dzień", category: "base18", provided: false, fromSql: false, fileName: "Brak (np. 13d.jpg)", imageUrl: createAtmosphericSvgDataUri("13d", "Śnieg", "Dzień", "#334155", "#1e293b", "#e2e8f0") },
+                "13n": { code: "13n", label: "Śnieg", period: "Noc", category: "base18", provided: false, fromSql: false, fileName: "Brak (np. 13n.jpg)", imageUrl: createAtmosphericSvgDataUri("13n", "Śnieg", "Noc", "#1e293b", "#090d16", "#cbd5e1") },
+                "50d": { code: "50d", label: "Mgła / zamglenie", period: "Dzień", category: "base18", provided: false, fromSql: false, fileName: "Brak (np. 50d.jpg)", imageUrl: createAtmosphericSvgDataUri("50d", "Mgła / zamglenie", "Dzień", "#475569", "#1e293b", "#94a3b8") },
+                "50n": { code: "50n", label: "Mgła / zamglenie", period: "Noc", category: "base18", provided: true, fromSql: false, fileName: "50n.jpg", imageUrl: "50n.jpg" }
+            };
+
+            EXTENDED_OWM_CONDITIONS.forEach(cond => {
+                const dayKey = `id_${cond.id}_d`;
+                const dayParentIcon = `${cond.baseIcon}d`;
+                const dayParent = base[dayParentIcon];
+                const hasDayDefaultImg = dayParent && dayParent.provided;
+                const cleanLabel = stripDayNightParentheses(cond.label);
+
+                base[dayKey] = {
+                    code: dayKey,
+                    owmId: cond.id,
+                    parentIcon: dayParentIcon,
+                    label: cleanLabel,
+                    period: "Dzień",
+                    category: cond.category,
+                    provided: false,
+                    fromSql: false,
+                    fileName: hasDayDefaultImg ? `Domyślne z ${dayParentIcon}` : "Brak własnego zdjęcia",
+                    imageUrl: hasDayDefaultImg
+                        ? dayParent.imageUrl
+                        : createAtmosphericSvgDataUri(`ID ${cond.id}`, cleanLabel, "Dzień", "#1e3a5f", "#0f172a", "#38bdf8")
+                };
+
+                const nightKey = `id_${cond.id}_n`;
+                const nightParentIcon = `${cond.baseIcon}n`;
+                const nightParent = base[nightParentIcon];
+                const hasNightDefaultImg = nightParent && nightParent.provided;
+
+                base[nightKey] = {
+                    code: nightKey,
+                    owmId: cond.id,
+                    parentIcon: nightParentIcon,
+                    label: cleanLabel,
+                    period: "Noc",
+                    category: cond.category,
+                    provided: false,
+                    fromSql: false,
+                    fileName: hasNightDefaultImg ? `Domyślne z ${nightParentIcon}` : "Brak własnego zdjęcia",
+                    imageUrl: hasNightDefaultImg
+                        ? nightParent.imageUrl
+                        : createAtmosphericSvgDataUri(`ID ${cond.id}`, cleanLabel, "Noc", "#0f172a", "#020617", "#818cf8")
+                };
+            });
+
+            return base;
+        }
+
+        let WEATHER_CODES_DOK = getDefaultWeatherCodesDok();
+
+        // ============================================================================
+        // 3. KLIENT TURSO LIBSQL (TYLKO ODCZYT - READ-ONLY)
+        // ============================================================================
+        let sqlDb = null;
+        let SQL_ENGINE = null;
+        let isSqlInitialized = false;
+        const IDB_NAME = "MeteoPolskaSQLDatabase";
+        const IDB_STORE = "sqlite_dump";
+        const IDB_KEY = "weather_photos_sqlite_bin";
+
+        async function sendTursoRequest(pipelineUrl, token, sql, args = []) {
+            const formattedArgs = args.map(val => {
+                if (val === null || val === undefined) return { type: "null" };
+                return { type: "text", value: String(val) };
+            });
+
+            const res = await fetch(pipelineUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token.trim()}`
+                },
+                body: JSON.stringify({
+                    requests: [
+                        { type: "execute", stmt: { sql, args: formattedArgs } },
+                        { type: "close" }
+                    ]
+                })
+            });
+
+            if (!res.ok) {
+                const errText = await res.text().catch(() => res.statusText);
+                throw new Error(`HTTP ${res.status}: ${errText}`);
+            }
+
+            const data = await res.json();
+            if (data.results && data.results[0] && data.results[0].type === "error") {
+                throw new Error(data.results[0].error.message || "Błąd SQL w Turso");
+            }
+            return data.results?.[0]?.response?.result || null;
+        }
+
+        async function executeTursoRemoteSql(sql, args = []) {
+            const candidates = [
+                { url: TURSO_LIBSQL_URL, token: TURSO_AUTH_TOKEN },
+                { url: DEFAULT_TURSO_LIBSQL_URL, token: NEW_TURSO_TOKEN },
+                { url: FALLBACK_RSS_LIBSQL_URL, token: NEW_TURSO_TOKEN },
+                { url: DEFAULT_TURSO_LIBSQL_URL, token: WEATHER_DB_TURSO_TOKEN }
+            ];
+
+            let lastError = null;
+            for (const cand of candidates) {
+                try {
+                    const pipelineUrl = toHttpPipelineUrl(cand.url);
+                    const result = await sendTursoRequest(pipelineUrl, cand.token, sql, args);
+
+                    if (TURSO_LIBSQL_URL !== cand.url || TURSO_AUTH_TOKEN !== cand.token) {
+                        TURSO_LIBSQL_URL = cand.url;
+                        TURSO_AUTH_TOKEN = cand.token;
+                    }
+                    return result;
+                } catch (err) {
+                    lastError = err;
+                }
+            }
+            throw lastError || new Error("Brak połączenia z Turso");
+        }
+
+        async function syncWithTursoCloud() {
+            try {
+                const result = await executeTursoRemoteSql(
+                    "SELECT code, label, period, file_name, mime_type, image_data, updated_at FROM weather_photos;"
+                );
+
+                if (result && result.rows) {
+                    result.rows.forEach(r => {
+                        const val = (idx) => (r[idx] && r[idx].value !== undefined) ? r[idx].value : null;
+                        let code = val(0);
+                        const rawLabel = val(1);
+                        const rawPeriod = val(2);
+                        const fileName = val(3);
+                        const mimeType = val(4);
+                        const imageData = val(5);
+                        const updatedAt = val(6);
+
+                        if (code && imageData) {
+                            const normPeriod = normalizeDayNightPeriod(code, rawPeriod, rawLabel);
+                            if (/^id_\d+$/.test(code)) {
+                                code = `${code}_${normPeriod === "Noc" ? "n" : "d"}`;
+                            }
+                            const cleanLabel = stripDayNightParentheses(rawLabel || code);
+
+                            if (!WEATHER_CODES_DOK[code]) {
+                                WEATHER_CODES_DOK[code] = {
+                                    code,
+                                    label: cleanLabel,
+                                    period: normPeriod,
+                                    category: "custom"
+                                };
+                            } else {
+                                WEATHER_CODES_DOK[code].period = normPeriod;
+                                WEATHER_CODES_DOK[code].label = stripDayNightParentheses(WEATHER_CODES_DOK[code].label);
+                            }
+
+                            WEATHER_CODES_DOK[code].imageUrl = imageData;
+                            WEATHER_CODES_DOK[code].fileName = fileName || "turso_image.jpg";
+                            WEATHER_CODES_DOK[code].provided = true;
+                            WEATHER_CODES_DOK[code].fromSql = true;
+                            WEATHER_CODES_DOK[code].updatedAt = updatedAt;
+
+                            if (sqlDb) {
+                                sqlDb.run(
+                                    `INSERT OR REPLACE INTO weather_photos (code, label, period, file_name, mime_type, image_data, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?);`,
+                                    [code, WEATHER_CODES_DOK[code].label, normPeriod, fileName, mimeType, imageData, updatedAt]
+                                );
+                            }
+                        }
+                    });
+                    await saveSqliteBufferToIndexedDB();
+                }
+
+                refreshActiveViews();
+            } catch (err) {
+                console.warn("Błąd odczytu Turso (tryb offline):", err.message);
+            }
+        }
+
+        function loadSqliteBufferFromIndexedDB() {
+            return new Promise((resolve) => {
+                if (!window.indexedDB) return resolve(null);
+                const req = indexedDB.open(IDB_NAME, 1);
+                req.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(IDB_STORE)) {
+                        db.createObjectStore(IDB_STORE);
+                    }
+                };
+                req.onsuccess = (e) => {
+                    const db = e.target.result;
+                    const tx = db.transaction(IDB_STORE, "readonly");
+                    const store = tx.objectStore(IDB_STORE);
+                    const getReq = store.get(IDB_KEY);
+                    getReq.onsuccess = () => resolve(getReq.result || null);
+                    getReq.onerror = () => resolve(null);
+                };
+                req.onerror = () => resolve(null);
+            });
+        }
+
+        function saveSqliteBufferToIndexedDB() {
+            return new Promise((resolve) => {
+                if (!sqlDb || !window.indexedDB) return resolve(false);
+                const binaryArray = sqlDb.export();
+                const req = indexedDB.open(IDB_NAME, 1);
+                req.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(IDB_STORE)) {
+                        db.createObjectStore(IDB_STORE);
+                    }
+                };
+                req.onsuccess = (e) => {
+                    const db = e.target.result;
+                    const tx = db.transaction(IDB_STORE, "readwrite");
+                    const store = tx.objectStore(IDB_STORE);
+                    store.put(binaryArray, IDB_KEY);
+                    tx.oncomplete = () => resolve(true);
+                    tx.onerror = () => resolve(false);
+                };
+                req.onerror = () => resolve(false);
+            });
+        }
+
+        async function initSqlDatabase() {
+            if (isSqlInitialized) return;
+            isSqlInitialized = true;
+
+            try {
+                SQL_ENGINE = await initSqlJs({
+                    locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/${file}`
+                });
+
+                const savedBuffer = await loadSqliteBufferFromIndexedDB();
+                if (savedBuffer) {
+                    sqlDb = new SQL_ENGINE.Database(new Uint8Array(savedBuffer));
+                } else {
+                    sqlDb = new SQL_ENGINE.Database();
+                }
+
+                sqlDb.run(`CREATE TABLE IF NOT EXISTS weather_photos (
+                    code VARCHAR(20) PRIMARY KEY,
+                    label TEXT,
+                    period TEXT,
+                    category TEXT,
+                    file_name TEXT,
+                    mime_type TEXT,
+                    image_data LONGTEXT,
+                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                );`);
+
+                loadPhotosFromLocalSqlTable();
+                renderHeroCurrentWeather();
+                syncWithTursoCloud();
+            } catch (err) {
+                console.error("Błąd inicjalizacji lokalnego bufora:", err);
+                syncWithTursoCloud();
+            }
+        }
+
+        function loadPhotosFromLocalSqlTable() {
+            if (!sqlDb) return;
+            try {
+                const res = sqlDb.exec("SELECT code, label, period, file_name, mime_type, image_data, updated_at FROM weather_photos;");
+                if (res && res.length > 0 && res[0].values) {
+                    res[0].values.forEach(row => {
+                        let [code, label, period, fileName, mimeType, imageData, updatedAt] = row;
+                        const normPeriod = normalizeDayNightPeriod(code, period, label);
+                        if (/^id_\d+$/.test(code)) {
+                            code = `${code}_${normPeriod === "Noc" ? "n" : "d"}`;
+                        }
+                        const cleanLabel = stripDayNightParentheses(label || code);
+
+                        if (!WEATHER_CODES_DOK[code]) {
+                            WEATHER_CODES_DOK[code] = {
+                                code,
+                                label: cleanLabel,
+                                period: normPeriod,
+                                category: "custom"
+                            };
+                        } else {
+                            WEATHER_CODES_DOK[code].period = normPeriod;
+                            WEATHER_CODES_DOK[code].label = stripDayNightParentheses(WEATHER_CODES_DOK[code].label);
+                        }
+                        if (imageData) {
+                            WEATHER_CODES_DOK[code].imageUrl = imageData;
+                            WEATHER_CODES_DOK[code].fileName = fileName;
+                            WEATHER_CODES_DOK[code].provided = true;
+                            WEATHER_CODES_DOK[code].fromSql = true;
+                            WEATHER_CODES_DOK[code].updatedAt = updatedAt;
+                        }
+                    });
+                }
+            } catch (err) {
+                console.error("Błąd odczytu lokalnego bufora:", err);
+            }
+        }
+
+        // ============================================================================
+        // 4. STAN APLIKACJI I ROZPOZNAWANIE OPISÓW POGODY
+        // ============================================================================
+        let currentLat = 52.2297;
+        let currentLon = 21.0122;
+        let currentCity = "Warszawa";
+        let currentCountry = "PL";
+        let currentWeatherCode = "01d";
+        let currentConditionIdKey = "id_800_d";
+        let hourlyHorizon = 48;
+        let activeArchiveDayIndex = 6;
+        let activeTab = null;
+
+        let cachedOpenMeteoData = null;
+        let cachedOwmForecastData = null;
+        let cachedOwmCurrentData = null;
+        let extendedWeatherPromise = null;
+
+        let mapInstance = null;
+        let mapMarker = null;
+        let owmTileLayer = null;
+        let currentMapLayerName = "temp_new";
+
+        function mapWmoToOwmCode(wmoCode, isDay = 1) {
+            const suffix = isDay ? "d" : "n";
+            if (wmoCode === 0) return "01" + suffix;
+            if (wmoCode === 1) return "02" + suffix;
+            if (wmoCode === 2) return "03" + suffix;
+            if (wmoCode === 3) return "04" + suffix;
+            if (wmoCode === 45 || wmoCode === 48) return "50" + suffix;
+            if ([51, 53, 55, 56, 57, 80, 81, 82].includes(wmoCode)) return "09" + suffix;
+            if ([61, 63, 65, 66, 67].includes(wmoCode)) return "10" + suffix;
+            if ([71, 73, 75, 77, 85, 86].includes(wmoCode)) return "13" + suffix;
+            if ([95, 96, 99].includes(wmoCode)) return "11" + suffix;
+            return "02" + suffix;
+        }
+
+        function mapWmoToDetailedOwmId(wmoCode) {
+            const map = {
+                0: 800, 1: 801, 2: 802, 3: 804,
+                45: 701, 48: 741,
+                51: 300, 53: 301, 55: 302, 56: 311, 57: 312,
+                61: 500, 63: 501, 65: 502, 66: 511, 67: 511,
+                71: 600, 73: 601, 75: 602, 77: 611,
+                80: 520, 81: 521, 82: 522,
+                85: 620, 86: 622,
+                95: 211, 96: 201, 99: 202
+            };
+            return map[wmoCode] || 800;
+        }
+
+        function resolveWeatherDisplayMeta(iconCode, owmConditionId = null) {
+            const isNight = String(iconCode || "").endsWith("n");
+            const dnSuffix = isNight ? "n" : "d";
+            const periodName = isNight ? "Noc" : "Dzień";
+
+            if (owmConditionId) {
+                const idKey = `id_${owmConditionId}_${dnSuffix}`;
+                const detailedMeta = WEATHER_CODES_DOK[idKey];
+                if (detailedMeta && detailedMeta.fromSql) {
+                    return {
+                        ...detailedMeta,
+                        label: stripDayNightParentheses(detailedMeta.label)
+                    };
+                }
+                if (detailedMeta) {
+                    const fallbackIcon = WEATHER_CODES_DOK[iconCode] || WEATHER_CODES_DOK["01d"];
+                    return {
+                        ...fallbackIcon,
+                        label: stripDayNightParentheses(detailedMeta.label),
+                        period: periodName,
+                        detailedIdKey: idKey
+                    };
+                }
+            }
+            const baseIcon = WEATHER_CODES_DOK[iconCode] || WEATHER_CODES_DOK["01d"];
+            return {
+                ...baseIcon,
+                label: stripDayNightParentheses(baseIcon.label),
+                period: periodName,
+                detailedIdKey: owmConditionId ? `id_${owmConditionId}_${dnSuffix}` : iconCode
+            };
+        }
+
+        function refreshActiveViews() {
+            renderHeroCurrentWeather();
+            if (activeTab === 'hourly') {
+                renderHourlyForecast();
+                renderOwm3HourStrip();
+            } else if (activeTab === 'longterm') {
+                renderLongTermForecast();
+            } else if (activeTab === 'archive') {
+                renderArchiveWeather();
+            }
+        }
+
+        function showToast(message, type = "info") {
+            const toast = document.getElementById("status-toast");
+            const text = document.getElementById("status-toast-text");
+            toast.className = "rounded-xl p-3.5 border flex items-center justify-between gap-3 text-sm transition-all ";
+            if (type === "error") {
+                toast.classList.add("bg-rose-500/15", "border-rose-500/30", "text-rose-200");
+            } else if (type === "success") {
+                toast.classList.add("bg-emerald-500/15", "border-emerald-500/30", "text-emerald-200");
+            } else {
+                toast.classList.add("bg-blue-500/15", "border-blue-500/30", "text-blue-200");
+            }
+            text.textContent = message;
+            toast.classList.remove("hidden");
+        }
+
+        function hideToast() {
+            document.getElementById("status-toast").classList.add("hidden");
+        }
+
+        // ============================================================================
+        // 5. AKTUALIZACJA GŁÓWNEGO BANERU HERO PO KLIKNIĘCIU MINIATURKI
+        // ============================================================================
+        function updateHeroBannerWithPayload(payload) {
+            currentWeatherCode = payload.owmCode || "01d";
+            currentConditionIdKey = payload.condKey || currentWeatherCode;
+
+            document.getElementById('hero-bg-image').style.backgroundImage = `url('${payload.imageUrl}')`;
+
+            const dnBadge = document.getElementById('hero-daynight-badge');
+            if (payload.period === "Noc") {
+                dnBadge.innerHTML = `🌙 Pora: Noc`;
+                dnBadge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/30 border border-indigo-400/50 text-indigo-200 text-xs font-bold backdrop-blur-md";
+            } else {
+                dnBadge.innerHTML = `☀️ Pora: Dzień`;
+                dnBadge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/25 border border-amber-400/40 text-amber-200 text-xs font-bold backdrop-blur-md";
+            }
+
+            document.getElementById('location-badge-source').textContent = payload.badgeSource || "Wybrana pozycja z prognozy / archiwum";
+            document.getElementById('current-date-label').textContent = payload.dateLabel;
+            document.getElementById('current-temp-val').textContent = payload.temp;
+            document.getElementById('current-condition-title').textContent = stripDayNightParentheses(payload.conditionTitle);
+            document.getElementById('current-feels-like').textContent = payload.feelsLike;
+            document.getElementById('current-minmax').textContent = payload.minMax;
+
+            document.getElementById('stat-wind').textContent = payload.wind;
+            document.getElementById('stat-humidity').textContent = payload.humidity;
+            document.getElementById('stat-pressure').textContent = payload.pressure;
+            document.getElementById('stat-precip').textContent = payload.precip;
+            if (payload.sun) {
+                document.getElementById('stat-sun').textContent = payload.sun;
+            }
+            document.getElementById('stat-vis').textContent = stripDayNightParentheses(payload.vis);
+
+            const resetBtn = document.getElementById('hero-reset-live-btn');
+            if (payload.isLive) {
+                resetBtn.classList.add('hidden');
+            } else {
+                resetBtn.classList.remove('hidden');
+            }
+
+            lucide.createIcons();
+            if (!payload.isLive) {
+                document.getElementById('hero-weather-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        function resetHeroToCurrentLiveWeather() {
+            renderHeroCurrentWeather();
+            showToast("Przywrócono aktualną pogodę na żywo w głównym banerze.", "info");
+        }
+
+        function showHourlyInHeroBanner(index) {
+            if (!cachedOpenMeteoData || !cachedOpenMeteoData.hourly) return;
+            const h = cachedOpenMeteoData.hourly;
+            const dateObj = new Date(h.time[index]);
+            const dateStr = dateObj.toLocaleDateString('pl-PL', {
+                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+
+            const isDay = h.is_day[index] ? 1 : 0;
+            const period = isDay ? "Dzień" : "Noc";
+            const dnSuffix = isDay ? "d" : "n";
+            const owmCode = mapWmoToOwmCode(h.weather_code[index], isDay);
+            const detailedId = mapWmoToDetailedOwmId(h.weather_code[index]);
+            const condKey = `id_${detailedId}_${dnSuffix}`;
+            const meta = resolveWeatherDisplayMeta(owmCode, detailedId);
+
+            const temp = Math.round(h.temperature_2m[index]);
+            const feels = Math.round(h.apparent_temperature[index]);
+            const pop = h.precipitation_probability[index] || 0;
+            const precip = (h.precipitation[index] || 0).toFixed(1);
+            const wind = Math.round(h.wind_speed_10m[index] || 0);
+            const hum = h.relative_humidity_2m[index] || 0;
+            const press = Math.round(h.surface_pressure[index] || 1013);
+
+            const dayIdx = Math.floor(index / 24);
+            let minMaxStr = `${temp}°C / ${temp}°C`;
+            let sunStr = document.getElementById('stat-sun').textContent;
+            if (cachedOpenMeteoData.daily && cachedOpenMeteoData.daily.time[dayIdx]) {
+                const tMin = Math.round(cachedOpenMeteoData.daily.temperature_2m_min[dayIdx]);
+                const tMax = Math.round(cachedOpenMeteoData.daily.temperature_2m_max[dayIdx]);
+                minMaxStr = `${tMin}°C / ${tMax}°C`;
+                if (cachedOpenMeteoData.daily.sunrise?.[dayIdx] && cachedOpenMeteoData.daily.sunset?.[dayIdx]) {
+                    const sr = new Date(cachedOpenMeteoData.daily.sunrise[dayIdx]).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+                    const ss = new Date(cachedOpenMeteoData.daily.sunset[dayIdx]).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+                    sunStr = `${sr} / ${ss}`;
+                }
+            }
+
+            updateHeroBannerWithPayload({
+                isLive: false,
+                badgeSource: "Prognoza godzinowa (Wybrana godzina)",
+                dateLabel: `Prognoza na: ${dateStr}`,
+                owmCode,
+                condKey,
+                period,
+                imageUrl: meta.imageUrl,
+                fromSql: meta.fromSql,
+                provided: meta.provided,
+                temp: `${temp}°C`,
+                conditionTitle: meta.label,
+                feelsLike: `${feels}°C`,
+                minMax: minMaxStr,
+                wind: `${wind} km/h`,
+                humidity: `${hum}%`,
+                pressure: `${press} hPa`,
+                precip: `${precip} mm (${pop}%)`,
+                sun: sunStr,
+                vis: `Pora: ${period}`
+            });
+        }
+
+        function showOwm3hInHeroBanner(listIndex) {
+            if (!cachedOwmForecastData || !cachedOwmForecastData.list || !cachedOwmForecastData.list[listIndex]) return;
+            const item = cachedOwmForecastData.list[listIndex];
+            const dt = new Date(item.dt * 1000);
+            const dateStr = dt.toLocaleDateString('pl-PL', {
+                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+
+            const w = (item.weather && item.weather[0]) ? item.weather[0] : { icon: "01d", id: 800, description: "" };
+            const isNight = String(w.icon).endsWith("n");
+            const period = isNight ? "Noc" : "Dzień";
+            const dnSuffix = isNight ? "n" : "d";
+            const condKey = `id_${w.id}_${dnSuffix}`;
+            const meta = resolveWeatherDisplayMeta(w.icon, w.id);
+
+            const temp = Math.round(item.main.temp);
+            const feels = Math.round(item.main.feels_like);
+            const tMin = Math.round(item.main.temp_min);
+            const tMax = Math.round(item.main.temp_max);
+            const pop = Math.round((item.pop || 0) * 100);
+            const rain3h = item.rain ? (item.rain['3h'] || 0) : 0;
+            const snow3h = item.snow ? (item.snow['3h'] || 0) : 0;
+            const precip = (rain3h + snow3h).toFixed(1);
+            const wind = Math.round((item.wind?.speed || 0) * 3.6);
+            const visKm = ((item.visibility || 10000) / 1000).toFixed(1);
+
+            updateHeroBannerWithPayload({
+                isLive: false,
+                badgeSource: "OpenWeather 3h (Wybrany termin)",
+                dateLabel: `Prognoza 3h OWM: ${dateStr}`,
+                owmCode: w.icon,
+                condKey,
+                period,
+                imageUrl: meta.imageUrl,
+                fromSql: meta.fromSql,
+                provided: meta.provided,
+                temp: `${temp}°C`,
+                conditionTitle: meta.label,
+                feelsLike: `${feels}°C`,
+                minMax: `${tMin}°C / ${tMax}°C`,
+                wind: `${wind} km/h`,
+                humidity: `${item.main.humidity}%`,
+                pressure: `${item.main.pressure} hPa`,
+                precip: `${precip} mm (${pop}%)`,
+                sun: document.getElementById('stat-sun').textContent,
+                vis: `${visKm} km / ${period}`
+            });
+        }
+
+        function showLongTermInHeroBanner(dayIndex) {
+            if (!cachedOpenMeteoData || !cachedOpenMeteoData.daily) return;
+            const d = cachedOpenMeteoData.daily;
+            const dateObj = new Date(d.time[dayIndex]);
+            const dateStr = dateObj.toLocaleDateString('pl-PL', {
+                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+            });
+
+            const owmCode = mapWmoToOwmCode(d.weather_code[dayIndex], 1);
+            const detailedId = mapWmoToDetailedOwmId(d.weather_code[dayIndex]);
+            const condKey = `id_${detailedId}_d`;
+            const meta = resolveWeatherDisplayMeta(owmCode, detailedId);
+
+            const tMax = Math.round(d.temperature_2m_max[dayIndex]);
+            const tMin = Math.round(d.temperature_2m_min[dayIndex]);
+            const popMax = d.precipitation_probability_max[dayIndex] || 0;
+            const precipSum = (d.precipitation_sum[dayIndex] || 0).toFixed(1);
+            const windMax = Math.round(d.wind_speed_10m_max[dayIndex] || 0);
+
+            let sunStr = "--:-- / --:--";
+            if (d.sunrise?.[dayIndex] && d.sunset?.[dayIndex]) {
+                const sr = new Date(d.sunrise[dayIndex]).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+                const ss = new Date(d.sunset[dayIndex]).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+                sunStr = `${sr} / ${ss}`;
+            }
+
+            const midHourIdx = Math.min(dayIndex * 24 + 12, (cachedOpenMeteoData.hourly?.time?.length || 1) - 1);
+            const hum = cachedOpenMeteoData.hourly?.relative_humidity_2m?.[midHourIdx] || 60;
+            const press = Math.round(cachedOpenMeteoData.hourly?.surface_pressure?.[midHourIdx] || 1015);
+            const feels = Math.round(cachedOpenMeteoData.hourly?.apparent_temperature?.[midHourIdx] || tMax);
+
+            updateHeroBannerWithPayload({
+                isLive: false,
+                badgeSource: "Prognoza długoterminowa (16 dni)",
+                dateLabel: `Prognoza długoterminowa: ${dateStr}`,
+                owmCode,
+                condKey,
+                period: "Dzień",
+                imageUrl: meta.imageUrl,
+                fromSql: meta.fromSql,
+                provided: meta.provided,
+                temp: `${tMax}°C`,
+                conditionTitle: meta.label,
+                feelsLike: `${feels}°C`,
+                minMax: `${tMin}°C / ${tMax}°C`,
+                wind: `do ${windMax} km/h`,
+                humidity: `${hum}%`,
+                pressure: `${press} hPa`,
+                precip: `${precipSum} mm (${popMax}%)`,
+                sun: sunStr,
+                vis: `Dzień / Noc`
+            });
+        }
+
+        function selectArchiveDay(dayIndex) {
+            activeArchiveDayIndex = dayIndex;
+            renderArchiveWeather();
+
+            if (!cachedOpenMeteoData || !cachedOpenMeteoData.daily) return;
+            const d = cachedOpenMeteoData.daily;
+            const dateObj = new Date(d.time[dayIndex]);
+            const dateStr = dateObj.toLocaleDateString('pl-PL', {
+                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+            });
+
+            const owmCode = mapWmoToOwmCode(d.weather_code[dayIndex], 1);
+            const detailedId = mapWmoToDetailedOwmId(d.weather_code[dayIndex]);
+            const condKey = `id_${detailedId}_d`;
+            const meta = resolveWeatherDisplayMeta(owmCode, detailedId);
+
+            const tMax = Math.round(d.temperature_2m_max[dayIndex]);
+            const tMin = Math.round(d.temperature_2m_min[dayIndex]);
+            const precipSum = (d.precipitation_sum[dayIndex] || 0).toFixed(1);
+            const windMax = Math.round(d.wind_speed_10m_max[dayIndex] || 0);
+
+            let sunStr = "--:-- / --:--";
+            if (d.sunrise?.[dayIndex] && d.sunset?.[dayIndex]) {
+                const sr = new Date(d.sunrise[dayIndex]).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+                const ss = new Date(d.sunset[dayIndex]).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+                sunStr = `${sr} / ${ss}`;
+            }
+
+            const midHourIdx = dayIndex * 24 + 12;
+            const hum = cachedOpenMeteoData.hourly?.relative_humidity_2m?.[midHourIdx] || 65;
+            const press = Math.round(cachedOpenMeteoData.hourly?.surface_pressure?.[midHourIdx] || 1014);
+            const feels = Math.round(cachedOpenMeteoData.hourly?.apparent_temperature?.[midHourIdx] || tMax);
+
+            updateHeroBannerWithPayload({
+                isLive: false,
+                badgeSource: "Archiwum pogody (Ostatnie 7 dni)",
+                dateLabel: `Dane archiwalne z dnia: ${dateStr}`,
+                owmCode,
+                condKey,
+                period: "Dzień",
+                imageUrl: meta.imageUrl,
+                fromSql: meta.fromSql,
+                provided: meta.provided,
+                temp: `${tMax}°C`,
+                conditionTitle: meta.label,
+                feelsLike: `${feels}°C`,
+                minMax: `${tMin}°C / ${tMax}°C`,
+                wind: `max ${windMax} km/h`,
+                humidity: `${hum}%`,
+                pressure: `${press} hPa`,
+                precip: `Suma: ${precipSum} mm`,
+                sun: sunStr,
+                vis: `Archiwum`
+            });
+        }
+
+        function showArchiveHourInHeroBanner(hourIndex) {
+            if (!cachedOpenMeteoData || !cachedOpenMeteoData.hourly) return;
+            const h = cachedOpenMeteoData.hourly;
+            const dateObj = new Date(h.time[hourIndex]);
+            const dateStr = dateObj.toLocaleDateString('pl-PL', {
+                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+
+            const isDay = h.is_day[hourIndex] ? 1 : 0;
+            const period = isDay ? "Dzień" : "Noc";
+            const dnSuffix = isDay ? "d" : "n";
+            const owmCode = mapWmoToOwmCode(h.weather_code[hourIndex], isDay);
+            const detailedId = mapWmoToDetailedOwmId(h.weather_code[hourIndex]);
+            const condKey = `id_${detailedId}_${dnSuffix}`;
+            const meta = resolveWeatherDisplayMeta(owmCode, detailedId);
+
+            const temp = Math.round(h.temperature_2m[hourIndex]);
+            const feels = Math.round(h.apparent_temperature[hourIndex]);
+            const precip = (h.precipitation[hourIndex] || 0).toFixed(1);
+            const wind = Math.round(h.wind_speed_10m[hourIndex] || 0);
+            const hum = h.relative_humidity_2m[hourIndex] || 0;
+            const press = Math.round(h.surface_pressure[hourIndex] || 1013);
+
+            const dayIdx = Math.floor(hourIndex / 24);
+            const tMin = Math.round(cachedOpenMeteoData.daily?.temperature_2m_min?.[dayIdx] ?? temp);
+            const tMax = Math.round(cachedOpenMeteoData.daily?.temperature_2m_max?.[dayIdx] ?? temp);
+
+            updateHeroBannerWithPayload({
+                isLive: false,
+                badgeSource: "Archiwum godzinowe (Wybrana godzina)",
+                dateLabel: `Archiwum godzinowe: ${dateStr}`,
+                owmCode,
+                condKey,
+                period,
+                imageUrl: meta.imageUrl,
+                fromSql: meta.fromSql,
+                provided: meta.provided,
+                temp: `${temp}°C`,
+                conditionTitle: meta.label,
+                feelsLike: `${feels}°C`,
+                minMax: `${tMin}°C / ${tMax}°C`,
+                wind: `${wind} km/h`,
+                humidity: `${hum}%`,
+                pressure: `${press} hPa`,
+                precip: `${precip} mm`,
+                sun: document.getElementById('stat-sun').textContent,
+                vis: `Archiwum`
+            });
+        }
+
+        // ============================================================================
+        // 6. MAPA POGODOWA LEAFLET
+        // ============================================================================
+        function initWeatherMap() {
+            if (mapInstance) return;
+
+            mapInstance = L.map('weather-map', {
+                center: [currentLat, currentLon],
+                zoom: 7,
+                zoomControl: true
+            });
+
+            L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=${CARTO_API_KEY}`, {
+                attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+                subdomains: 'abcd',
+                maxZoom: 19
+            }).addTo(mapInstance);
+
+            owmTileLayer = L.tileLayer(
+                `https://tile.openweathermap.org/map/${currentMapLayerName}/{z}/{x}/{y}.png?appid=${OPENWEATHER_API_KEY}`,
+                {
+                    attribution: 'Dane radarowe &copy; OpenWeatherMap',
+                    opacity: 0.72,
+                    maxZoom: 18
+                }
+            ).addTo(mapInstance);
+
+            mapMarker = L.marker([currentLat, currentLon]).addTo(mapInstance);
+            mapMarker.bindPopup(`<b>${currentCity}</b><br>Kliknij gdziekolwiek na mapie, aby zmienić punkt.`).openPopup();
+
+            mapInstance.on('click', async function(e) {
+                const clickedLat = e.latlng.lat;
+                const clickedLon = e.latlng.lng;
+                showToast(`Pobieranie pogody dla punktu na mapie (${clickedLat.toFixed(2)}°, ${clickedLon.toFixed(2)}°)...`, "info");
+                await reverseGeocodeAndLoad(clickedLat, clickedLon, "Wybrano z mapy");
+            });
+        }
+
+        function setWeatherMapLayer(layerName) {
+            currentMapLayerName = layerName;
+            const layers = ['temp_new', 'precipitation_new', 'clouds_new', 'wind_new'];
+            layers.forEach(l => {
+                const btn = document.getElementById(`layer-btn-${l}`);
+                if (!btn) return;
+                if (l === layerName) {
+                    btn.className = "px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600 text-white transition flex items-center gap-1.5";
+                } else {
+                    btn.className = "px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/5 transition flex items-center gap-1.5";
+                }
+            });
+
+            if (mapInstance && owmTileLayer) {
+                mapInstance.removeLayer(owmTileLayer);
+                owmTileLayer = L.tileLayer(
+                    `https://tile.openweathermap.org/map/${currentMapLayerName}/{z}/{x}/{y}.png?appid=${OPENWEATHER_API_KEY}`,
+                    {
+                        attribution: 'Dane radarowe &copy; OpenWeatherMap',
+                        opacity: 0.72,
+                        maxZoom: 18
+                    }
+                ).addTo(mapInstance);
+            }
+        }
+
+        // ============================================================================
+        // 7. GEOLOKALIZACJA I WYSZUKIWARKA MIAST
+        // ============================================================================
+        function detectUserLocation() {
+            if (!navigator.geolocation) {
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    await reverseGeocodeAndLoad(position.coords.latitude, position.coords.longitude, "Wykryto automatycznie (GPS)");
+                },
+                () => {},
+                { timeout: 6000, enableHighAccuracy: false }
+            );
+        }
+
+        async function reverseGeocodeAndLoad(lat, lon, sourceLabel = "Współrzędne") {
+            try {
+                const res = await fetch(`https://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=1&appid=${OPENWEATHER_API_KEY}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.length > 0) {
+                        const place = data[0];
+                        const plName = (place.local_names && place.local_names.pl) ? place.local_names.pl : place.name;
+                        await loadLocationByCoords(lat, lon, plName, place.country || "", sourceLabel);
+                        return;
+                    }
+                }
+            } catch (e) {}
+            await loadLocationByCoords(lat, lon, `Punkt (${lat.toFixed(2)}, ${lon.toFixed(2)})`, "", sourceLabel);
+        }
+
+        let searchDebounceTimer = null;
+        const searchInput = document.getElementById('city-search-input');
+        const searchDropdown = document.getElementById('search-results-dropdown');
+
+        searchInput.addEventListener('input', (e) => {
+            const q = e.target.value.trim();
+            clearTimeout(searchDebounceTimer);
+            if (q.length < 2) {
+                searchDropdown.classList.add('hidden');
+                return;
+            }
+            searchDebounceTimer = setTimeout(() => fetchCitySuggestions(q), 300);
+        });
+
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                triggerSearch();
+            }
+        });
+
+        async function fetchCitySuggestions(query) {
+            try {
+                const url = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(query)}&limit=5&appid=${OPENWEATHER_API_KEY}`;
+                const res = await fetch(url);
+                if (!res.ok) return;
+                const places = await res.json();
+
+                if (!places || places.length === 0) {
+                    searchDropdown.innerHTML = `<div class="p-3.5 text-xs text-slate-400">Brak wyników dla "${query}"</div>`;
+                    searchDropdown.classList.remove('hidden');
+                    return;
+                }
+
+                searchDropdown.innerHTML = places.map(p => {
+                    const displayName = (p.local_names && p.local_names.pl) ? p.local_names.pl : p.name;
+                    const stateStr = p.state ? `, ${p.state}` : '';
+                    const safeName = displayName.replace(/'/g, "\\'");
+                    return `
+                        <button 
+                            onclick="selectSearchResult(${p.lat}, ${p.lon}, '${safeName}', '${p.country || ''}')"
+                            class="w-full text-left px-4 py-3 hover:bg-blue-600/20 border-b border-white/5 last:border-0 flex items-center justify-between transition"
+                        >
+                            <div class="flex items-center gap-2.5">
+                                <i data-lucide="map-pin" class="w-4 h-4 text-blue-400 shrink-0"></i>
+                                <div>
+                                    <p class="text-sm font-semibold text-white">${displayName} <span class="text-xs font-normal text-slate-400">${stateStr}</span></p>
+                                    <p class="text-[11px] text-slate-400">${p.lat.toFixed(2)}°N, ${p.lon.toFixed(2)}°E</p>
+                                </div>
+                            </div>
+                            <span class="px-2 py-0.5 rounded bg-white/10 text-xs font-mono text-slate-200">${p.country || ''}</span>
+                        </button>
+                    `;
+                }).join('');
+                searchDropdown.classList.remove('hidden');
+                lucide.createIcons();
+            } catch (err) {}
+        }
+
+        async function triggerSearch() {
+            const q = searchInput.value.trim();
+            if (!q) return;
+            try {
+                const url = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(q)}&limit=1&appid=${OPENWEATHER_API_KEY}`;
+                const res = await fetch(url);
+                const places = await res.json();
+                if (places && places.length > 0) {
+                    const p = places[0];
+                    const displayName = (p.local_names && p.local_names.pl) ? p.local_names.pl : p.name;
+                    selectSearchResult(p.lat, p.lon, displayName, p.country || '');
+                } else {
+                    showToast(`Nie znaleziono lokalizacji "${q}".`, "error");
+                }
+            } catch (err) {
+                showToast("Błąd podczas wyszukiwania lokalizacji.", "error");
+            }
+        }
+
+        function selectSearchResult(lat, lon, name, country) {
+            searchDropdown.classList.add('hidden');
+            searchInput.value = `${name}${country ? ', ' + country : ''}`;
+            loadLocationByCoords(lat, lon, name, country, "Wyszukiwarka lokalizacji");
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!searchInput.contains(e.target) && !searchDropdown.contains(e.target)) {
+                searchDropdown.classList.add('hidden');
+            }
+        });
+
+        // ============================================================================
+        // 8. SZYBKIE POBIERANIE TYLKO BANERU + LAZY LOADING POZOSTAŁEJ POGODY
+        // ============================================================================
+        async function loadLocationByCoords(lat, lon, cityName, countryCode = "", sourceLabel = "OpenWeather API") {
+            currentLat = lat;
+            currentLon = lon;
+            currentCity = cityName;
+            currentCountry = countryCode;
+
+            cachedOpenMeteoData = null;
+            cachedOwmForecastData = null;
+            extendedWeatherPromise = null;
+
+            document.getElementById('location-badge-source').textContent = sourceLabel;
+            document.getElementById('current-coords-label').textContent = `${lat.toFixed(2)}°N, ${lon.toFixed(2)}°E`;
+            document.getElementById('current-city-name').textContent = countryCode ? `${cityName}, ${countryCode}` : cityName;
+
+            if (mapInstance && mapMarker) {
+                mapInstance.setView([lat, lon], mapInstance.getZoom());
+                mapMarker.setLatLng([lat, lon]);
+                mapMarker.bindPopup(`<b>${cityName}${countryCode ? ', ' + countryCode : ''}</b><br>${lat.toFixed(3)}°, ${lon.toFixed(3)}°`).openPopup();
+            }
+
+            try {
+                const owmCurrentUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&lang=pl&appid=${OPENWEATHER_API_KEY}`;
+                const owmCurrRes = await fetch(owmCurrentUrl).catch(() => null);
+
+                if (owmCurrRes && owmCurrRes.ok) {
+                    cachedOwmCurrentData = await owmCurrRes.json();
+                    renderHeroCurrentWeather();
+                }
+
+                if (activeTab === 'hourly' || activeTab === 'longterm' || activeTab === 'archive') {
+                    await ensureExtendedWeatherDataLoaded();
+                    refreshActiveViews();
+                }
+            } catch (error) {
+                console.error("Błąd pobierania aktualnej pogody:", error);
+            }
+        }
+
+        async function ensureExtendedWeatherDataLoaded() {
+            if (cachedOpenMeteoData && cachedOwmForecastData) return;
+            if (extendedWeatherPromise) return extendedWeatherPromise;
+
+            const lat = currentLat;
+            const lon = currentLon;
+            const owmForecastUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&lang=pl&appid=${OPENWEATHER_API_KEY}`;
+            const openMeteoUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&past_days=7&forecast_days=16&hourly=temperature_2m,apparent_temperature,precipitation_probability,precipitation,weather_code,wind_speed_10m,relative_humidity_2m,surface_pressure,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,sunrise,sunset&timezone=auto`;
+
+            extendedWeatherPromise = Promise.all([
+                fetch(owmForecastUrl).then(r => r.ok ? r.json() : null).catch(() => null),
+                fetch(openMeteoUrl).then(r => r.ok ? r.json() : null).catch(() => null)
+            ]).then(([owmFore, omData]) => {
+                if (owmFore) cachedOwmForecastData = owmFore;
+                if (omData) cachedOpenMeteoData = omData;
+                extendedWeatherPromise = null;
+            });
+
+            return extendedWeatherPromise;
+        }
+
+        // ============================================================================
+        // 9. RENDEROWANIE SEKCJI HERO (AKTUALNA POGODA NA ŻYWO)
+        // ============================================================================
+        function renderHeroCurrentWeather() {
+            const nowStr = new Date().toLocaleDateString('pl-PL', {
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+
+            if (cachedOwmCurrentData && cachedOwmCurrentData.weather && cachedOwmCurrentData.weather.length > 0) {
+                const w = cachedOwmCurrentData.weather[0];
+                const code = w.icon || "01d";
+                const condId = w.id || 800;
+                const isNight = String(code).endsWith("n");
+                const period = isNight ? "Noc" : "Dzień";
+                const dnSuffix = isNight ? "n" : "d";
+                const condKey = `id_${condId}_${dnSuffix}`;
+
+                const meta = resolveWeatherDisplayMeta(code, condId);
+
+                const temp = Math.round(cachedOwmCurrentData.main.temp);
+                const feels = Math.round(cachedOwmCurrentData.main.feels_like);
+                const tMin = Math.round(cachedOwmCurrentData.main.temp_min);
+                const tMax = Math.round(cachedOwmCurrentData.main.temp_max);
+                const windKmh = Math.round((cachedOwmCurrentData.wind?.speed || 0) * 3.6);
+
+                const rain1h = cachedOwmCurrentData.rain ? (cachedOwmCurrentData.rain['1h'] || 0) : 0;
+                const snow1h = cachedOwmCurrentData.snow ? (cachedOwmCurrentData.snow['1h'] || 0) : 0;
+                const totalPrecip = (rain1h + snow1h).toFixed(1);
+
+                let sunStr = "--:-- / --:--";
+                if (cachedOwmCurrentData.sys && cachedOwmCurrentData.sys.sunrise) {
+                    const sr = new Date(cachedOwmCurrentData.sys.sunrise * 1000).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+                    const ss = new Date(cachedOwmCurrentData.sys.sunset * 1000).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+                    sunStr = `${sr} / ${ss}`;
+                }
+
+                const visKm = ((cachedOwmCurrentData.visibility || 10000) / 1000).toFixed(1);
+
+                updateHeroBannerWithPayload({
+                    isLive: true,
+                    badgeSource: "Aktualna pogoda na żywo",
+                    dateLabel: `Aktualizacja na żywo: ${nowStr}`,
+                    owmCode: code,
+                    condKey,
+                    period,
+                    imageUrl: meta.imageUrl,
+                    fromSql: meta.fromSql,
+                    provided: meta.provided,
+                    temp: `${temp}°C`,
+                    conditionTitle: meta.label,
+                    feelsLike: `${feels}°C`,
+                    minMax: `${tMin}°C / ${tMax}°C`,
+                    wind: `${windKmh} km/h`,
+                    humidity: `${cachedOwmCurrentData.main.humidity}%`,
+                    pressure: `${cachedOwmCurrentData.main.pressure} hPa`,
+                    precip: `${totalPrecip} mm`,
+                    sun: sunStr,
+                    vis: `${visKm} km / ${period}`
+                });
+            }
+        }
+
+        // ============================================================================
+        // 10. PROGNOZA GODZINOWA I 3-GODZINNA
+        // ============================================================================
+        function setHourlyHorizon(hours) {
+            hourlyHorizon = hours;
+            [24, 48, 72].forEach(h => {
+                const btn = document.getElementById(`horizon-${h}`);
+                if (h === hours) {
+                    btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white transition";
+                } else {
+                    btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition";
+                }
+            });
+            renderHourlyForecast();
+        }
+
+        function renderHourlyForecast() {
+            const container = document.getElementById('hourly-scroll-container');
+            if (!cachedOpenMeteoData || !cachedOpenMeteoData.hourly) {
+                container.innerHTML = `<div class="p-4 text-sm text-slate-400">Trwa ładowanie prognozy godzinowej...</div>`;
+                return;
+            }
+
+            const hourly = cachedOpenMeteoData.hourly;
+            const nowMs = Date.now();
+            let startIndex = hourly.time.findIndex(t => new Date(t).getTime() >= nowMs - 3600000);
+            if (startIndex === -1) startIndex = 168;
+
+            const endIndex = Math.min(startIndex + hourlyHorizon, hourly.time.length);
+            let html = '';
+
+            for (let i = startIndex; i < endIndex; i++) {
+                const dateObj = new Date(hourly.time[i]);
+                const hourStr = dateObj.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+                const dayShort = dateObj.toLocaleDateString('pl-PL', { weekday: 'short', day: 'numeric', month: 'numeric' });
+                const temp = Math.round(hourly.temperature_2m[i]);
+                const feels = Math.round(hourly.apparent_temperature[i]);
+                const pop = hourly.precipitation_probability[i] || 0;
+                const precip = (hourly.precipitation[i] || 0).toFixed(1);
+                const wind = Math.round(hourly.wind_speed_10m[i] || 0);
+                const isDay = hourly.is_day[i];
+                const periodLabel = isDay ? "☀️ Dzień" : "🌙 Noc";
+                const owmCode = mapWmoToOwmCode(hourly.weather_code[i], isDay);
+                const detailedId = mapWmoToDetailedOwmId(hourly.weather_code[i]);
+                const meta = resolveWeatherDisplayMeta(owmCode, detailedId);
+
+                const isNow = (i === startIndex);
+
+                html += `
+                    <div onclick="showHourlyInHeroBanner(${i})" title="Kliknij, aby pokazać w głównym banerze na górze" class="cursor-pointer group shrink-0 w-40 rounded-2xl overflow-hidden border ${isNow ? 'border-blue-500 ring-2 ring-blue-500/30 bg-slate-900' : 'border-white/10 bg-slate-900/70 hover:border-blue-400/50'} transition flex flex-col justify-between">
+                        <div class="relative h-24 bg-cover bg-center shrink-0" style="background-image: url('${meta.imageUrl}');">
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent"></div>
+                            <div class="absolute top-2 left-2 right-2 flex items-center justify-between">
+                                ${isNow ? '<span class="px-1.5 py-0.5 rounded bg-blue-600 text-[10px] font-bold text-white">TERAZ</span>' : `<span class="px-1.5 py-0.5 rounded bg-black/60 text-[10px] text-slate-200">${periodLabel}</span>`}
+                            </div>
+                            <div class="absolute bottom-1.5 left-2.5 right-2">
+                                <p class="text-xs font-bold text-white leading-tight">${hourStr}</p>
+                                <p class="text-[10px] text-slate-300 capitalize">${dayShort}</p>
+                            </div>
+                        </div>
+
+                        <div class="p-3.5 flex-1 flex flex-col justify-between gap-2.5">
+                            <div class="space-y-1.5">
+                                <div class="flex items-baseline justify-between">
+                                    <span class="text-2xl font-extrabold text-white">${temp}°C</span>
+                                    <span class="text-[11px] text-slate-400">odcz. ${feels}°</span>
+                                </div>
+                                <p class="text-xs text-slate-200 leading-snug break-words">${meta.label}</p>
+                            </div>
+                            
+                            <div class="pt-2.5 border-t border-white/10 space-y-1 text-[11px]">
+                                <div class="flex items-center justify-between text-cyan-300">
+                                    <span class="flex items-center gap-1"><i data-lucide="droplets" class="w-3 h-3"></i> ${pop}%</span>
+                                    <span>${precip} mm</span>
+                                </div>
+                                <div class="flex items-center justify-between text-slate-400">
+                                    <span class="flex items-center gap-1"><i data-lucide="wind" class="w-3 h-3"></i> Wiatr</span>
+                                    <span>${wind} km/h</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        function renderOwm3HourStrip() {
+            const container = document.getElementById('owm-3h-container');
+            if (!cachedOwmForecastData || !cachedOwmForecastData.list) {
+                container.innerHTML = `<div class="text-xs text-slate-500">Trwa pobieranie odczytów 3-godzinnych...</div>`;
+                return;
+            }
+
+            const list = cachedOwmForecastData.list.slice(0, 16);
+            container.innerHTML = list.map((item, idx) => {
+                const dt = new Date(item.dt * 1000);
+                const timeStr = dt.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+                const dayStr = dt.toLocaleDateString('pl-PL', { weekday: 'short', day: 'numeric', month: 'numeric' });
+                const w = (item.weather && item.weather[0]) ? item.weather[0] : { icon: "01d", id: 800, description: "" };
+                const isNight = String(w.icon).endsWith("n");
+                const dnLabel = isNight ? "Noc" : "Dzień";
+                const meta = resolveWeatherDisplayMeta(w.icon, w.id);
+                const temp = Math.round(item.main.temp);
+                const pop = Math.round((item.pop || 0) * 100);
+
+                return `
+                    <div onclick="showOwm3hInHeroBanner(${idx})" title="Kliknij, aby wyświetlić w górnym banerze" class="cursor-pointer shrink-0 w-60 rounded-xl bg-slate-900/90 border border-white/10 hover:border-blue-500/50 p-3 flex items-start gap-3 transition">
+                        <div class="w-14 h-14 rounded-lg bg-cover bg-center shrink-0 border border-white/15" style="background-image: url('${meta.imageUrl}');"></div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-white">${timeStr} <span class="text-[10px] font-normal text-slate-400">${dayStr}</span></span>
+                                <span class="text-[10px] font-mono text-purple-300">${dnLabel}</span>
+                            </div>
+                            <div class="flex items-baseline gap-2 mt-0.5">
+                                <span class="text-sm font-extrabold text-white">${temp}°C</span>
+                                <span class="text-[10px] text-cyan-300">opad ${pop}%</span>
+                            </div>
+                            <p class="text-[11px] text-slate-300 leading-snug mt-1 break-words">${meta.label}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ============================================================================
+        // 11. PROGNOZA 16-DNIOWA I ARCHIWUM 7 DNI
+        // ============================================================================
+        function renderLongTermForecast() {
+            const grid = document.getElementById('longterm-grid');
+            if (!cachedOpenMeteoData || !cachedOpenMeteoData.daily) {
+                grid.innerHTML = `<div class="p-4 text-sm text-slate-400">Trwa ładowanie prognozy 16-dniowej...</div>`;
+                return;
+            }
+
+            const daily = cachedOpenMeteoData.daily;
+            const startIdx = 7;
+            let html = '';
+
+            for (let i = startIdx; i < daily.time.length; i++) {
+                const dateObj = new Date(daily.time[i]);
+                const isToday = (i === startIdx);
+                const dayName = isToday ? "Dzisiaj" : dateObj.toLocaleDateString('pl-PL', { weekday: 'long' });
+                const dateFormatted = dateObj.toLocaleDateString('pl-PL', { day: 'numeric', month: 'long' });
+
+                const tMax = Math.round(daily.temperature_2m_max[i]);
+                const tMin = Math.round(daily.temperature_2m_min[i]);
+                const popMax = daily.precipitation_probability_max[i] || 0;
+                const precipSum = (daily.precipitation_sum[i] || 0).toFixed(1);
+                const windMax = Math.round(daily.wind_speed_10m_max[i] || 0);
+
+                const owmCode = mapWmoToOwmCode(daily.weather_code[i], 1);
+                const detailedId = mapWmoToDetailedOwmId(daily.weather_code[i]);
+                const meta = resolveWeatherDisplayMeta(owmCode, detailedId);
+
+                html += `
+                    <div onclick="showLongTermInHeroBanner(${i})" title="Kliknij, aby pokazać w głównym górnym banerze" class="cursor-pointer rounded-2xl overflow-hidden bg-slate-900/80 border ${isToday ? 'border-blue-500/50 ring-1 ring-blue-500/30' : 'border-white/10 hover:border-blue-400/50'} flex flex-col sm:flex-row transition group">
+                        <div class="sm:w-44 h-32 sm:h-auto bg-cover bg-center relative shrink-0" style="background-image: url('${meta.imageUrl}');">
+                            <div class="absolute inset-0 bg-gradient-to-t sm:bg-gradient-to-r from-slate-950/80 via-transparent to-transparent"></div>
+                        </div>
+
+                        <div class="p-4 flex-1 flex flex-col justify-between gap-3">
+                            <div class="flex items-start justify-between gap-2">
+                                <div>
+                                    <h4 class="text-base font-bold text-white capitalize">${dayName}</h4>
+                                    <p class="text-xs text-slate-400">${dateFormatted}</p>
+                                </div>
+                                <div class="text-right">
+                                    <div class="flex items-baseline gap-1.5 justify-end">
+                                        <span class="text-2xl font-black text-white">${tMax}°C</span>
+                                        <span class="text-sm font-semibold text-slate-400">/ ${tMin}°C</span>
+                                    </div>
+                                    <span class="text-[11px] text-slate-400">Dzień / Noc</span>
+                                </div>
+                            </div>
+
+                            <p class="text-xs font-medium text-blue-200">${meta.label}</p>
+
+                            <div class="pt-2.5 border-t border-white/10 grid grid-cols-3 gap-2 text-xs">
+                                <div class="flex items-center gap-1.5 text-cyan-300">
+                                    <i data-lucide="cloud-rain" class="w-3.5 h-3.5 shrink-0"></i>
+                                    <span>${popMax}% (${precipSum} mm)</span>
+                                </div>
+                                <div class="flex items-center gap-1.5 text-slate-300">
+                                    <i data-lucide="wind" class="w-3.5 h-3.5 shrink-0 text-slate-400"></i>
+                                    <span>${windMax} km/h</span>
+                                </div>
+                                <div class="text-right text-blue-400 group-hover:underline text-[11px]">
+                                    Pokaż w banerze ↑
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            grid.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        function renderArchiveWeather() {
+            const daysGrid = document.getElementById('archive-days-grid');
+            if (!cachedOpenMeteoData || !cachedOpenMeteoData.daily) {
+                daysGrid.innerHTML = `<div class="p-4 text-sm text-slate-400 col-span-full">Trwa ładowanie archiwum pogody z ostatnich 7 dni...</div>`;
+                return;
+            }
+
+            const daily = cachedOpenMeteoData.daily;
+            let cardsHtml = '';
+
+            for (let i = 0; i < 7; i++) {
+                const dateObj = new Date(daily.time[i]);
+                const dayLabel = dateObj.toLocaleDateString('pl-PL', { weekday: 'short' });
+                const dateShort = dateObj.toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit' });
+                const tMax = Math.round(daily.temperature_2m_max[i]);
+                const tMin = Math.round(daily.temperature_2m_min[i]);
+                const precip = (daily.precipitation_sum[i] || 0).toFixed(1);
+                const owmCode = mapWmoToOwmCode(daily.weather_code[i], 1);
+                const detailedId = mapWmoToDetailedOwmId(daily.weather_code[i]);
+                const meta = resolveWeatherDisplayMeta(owmCode, detailedId);
+                const isSelected = (i === activeArchiveDayIndex);
+
+                cardsHtml += `
+                    <button 
+                        onclick="selectArchiveDay(${i})"
+                        title="Kliknij, aby wyświetlić ten dzień archiwalny w górnym banerze"
+                        class="text-left rounded-2xl overflow-hidden border transition flex flex-col justify-between ${isSelected ? 'border-emerald-400 ring-2 ring-emerald-500/30 bg-slate-900' : 'border-white/10 bg-slate-900/60 hover:border-emerald-400/50'}"
+                    >
+                        <div class="h-20 w-full bg-cover bg-center relative shrink-0" style="background-image: url('${meta.imageUrl}');">
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent"></div>
+                            <div class="absolute bottom-1.5 left-2.5">
+                                <p class="text-xs font-bold text-white capitalize">${dayLabel}, ${dateShort}</p>
+                            </div>
+                        </div>
+                        <div class="p-3 space-y-1.5 w-full flex-1 flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-baseline justify-between">
+                                    <span class="text-lg font-extrabold text-white">${tMax}°</span>
+                                    <span class="text-xs text-slate-400">min ${tMin}°</span>
+                                </div>
+                                <p class="text-[11px] text-slate-300 leading-snug mt-1">${meta.label}</p>
+                            </div>
+                            <div class="text-[10px] text-cyan-300 flex items-center justify-between pt-1.5 border-t border-white/10">
+                                <span>Suma opadów:</span>
+                                <strong>${precip} mm</strong>
+                            </div>
+                        </div>
+                    </button>
+                `;
+            }
+
+            daysGrid.innerHTML = cardsHtml;
+            renderArchiveHourlyBreakdown(activeArchiveDayIndex);
+        }
+
+        function renderArchiveHourlyBreakdown(dayIndex) {
+            const container = document.getElementById('archive-hourly-container');
+            const labelEl = document.getElementById('archive-selected-date-label');
+            if (!cachedOpenMeteoData || !cachedOpenMeteoData.hourly) return;
+
+            const dailyDate = new Date(cachedOpenMeteoData.daily.time[dayIndex]);
+            labelEl.textContent = dailyDate.toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+            const hourly = cachedOpenMeteoData.hourly;
+            const startHour = dayIndex * 24;
+            const endHour = startHour + 24;
+            let html = '';
+
+            for (let h = startHour; h < endHour && h < hourly.time.length; h++) {
+                const dt = new Date(hourly.time[h]);
+                const hourStr = dt.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+                const temp = Math.round(hourly.temperature_2m[h]);
+                const precip = (hourly.precipitation[h] || 0).toFixed(1);
+                const wind = Math.round(hourly.wind_speed_10m[h] || 0);
+                const hum = hourly.relative_humidity_2m[h] || 0;
+                const isDay = hourly.is_day[h];
+                const dnLabel = isDay ? "☀️ Dzień" : "🌙 Noc";
+                const owmCode = mapWmoToOwmCode(hourly.weather_code[h], isDay);
+                const detailedId = mapWmoToDetailedOwmId(hourly.weather_code[h]);
+                const meta = resolveWeatherDisplayMeta(owmCode, detailedId);
+
+                html += `
+                    <div onclick="showArchiveHourInHeroBanner(${h})" title="Kliknij, aby pokazać w górnym banerze" class="cursor-pointer shrink-0 w-40 rounded-xl bg-slate-950/80 border border-white/10 hover:border-emerald-500/50 overflow-hidden transition flex flex-col justify-between">
+                        <div class="h-20 bg-cover bg-center relative shrink-0" style="background-image: url('${meta.imageUrl}');">
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent"></div>
+                            <span class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded bg-black/65 text-[9px] text-slate-200">${dnLabel}</span>
+                            <span class="absolute bottom-1 left-2 text-xs font-bold text-white">${hourStr}</span>
+                        </div>
+                        <div class="p-3 flex-1 flex flex-col justify-between gap-2">
+                            <div>
+                                <div class="text-lg font-extrabold text-white">${temp}°C</div>
+                                <p class="text-[11px] text-slate-300 leading-snug mt-1 break-words">${meta.label}</p>
+                            </div>
+                            <div class="space-y-1">
+                                <div class="text-[10px] text-slate-300 pt-1.5 border-t border-white/5 flex justify-between">
+                                    <span>${precip} mm</span>
+                                    <span>${wind} km/h</span>
+                                </div>
+                                <div class="text-[10px] text-slate-500">Wilg. ${hum}%</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        // ============================================================================
+        // 12. PRZEŁĄCZANIE ZAKŁADEK NA ŻĄDANIE
+        // ============================================================================
+        async function switchTab(tabName) {
+            activeTab = tabName;
+            const tabs = ['hourly', 'longterm', 'archive'];
+            tabs.forEach(t => {
+                const content = document.getElementById(`tab-content-${t}`);
+                const btn = document.getElementById(`tab-btn-${t}`);
+                if (content) {
+                    if (t === tabName) {
+                        content.classList.remove('hidden');
+                    } else {
+                        content.classList.add('hidden');
+                    }
+                }
+                if (btn) {
+                    if (t === tabName) {
+                        btn.className = "tab-active flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2";
+                    } else {
+                        btn.className = "flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/5 transition flex items-center justify-center gap-2";
+                    }
+                }
+            });
+
+            if (tabName === 'hourly') {
+                initWeatherMap();
+                setTimeout(() => {
+                    if (mapInstance) mapInstance.invalidateSize();
+                }, 100);
+                renderHourlyForecast();
+                renderOwm3HourStrip();
+                await ensureExtendedWeatherDataLoaded();
+                renderHourlyForecast();
+                renderOwm3HourStrip();
+            } else if (tabName === 'longterm') {
+                renderLongTermForecast();
+                await ensureExtendedWeatherDataLoaded();
+                renderLongTermForecast();
+            } else if (tabName === 'archive') {
+                renderArchiveWeather();
+                await ensureExtendedWeatherDataLoaded();
+                renderArchiveWeather();
+            }
+        }
+
+        // Start aplikacji: ładuje się baner z aktualną pogodą, a baza Turso synchronizuje zdjęcia w tle (tylko do odczytu)
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            enableHorizontalWheelScroll();
+            loadLocationByCoords(52.2297, 21.0122, "Warszawa", "PL", "Aktualna pogoda");
+            detectUserLocation();
+
+            setTimeout(() => {
+                initSqlDatabase();
+            }, 600);
+        });
+    </script>
+</body>
+</html>
