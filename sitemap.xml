@@ -4,17 +4,77 @@
 
   <url>
        <loc>https://fabryka.tech/</loc>
-       <lastmod>2026-10-11T01:07:57+00:00</lastmod>
+       <lastmod>2026-10-24T22:51:17+00:00</lastmod>
        <priority>1.0000</priority>
   </url>
   <url>
        <loc>https://fabryka.tech/kontakt</loc>
-       <lastmod>2026-10-11T01:07:57+00:00</lastmod>
+       <lastmod>2026-10-24T22:51:15+00:00</lastmod>
+       <priority>0.8000</priority>
+  </url>
+  <url>
+       <loc>https://fabryka.tech/kalkulator</loc>
+       <lastmod>2026-10-24T22:51:17+00:00</lastmod>
+       <priority>0.8000</priority>
+  </url>
+  <url>
+       <loc>https://fabryka.tech/pogoda</loc>
+       <lastmod>2026-10-24T22:51:15+00:00</lastmod>
+       <priority>0.8000</priority>
+  </url>
+  <url>
+       <loc>https://fabryka.tech/architekt.html</loc>
+       <lastmod>2026-10-24T22:51:16+00:00</lastmod>
+       <priority>0.8000</priority>
+  </url>
+  <url>
+       <loc>https://fabryka.tech/nauczyciel.html</loc>
+       <lastmod>2026-10-24T22:51:15+00:00</lastmod>
        <priority>0.8000</priority>
   </url>
   <url>
        <loc>https://fabryka.tech/cookies</loc>
-       <lastmod>2026-10-11T01:07:57+00:00</lastmod>
+       <lastmod>2026-10-24T22:51:17+00:00</lastmod>
        <priority>0.8000</priority>
+  </url>
+  <url>
+       <loc>https://fabryka.tech/games.html</loc>
+       <lastmod>2026-10-24T22:51:16+00:00</lastmod>
+       <priority>0.6400</priority>
+  </url>
+  <url>
+       <loc>https://fabryka.tech/fallout/</loc>
+       <lastmod>2026-10-24T22:51:15+00:00</lastmod>
+       <priority>0.6400</priority>
+  </url>
+  <url>
+       <loc>https://fabryka.tech/arcade/</loc>
+       <lastmod>2026-10-24T22:51:17+00:00</lastmod>
+       <priority>0.6400</priority>
+  </url>
+  <url>
+       <loc>https://fabryka.tech/cyber/</loc>
+       <lastmod>2026-10-24T22:51:16+00:00</lastmod>
+       <priority>0.6400</priority>
+  </url>
+  <url>
+       <loc>https://fabryka.tech/nocna-zmiana/</loc>
+       <lastmod>2026-10-24T22:51:15+00:00</lastmod>
+       <priority>0.6400</priority>
+  </url>
+  <url>
+       <loc>https://fabryka.tech/rynek-czasu/</loc>
+       <lastmod>2026-10-24T22:51:15+00:00</lastmod>
+       <priority>0.6400</priority>
+  </url>
+  <url>
+       <loc>https://fabryka.tech/kroniki/</loc>
+       <lastmod>2026-10-24T22:51:15+00:00</lastmod>
+       <priority>0.6400</priority>
+  </url>
+  <url>
+       <loc>https://fabryka.tech/index.html</loc>
+       <lastmod>2026-10-24T22:51:15+00:00</lastmod>
+       <priority>0.6400</priority>
   </url>
 </urlset>
