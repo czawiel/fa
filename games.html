@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Podstawowe meta tagi SEO -->
+  <title>fabryka.tech games — Brandowane Gry i Aplikacje Wizerunkowe dla Firm</title>
+  <meta name="description" content="Tworzę lekkie gry webowe HTML5 i interaktywne aplikacje, które ocieplają wizerunek firmy, angażują klientów i zwiększają konwersję. Sprawdź ofertę B2B." />
+  <meta name="keywords" content="gry dla firm, advergaming, gry przeglądarkowe dla marek, gryfikacja w biznesie, ocieplanie wizerunku firmy, aplikacje promocyjne HTML5" />
+  <meta name="author" content="Cezary Wielgus" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://fabryka.tech/games.html" />
+  <link rel="icon" href="svg/favicon.png" type="image/png">
+  <meta name="theme-color" content="#06B6D4" />
+
+  <!-- Open Graph / Facebook / LinkedIn -->
+  <meta property="og:locale" content="pl_PL" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="fabryka.tech games — Gry i Aplikacje Ocieplające Wizerunek Firmy" />
+  <meta property="og:description" content="Zamień zwykłych odwiedzających w zaangażowanych fanów marki dzięki dedykowanym mikro-grom i interaktywnym aplikacjom HTML5." />
+  <meta property="og:url" content="https://fabryka.tech/games.html" />
+  <meta property="og:site_name" content="fabryka.tech games" />
+  <meta property="og:image" content="https://fabryka.tech/svg/logo1.svg" />
+
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%230077D4'/><path fill='%23fff' d='M8 7h17v5H14v3h8v5h-8v7H8V7Z'/><path fill='%231E293B' d='M20 7h5v5h-5z'/></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,500;1,600;1,700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #F8FAFC;
+      --surface:    #FFFFFF;
+      --border:     #E2E8F0;
+      --muted:      #94A3B8;
+      --ink:        #0F172A;
+      --ink-soft:   #334155;
+      --accent:     #06B6D4;
+      --accent-dim: #CFFAFE;
+      --font-display: 'Inter', sans-serif;
+      --font-sans:    'Inter', sans-serif;
+      --font-mono:    'JetBrains Mono', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.6;
+    }
+
+    a { text-decoration: none; color: inherit; }
+    img { display: block; width: 100%; }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* NAV */
+    header {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(248,250,252,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      max-width: 1100px; margin: 0 auto; padding: 0 24px;
+      height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 24px;
+    }
+    
+    /* NOWE LOGO: fabryka.tech games */
+    .logo-link {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 7px;
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: -0.02em;
+    }
+    .logo-link .logo-dot {
+      color: var(--accent);
+    }
+    .logo-link .logo-games {
+      font-style: italic;
+      font-weight: 600;
+      background: linear-gradient(135deg, #06B6D4, #8B5CF6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-size: 19px;
+      padding-right: 4px;
+    }
+
+    nav { display: flex; gap: 32px; align-items: center; }
+    nav a { font-size: 14px; color: var(--muted); transition: color .15s; }
+    nav a:hover { color: var(--ink); }
+    .btn-nav { font-size: 13px; font-weight: 600; padding: 8px 18px; border-radius: 10px; background: var(--ink); color: #fff; transition: background .15s; }
+    .btn-nav:hover { background: #1E293B; }
+
+    /* HERO */
+    .hero {
+      max-width: 1100px; margin: 0 auto; padding: 80px 24px 64px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center;
+    }
+    .badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 5px 12px; border-radius: 99px;
+      background: var(--accent-dim); color: var(--accent);
+      font-family: var(--font-mono); font-size: 12px; font-weight: 500; margin-bottom: 24px;
+    }
+    .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    h1 { font-family: var(--font-display); font-size: clamp(38px,4.6vw,46px); font-weight: 600; line-height: 1.12; margin-bottom: 20px; }
+    h1 em { font-style: normal; color: var(--accent); }
+    .hero-sub { font-size: 17px; color: var(--ink-soft); line-height: 1.7; margin-bottom: 32px; }
+    .btn-group { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn-primary {
+      display: inline-block; padding: 12px 24px; border-radius: 12px;
+      background: linear-gradient(135deg, #06B6D4, #8B5CF6); color: #fff;
+      font-size: 14px; font-weight: 600; box-shadow: 0 4px 16px rgba(6,182,212,.3); transition: opacity .15s;
+    }
+    .btn-primary:hover { opacity: .88; }
+    .btn-secondary {
+      display: inline-block; padding: 12px 24px; border-radius: 12px;
+      background: var(--surface); color: var(--ink); border: 1px solid var(--border);
+      font-size: 14px; font-weight: 600; transition: border-color .15s, background .15s;
+    }
+    .btn-secondary:hover { border-color: var(--muted); background: #F1F5F9; }
+
+    /* TERMINAL */
+    .terminal { border-radius: 18px; overflow: hidden; border: 1px solid var(--border); background: #0F172A; box-shadow: 0 12px 48px rgba(0,0,0,.12); }
+    .terminal-bar { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: #1E293B; border-bottom: 1px solid #334155; }
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .dot-red { background: #EF4444; } .dot-amber { background: #F59E0B; } .dot-green { background: #10B981; }
+    .terminal-title { margin-left: 12px; font-family: var(--font-mono); font-size: 12px; color: #64748B; }
+    .terminal-body { padding: 24px; font-family: var(--font-mono); font-size: 13px; line-height: 2; }
+    .t-cmd { color: #06B6D4; } .t-arrow { color: #06B6D4; } .t-name { color: #E2E8F0; }
+    .t-ver { color: #8B5CF6; } .t-ok { color: #10B981; } .t-dim { color: #94A3B8; }
+    .cursor { display: inline-block; width: 8px; height: 16px; background: #06B6D4; vertical-align: middle; animation: blink 1.1s step-end infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* STATS */
+    .stats { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--surface); }
+    .stats-inner { max-width: 1100px; margin: 0 auto; padding: 20px 24px; display: flex; flex-wrap: wrap; gap: 24px; justify-content: space-around; }
+    .stat-item { text-align: center; }
+    .stat-value { font-family: var(--font-display); font-size: 26px; font-weight: 600; color: var(--ink); display: block; }
+    .stat-label { font-family: var(--font-mono); font-size: 11px; color: var(--muted); display: block; margin-top: 2px; }
+
+    /* BENEFITS / ZASTOSOWANIE */
+    .benefits-section { max-width: 1100px; margin: 0 auto; padding: 72px 24px 0; }
+    .benefits-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+    .benefit-box {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px;
+      transition: border-color .2s, transform .2s;
+    }
+    .benefit-box:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .benefit-icon {
+      width: 38px; height: 38px; border-radius: 10px; background: var(--accent-dim); color: var(--accent);
+      display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-weight: 600; font-size: 14px; margin-bottom: 14px;
+    }
+    .benefit-title { font-weight: 600; font-size: 16px; margin-bottom: 6px; color: var(--ink); }
+    .benefit-desc { font-size: 13px; color: var(--ink-soft); line-height: 1.6; }
+
+    /* APPS / GAMES */
+    .apps-section { max-width: 1100px; margin: 0 auto; padding: 80px 24px; }
+    .section-eyebrow { font-family: var(--font-mono); font-size: 11px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: .12em; margin-bottom: 8px; }
+    h2 { font-family: var(--font-display); font-size: clamp(28px,4vw,40px); font-weight: 600; color: var(--ink); margin-bottom: 40px; }
+    .grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; }
+    .apps-more { margin-top: 32px; text-align: center; color: var(--ink-soft); font-size: 15px; }
+    .apps-more strong { color: var(--ink); font-weight: 600; }
+    .apps-more a { color: #005190; font-weight: 600; }
+    .apps-more a:hover { text-decoration: underline; }
+
+    /* CARD */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; transition: transform .2s, box-shadow .2s, border-color .2s; }
+    .card:hover { transform: translateY(-4px); box-shadow: 0 12px 36px rgba(0,0,0,.09); }
+    .card-img { position: relative; height: 176px; overflow: hidden; cursor: pointer; }
+    .card-img img { height: 100%; object-fit: cover; transition: transform .5s; }
+    .card:hover .card-img img { transform: scale(1.05); }
+    .card-img-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(15,23,42,.15) 0%, rgba(15,23,42,.65) 100%); transition: background .25s; }
+    .card-img:hover .card-img-overlay { background: linear-gradient(to bottom, rgba(15,23,42,.35) 0%, rgba(15,23,42,.8) 100%); }
+    .card-version { position: absolute; top: 12px; right: 12px; z-index: 2; background: rgba(255,255,255,.95); color: var(--ink); font-family: var(--font-mono); font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 6px; }
+    
+    /* WSKAZÓWKA WIDEO NA ZDJĘCIU */
+    .video-hint {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .play-circle {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: rgba(15, 23, 42, 0.78);
+      backdrop-filter: blur(6px);
+      border: 1.5px solid rgba(255, 255, 255, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(0,0,0,.3);
+      transition: transform .25s ease, background .25s ease, border-color .25s ease;
+    }
+    .play-circle svg {
+      margin-left: 2px;
+    }
+    .video-badge-text {
+      background: rgba(15, 23, 42, 0.82);
+      backdrop-filter: blur(4px);
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 99px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      transition: background .25s ease, transform .25s ease;
+    }
+    .card-img:hover .play-circle {
+      transform: scale(1.12);
+      background: var(--accent);
+      border-color: #fff;
+    }
+    .card-img:hover .video-badge-text {
+      background: #0F172A;
+      transform: translateY(2px);
+    }
+
+    .card-body { padding: 20px; display: flex; flex-direction: column; flex: 1; }
+    .card-cat { font-family: var(--font-mono); font-size: 11px; font-weight: 600; margin-bottom: 4px; }
+    .card-name { font-family: var(--font-display); font-size: 20px; font-weight: 600; color: var(--ink); margin-bottom: 10px; }
+    .card-desc { font-size: 13.5px; color: var(--ink-soft); line-height: 1.65; flex: 1; margin-bottom: 14px; }
+    .card-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+    .tag { font-family: var(--font-mono); font-size: 11px; padding: 2px 8px; border-radius: 6px; }
+    .card-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 14px; border-top: 1px solid var(--border); }
+    .card-meta { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+    .btn-dl {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; color: #fff;
+      transition: opacity .15s; border: none; cursor: pointer; text-decoration: none;
+    }
+    .btn-dl:hover { opacity: .85; }
+
+    /* MODAL WIDEO */
+    .video-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .25s ease, visibility .25s ease;
+    }
+    .video-modal.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    .video-modal-content {
+      position: relative;
+      width: 100%;
+      max-width: 900px;
+      background: #0F172A;
+      border: 1px solid #334155;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+      transform: scale(0.95);
+      transition: transform .25s ease;
+    }
+    .video-modal.active .video-modal-content {
+      transform: scale(1);
+    }
+    .video-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      background: #1E293B;
+      border-bottom: 1px solid #334155;
+    }
+    .video-modal-title {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 600;
+      color: #F8FAFC;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .video-modal-title::before {
+      content: "";
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+    .video-modal-close {
+      background: rgba(255, 255, 255, 0.08);
+      border: none;
+      color: #CBD5E1;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      transition: background .15s, color .15s;
+    }
+    .video-modal-close:hover {
+      background: #EF4444;
+      color: #fff;
+    }
+    .video-modal-body {
+      position: relative;
+      background: #000;
+      aspect-ratio: 16 / 9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .video-modal-body video {
+      width: 100%;
+      height: 100%;
+      display: block;
+      outline: none;
+    }
+
+    /* CTA */
+    .cta-wrap { max-width: 1100px; margin: 0 auto 80px; padding: 0 24px; }
+    .cta-box { background: #0F172A; border-radius: 20px; padding: 64px 40px; text-align: center; position: relative; overflow: hidden; }
+    .cta-grid { position: absolute; inset: 0; opacity: .05; background-image: linear-gradient(#06B6D4 1px,transparent 1px),linear-gradient(90deg,#06B6D4 1px,transparent 1px); background-size: 40px 40px; }
+    .cta-eyebrow { font-family: var(--font-mono); font-size: 12px; color: #06B6D4; margin-bottom: 12px; position: relative; z-index: 1; }
+    .cta-box h2 { color: #fff; margin-bottom: 12px; position: relative; z-index: 1; }
+    .cta-sub { color: #94A3B8; font-size: 14px; max-width: 540px; margin: 0 auto 32px; line-height: 1.7; position: relative; z-index: 1; }
+    .cta-box .btn-primary { position: relative; z-index: 1; }
+
+    /* FOOTER */
+    footer { border-top: 1px solid var(--border); background: var(--surface); }
+    .footer-inner { max-width: 1100px; margin: 0 auto; padding: 28px 24px; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; }
+    .footer-logo { font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--ink); }
+    .footer-logo em { font-style: italic; font-weight: 600; color: var(--accent); margin-left: 4px; }
+    .footer-copy { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a { font-size: 12px; color: var(--muted); transition: color .15s; }
+    .footer-links a:hover { color: var(--ink); }
+
+    /* RESPONSIVE */
+    @media (max-width: 1000px) {
+      .hero { grid-template-columns: 1fr; gap: 40px; }
+      .grid { grid-template-columns: repeat(2,1fr); }
+      .benefits-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .grid { grid-template-columns: 1fr; }
+      .benefits-grid { grid-template-columns: 1fr; }
+      nav { display: none; }
+      .hero { padding-top: 48px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="nav-inner">
+    <a href="http://fabryka.tech/" class="logo-link" aria-label="fabryka.tech games">
+      <span>fabryka<span class="logo-dot">.</span>tech</span>
+      <span class="logo-games">games</span>
+    </a>
+
+    <nav aria-label="Główna nawigacja">
+      <a href="#zastosowanie">Aplikacje</a>
+      <a href="#gry">Wizerunek</a>
+      <a href="index.html">O mnie</a>
+      <a href="#kontakt">Kontakt</a>
+    </nav>
+    <a href="#gry" class="btn-nav">Pobierz</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero" aria-label="Sekcja powitalna">
+    <div>
+      <div class="badge"><span class="badge-dot"></span>Gry HTML5 · Branding B2B · Employer &amp; Customer Branding</div>
+      <h1 id="upp">Gry i aplikacje, które<br><em>ocieplą</em> wizerunek<br>Twojej firmy.</h1>
+      <p class="hero-sub">Zamień biernych odwiedzających w uśmiechniętych ambasadorów marki. Projektuję lekkie mikro-gry przeglądarkowe i interaktywne aplikacje z Twoim logo, które angażują klientów, zatrzymują na stronie i budują pozytywne skojarzenia.</p>
+      <div class="btn-group">
+        <a href="#gry" class="btn-primary">Zobacz gotowe rozwiązania</a>
+        <a href="https://fabryka.tech/kontakt" class="btn-secondary">Zapytaj o wdrożenie</a>
+      </div>
+    </div>
+    <div class="terminal" aria-hidden="true">
+      <div class="terminal-bar">
+        <span class="dot dot-red"></span><span class="dot dot-amber"></span><span class="dot dot-green"></span>
+        <span class="terminal-title">zsh — fabryka.tech/games-engine</span>
+      </div>
+      <div class="terminal-body">
+        <div><span class="t-cmd">$ brand-warmth --deploy --client="TwojaFirma"</span></div>
+        <div><span class="t-arrow">  →</span> <span class="t-name">Fallout </span><span class="t-ver">HTML5</span>  <span class="t-ok">[ready]</span></div>
+        <div><span class="t-arrow">  →</span> <span class="t-name">Arcade VHS </span><span class="t-ver">HTML5</span> <span class="t-ok">[ready]</span></div>
+        <div><span class="t-arrow">  →</span> <span class="t-name">Cyber Współczesność </span><span class="t-ver">HTML5</span>  <span class="t-ok">[ready]</span></div>
+        <div><span class="t-arrow">  →</span> <span class="t-name">Nocna Zmiana </span><span class="t-ver">HTML5</span>   <span class="t-ok">[ready]</span></div>
+        <div><span class="t-arrow">  →</span> <span class="t-name">Rynek Czasu </span><span class="t-ver">HTML5</span>   <span class="t-ok">[ready]</span></div>
+        <div><span class="t-arrow">  →</span> <span class="t-name">Kroniki Karczmy </span><span class="t-ver">HTML5</span>   <span class="t-ok">[ready]</span></div>
+        <div><span class="t-arrow">  →</span> <span class="t-name">Średni czas z marką:         </span><span class="t-ver">+340%</span>   <span class="t-dim">[verified]</span></div>
+        <div style="margin-top:4px"><span class="t-cmd">$ </span><span class="cursor"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="stats">
+    <div class="stats-inner">
+      <div class="stat-item"><span class="stat-value">3x dłużej</span><span class="stat-label">Czas spędzony na stronie</span></div>
+      <div class="stat-item"><span class="stat-value">100% Web</span><span class="stat-label">Bez instalacji (Mobile &amp; PC)</span></div>
+      <div class="stat-item"><span class="stat-value">White-Label</span><span class="stat-label">Pełna personalizacja pod markę</span></div>
+      <div class="stat-item"><span class="stat-value">7 dni</span><span class="stat-label">Średni czas wdrożenia</span></div>
+    </div>
+  </div>
+
+  <!-- ZASTOSOWANIE BIZNESOWE (zamiast sekcji O mnie) -->
+  <section class="benefits-section" id="zastosowanie">
+    <p class="section-eyebrow">// jak to działa w biznesie</p>
+    <h2 style="margin-bottom:28px">Gdzie mikro-gry zarabiają na Twój wizerunek?</h2>
+    <div class="benefits-grid">
+      <div class="benefit-box">
+        <div class="benefit-icon">01</div>
+        <div class="benefit-title">Kreatywne strony 404</div>
+        <p class="benefit-desc">Zamiast frustracji z powodu błędnego linku — krótka gra z maskotką Twojej firmy, która wywołuje uśmiech i zatrzymuje klienta w sklepie.</p>
+      </div>
+      <div class="benefit-box">
+        <div class="benefit-icon">02</div>
+        <div class="benefit-title">Rabaty za zaangażowanie</div>
+        <p class="benefit-desc">Klient wygrywa zniżkę w 30-sekundowej grze zręcznościowej. Zdobyty samodzielnie kupon ma o 60% wyższą szansę na realizację w koszyku.</p>
+      </div>
+      <div class="benefit-box">
+        <div class="benefit-icon">03</div>
+        <div class="benefit-title">Targi i Konferencje</div>
+        <p class="benefit-desc">Uruchom grę z rankingiem na żywo na ekranie dotykowym na stoisku targowym. Naturalny magnes na uczestników i baza leadów B2B.</p>
+      </div>
+      <div class="benefit-box">
+        <div class="benefit-icon">04</div>
+        <div class="benefit-title">Kampanie Świąteczne i PR</div>
+        <p class="benefit-desc">Zamiast kolejnej nudnej kartki PDF na maila — wyślij kontrahentom obrandowaną mini-grę świąteczną z życzeniami od zespołu.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="apps-section" id="gry">
+    <p class="section-eyebrow">// katalog rozwiązań b2b</p>
+    <h2>Gry i aplikacje wizerunkowe</h2>
+    <div class="grid">
+
+      <!-- Card 1: Fallout -->
+    <article class="card">
+      <div class="card-img" style="background:#0c2112" data-video="vid/fallout.mp4" data-title="Fallout Symulator Vault-Tec" role="button" tabindex="0" aria-label="Obejrzyj prezentację Terminala G.O.A.T.">
+        <img src="img/fallout.jfif" alt="Retro terminal komputerowy RobCo z testem predyspozycji zawodowych G.O.A.T." loading="lazy" decoding="async" onerror="this.style.display='none'" />
+        <div class="card-img-overlay"></div>
+        <span class="card-version">v 2.077</span>
+        <div class="video-hint">
+          <div class="play-circle">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          </div>
+          <span class="video-badge-text">Zobacz video</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <span class="card-cat" style="color:#4dff79">Grywalizacja &amp; Zaangażowanie</span>
+        <h3 class="card-name">Fallout</h3>
+        <p class="card-desc">Klimatyczny, 20-etapowy kwestionariusz psychologiczno-zawodowy stylizowany na retro terminal RobCo z uniwersum Fallouta. Generuje spersonalizowany profil S.P.E.C.I.A.L., kronikę fabularną oraz raport do pobrania.</p>
+        <div class="card-tags">
+          <span class="tag" style="background:#102c18;color:#4dff79">Retro</span>
+          <span class="tag" style="background:#102c18;color:#4dff79">Dźwięki 8-bit</span>
+          <span class="tag" style="background:#102c18;color:#4dff79">Orginal</span>
+        </div>
+        <div class="card-footer">
+          <span class="card-meta">Web App</span>
+          <a class="btn-dl" href="#kontakt" style="background:#288c43;box-shadow:0 2px 8px #4dff7944">
+            Otwórz →
+          </a>
+        </div>
+      </div>
+    </article>
+
+      <!-- Card 2: Retro -->
+      <article class="card">
+            <div class="card-img" style="background:#090414" data-video="vid/arcade.mp4" data-title="W jakiej historii żyjesz? — VHS 1985" role="button" tabindex="0" aria-label="Obejrzyj prezentację testu VHS Archetype 1985">
+              <img src="img/arcade-vhs.jpg" alt="Retro automat z testem archetypów fabularnych w klimacie VHS Synthwave 1985" loading="lazy" decoding="async" onerror="this.style.display='none'" />
+              <div class="card-img-overlay"></div>
+              <span class="card-version">v 1.985</span>
+              <div class="video-hint">
+                <div class="play-circle">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                </div>
+                <span class="video-badge-text">Zobacz video</span>
+              </div>
+            </div>
+            <div class="card-body">
+              <span class="card-cat" style="color:#ff2a85">Grywalizacja &amp; Zaangażowanie</span>
+              <h3 class="card-name">Arcade VHS</h3>
+              <p class="card-desc">Nostalgiczny, 20-etapowy test archetypów fabularnych stylizowany na kasetę VHS i salon arcade z 1985 roku. Wylicza equalizer gatunkowy, odsłania filmową supermoc oraz generuje kartę postaci do schowka.</p>
+              <div class="card-tags">
+                <span class="tag" style="background:#1f113d;color:#ff2a85">Synthwave</span>
+                <span class="tag" style="background:#1f113d;color:#ff2a85">Dźwięki 8-bit</span>
+                <span class="tag" style="background:#1f113d;color:#ff2a85">VHS 1985</span>
+              </div>
+              <div class="card-footer">
+                <span class="card-meta">Web App</span>
+                <a class="btn-dl" href="#kontakt" style="background:#ff2a85;box-shadow:0 2px 8px #ff2a8555">
+                  Otwórz →
+                </a>
+              </div>
+            </div>
+          </article>
+
+      <!-- Card 3: CyberWspółczesność -->
+<article class="card">
+      <div class="card-img" style="background:#07090e" data-video="vid/cyber.mp4" data-title="W jakiej historii żyjesz? — CyberWspółczesność" role="button" tabindex="0" aria-label="Obejrzyj prezentację testu Nowe Współczesne Archetypy">
+        <img src="img/cyber.png" alt="Nowoczesny, ciemny interfejs analityczny z testem psychologiczno-fabularnym" loading="lazy" decoding="async" onerror="this.style.display='none'" />
+        <div class="card-img-overlay"></div>
+        <span class="card-version">v 2.04</span>
+        <div class="video-hint">
+          <div class="play-circle">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          </div>
+          <span class="video-badge-text">Zobacz video</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <span class="card-cat" style="color:#38bdf8">Grywalizacja &amp; Zaangażowanie</span>
+        <h3 class="card-name">CyberWspółczesność</h3>
+        <p class="card-desc">Nowoczesny, 20-etapowy test psychologiczno-narracyjny osadzony w realiach cyfrowej metropolii. Diagnozuje jeden z czterech współczesnych archetypów, mapuje sygnały decyzji oraz generuje profil narracyjny.</p>
+        <div class="card-tags">
+          <span class="tag" style="background:#0f131d;color:#38bdf8">Cyberpunk</span>
+          <span class="tag" style="background:#0f131d;color:#38bdf8">Narrative Engine</span>
+          <span class="tag" style="background:#0f131d;color:#38bdf8">Archetypy</span>
+        </div>
+        <div class="card-footer">
+          <span class="card-meta">Web App</span>
+          <a class="btn-dl" href="#kontakt" style="background:#0284c7;box-shadow:0 2px 8px #38bdf844">
+            Otwórz →
+          </a>
+        </div>
+      </div>
+    </article>
+
+      <!-- Card 4: Nocna Zmiana -->
+    <article class="card">
+          <div class="card-img" style="background:#140d04" data-video="vid/nocna-zmiana.mp4" data-title="Nocna Zmiana — Archiwum 99.4 FM" role="button" tabindex="0" aria-label="Obejrzyj prezentację gry Nocna Zmiana 99.4 FM">
+            <img src="img/nocna-zmiana.png" alt="Analogowa konsoleta radiowa z lat 90. z podwójnym wskaźnikiem VU i szpulowcem" loading="lazy" decoding="async" onerror="this.style.display='none'" />
+            <div class="card-img-overlay"></div>
+            <span class="card-version">v 1.994</span>
+            <div class="video-hint">
+              <div class="play-circle">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              </div>
+              <span class="video-badge-text">Zobacz video</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <span class="card-cat" style="color:#ffb000">Grywalizacja &amp; Zaangażowanie</span>
+            <h3 class="card-name">Nocna Zmiana</h3>
+            <p class="card-desc">Klimatyczny symulator nocnego pasma radiowego z 1994 roku. Odbieraj telefony od mieszkańców, steruj nastrojami za pomocą taśm szpulowych i chroń miasteczko przed zjawiskami anomalnymi aż do świtu.</p>
+            <div class="card-tags">
+              <span class="tag" style="background:#221606;color:#ffb000">Audio thriller</span>
+              <span class="tag" style="background:#221606;color:#ffb000">Głosy na żywo</span>
+              <span class="tag" style="background:#221606;color:#ffb000">Rok 1994</span>
+            </div>
+            <div class="card-footer">
+              <span class="card-meta">Web App</span>
+              <a class="btn-dl" href="#kontakt" style="background:#d97706;box-shadow:0 2px 8px #ffb00044">
+                Otwórz →
+              </a>
+            </div>
+          </div>
+        </article>
+
+      <!-- Card 5: Rynek Czasu -->
+<article class="card">
+  <div class="card-img" style="background:#0f172a" data-video="vid/rynek-czasu.mp4" data-title="Czarny Rynek Czasu — Test Strategii Życiowej" role="button" tabindex="0" aria-label="Obejrzyj prezentację symulatora Czarny Rynek Czasu">
+    <img src="img/rynek-czasu.png" alt="Panel symulatora strategii życiowej z wskaźnikami energii i czasu dobowego" loading="lazy" decoding="async" onerror="this.style.display='none'" />
+    <div class="card-img-overlay"></div>
+    <span class="card-version">v 1.4</span>
+    <div class="video-hint">
+      <div class="play-circle">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      </div>
+      <span class="video-badge-text">Zobacz video</span>
+    </div>
+  </div>
+  <div class="card-body">
+    <span class="card-cat" style="color:#0ea5e9">Grywalizacja &amp; Zaangażowanie</span>
+    <h3 class="card-name">Rynek Czasu</h3>
+    <p class="card-desc">Wciągający, 20-etapowy symulator zarządzania zasobami życiowymi. Handluj energią i czasem dobowym, podejmuj decyzje pod presją kryzysów oraz odkryj swój profil strategiczny i wskaźnik ROI.</p>
+    <div class="card-tags">
+      <span class="tag" style="background:#1e293b;color:#38bdf8">Symulator</span>
+      <span class="tag" style="background:#1e293b;color:#38bdf8">Bilans zasobów</span>
+      <span class="tag" style="background:#1e293b;color:#38bdf8">Strategia</span>
+    </div>
+    <div class="card-footer">
+      <span class="card-meta">Web App</span>
+      <a class="btn-dl" href="#kontakt" style="background:#0284c7;box-shadow:0 2px 8px #0284c744">
+        Otwórz →
+      </a>
+    </div>
+  </div>
+</article>
+
+      <!-- Card 6: Kroniki karczmy -->
+<article class="card">
+      <div class="card-img" style="background:#160d08" data-video="vid/karczma.mp4" data-title="Kroniki Karczmy na Rozdrożu — Słowiańskie Cozy RPG" role="button" tabindex="0" aria-label="Obejrzyj prezentację gry Kroniki Karczmy na Rozdrożu">
+        <img src="img/kroniki-karczmy.jfif" alt="Słowiańska karczma Pod Złotym Żmijem z płonącym paleniskiem i szynkwasem" loading="lazy" decoding="async" onerror="this.style.display='none'" />
+        <div class="card-img-overlay"></div>
+        <span class="card-version">v 2.1.3</span>
+        <div class="video-hint">
+          <div class="play-circle">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          </div>
+          <span class="video-badge-text">Zobacz video</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <span class="card-cat" style="color:#d4a359">Grywalizacja &amp; Zaangażowanie</span>
+        <h3 class="card-name">Kroniki Karczmy</h3>
+        <p class="card-desc">Klimatyczne słowiańskie RPG z dźwiękiem trzaskającego ognia. Jako karczmarz warz i serwuj trunki, wysłuchuj wędrowców oraz wpływaj na losy trzech zwaśnionych potęg i finałowe przymierze.</p>
+        <div class="card-tags">
+          <span class="tag" style="background:#28170e;color:#d4a359">Słowiańskie RPG</span>
+          <span class="tag" style="background:#28170e;color:#d4a359">Strategia</span>
+          <span class="tag" style="background:#28170e;color:#d4a359">Frakcje</span>
+        </div>
+        <div class="card-footer">
+          <span class="card-meta">Web App</span>
+          <a class="btn-dl" href="#kontakt" style="background:#8c271e;box-shadow:0 2px 8px #d4a35944">
+            Otwórz →
+          </a>
+        </div>
+      </div>
+    </article>
+      
+    </div>
+    <p class="apps-more"><strong>Każdą grę dopasowuję w 100% do kolorów, produktów i charakteru Twojej firmy.</strong> <a href="https://fabryka.tech/kontakt">Porozmawiajmy o pomyśle →</a></p>
+  </section>
+
+  <div class="cta-wrap" id="cta">
+    <div class="cta-box">
+      <div class="cta-grid"></div>
+      <p class="cta-eyebrow">// custom game dev dla biznesu</p>
+      <h2>Wyróżnij swoją markę czymś, o czym klienci będą mówić</h2>
+      <p class="cta-sub">Napisz, czym zajmuje się Twoja firma. W ciągu 24 godzin zaproponuję Ci bezpłatny koncept prostej gry lub interaktywnej aplikacji, która ociepli Twój wizerunek i przyciągnie klientów.</p>
+      <a href="https://fabryka.tech/kontakt" class="btn-primary">Zamów darmową koncepcję gry →</a>
+    </div>
+  </div>
+
+  <section id="kontakt" style="max-width:1100px;margin:0 auto 80px;padding:0 24px">
+    <p class="section-eyebrow">// kontakt b2b</p>
+    <h2>Porozmawiajmy o wdrożeniu</h2>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:40px 48px;display:flex;flex-wrap:wrap;gap:40px;align-items:center">
+      <div style="flex:1;min-width:220px">
+        <div style="font-size:22px;font-weight:700;color:var(--ink);margin-bottom:4px">Cezary Wielgus</div>
+        <div style="font-family:var(--font-mono);font-size:12px;color:var(--muted);margin-bottom:24px">Płock, Polska · Realizacje w całej Polsce</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <a href="tel:+48784474740" style="display:inline-flex;align-items:center;gap:10px;color:var(--ink);font-size:15px;font-weight:500;transition:color .15s"
+            onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--ink)'" aria-label="Zadzwoń: +48 784 474 740">
+            <span style="width:36px;height:36px;border-radius:10px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center">
+              <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M14 10.5c-1 0-2-.2-2.9-.5a1 1 0 0 0-1 .2l-1.8 1.8A10.9 10.9 0 0 1 3.9 7.7l1.8-1.8a1 1 0 0 0 .2-1C5.6 4 5.5 3 5.5 2a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1c0 7.2 5.8 13 13 13a1 1 0 0 0 1-1v-2.5a1 1 0 0 0-1-1z" stroke="#06B6D4" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            784-474-740
+          </a>
+          <a href="mailto:czawiel@gmail.com" style="display:inline-flex;align-items:center;gap:10px;color:var(--ink);font-size:15px;font-weight:500;transition:color .15s"
+            onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--ink)'" aria-label="Napisz e-mail: czawiel@gmail.com">
+            <span style="width:36px;height:36px;border-radius:10px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center">
+              <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><rect x="1" y="3" width="14" height="10" rx="2" stroke="#06B6D4" stroke-width="1.3"/><path d="M1 5l7 5 7-5" stroke="#06B6D4" stroke-width="1.3" stroke-linecap="round"/></svg>
+            </span>
+            czawiel@gmail.com
+          </a>
+        </div>
+      </div>
+      <div style="font-family:var(--font-mono);font-size:12px;color:var(--muted);line-height:2;background:var(--bg);padding:20px 24px;border-radius:12px;border:1px solid var(--border)">
+        <span style="color:var(--accent)">$</span> whois fabryka-tech-games<br>
+        <span style="color:var(--ink)">creator:</span>  Cezary Wielgus<br>
+        <span style="color:var(--ink)">service:</span>  Brandowane gry HTML5 &amp; Web Apps<br>
+        <span style="color:var(--ink)">phone:</span>    +48 784-474-740<br>
+        <span style="color:var(--ink)">license:</span>  Komercyjna B2B (na własność)<br>
+        <span style="color:#10B981">status:</span>   <span style="color:#10B981">wolne terminy wdrożeń</span>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- WYSKAKUJĄCE OKNO (MODAL) Z WIDEO -->
+<div class="video-modal" id="videoModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="videoModalTitle">
+  <div class="video-modal-content">
+    <div class="video-modal-header">
+      <span class="video-modal-title" id="videoModalTitle">Film pokazowy</span>
+      <button class="video-modal-close" id="closeModalBtn" aria-label="Zamknij wideo">&times;</button>
+    </div>
+    <div class="video-modal-body">
+      <video id="modalVideoPlayer" controls playsinline preload="metadata">
+        Twoja przeglądarka nie obsługuje odtwarzacza wideo HTML5.
+      </video>
+    </div>
+  </div>
+</div>
+
+<footer id="footer">
+  <div class="footer-inner">
+    <span class="footer-logo">fabryka.tech <em>games</em></span>
+    <span class="footer-copy">© 2026 · made in Poland · rozwiązania wizerunkowe dla firm</span>
+    <div class="footer-links">
+      <a href="index.html">Strona główna</a>
+      <a href="https://fabryka.tech/cookies">Polityka cookies</a>
+      <a href="#upp">Do góry ↑</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('videoModal');
+    const videoPlayer = document.getElementById('modalVideoPlayer');
+    const modalTitle = document.getElementById('videoModalTitle');
+    const closeBtn = document.getElementById('closeModalBtn');
+    const cardImages = document.querySelectorAll('.card-img[data-video]');
+
+    function openVideoModal(videoSrc, titleText) {
+      if (!videoSrc) return;
+      modalTitle.textContent = titleText || 'Film pokazowy gry';
+      videoPlayer.src = videoSrc;
+      modal.classList.add('active');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      videoPlayer.play().catch(() => {});
+    }
+
+    function closeVideoModal() {
+      modal.classList.remove('active');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      videoPlayer.pause();
+      setTimeout(() => {
+        videoPlayer.removeAttribute('src');
+        videoPlayer.load();
+      }, 250);
+    }
+
+    cardImages.forEach(cardImg => {
+      cardImg.addEventListener('click', () => {
+        const videoSrc = cardImg.getAttribute('data-video');
+        const titleText = cardImg.getAttribute('data-title');
+        openVideoModal(videoSrc, titleText);
+      });
+
+      cardImg.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          const videoSrc = cardImg.getAttribute('data-video');
+          const titleText = cardImg.getAttribute('data-title');
+          openVideoModal(videoSrc, titleText);
+        }
+      });
+    });
+
+    closeBtn.addEventListener('click', closeVideoModal);
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        closeVideoModal();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal.classList.contains('active')) {
+        closeVideoModal();
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
