@@ -1,0 +1,2044 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nocna Zmiana: Archiwum 99.4 FM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --amber: #ffb000;
+            --amber-dim: #7a5200;
+            --crt-green: #33ff33;
+            --crt-green-dim: #0d4d0d;
+            --red-led: #ff2a2a;
+            --panel-bg: #16171a;
+            --metal-border: #2c2e33;
+        }
+
+        * {
+            user-select: none;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #090a0c;
+            color: var(--amber);
+            font-family: 'Share Tech Mono', monospace;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .crt-screen {
+            background-color: #081008;
+            border: 3px solid #222;
+            box-shadow: inset 0 0 25px rgba(51, 255, 51, 0.08), 0 0 10px rgba(0,0,0,0.8);
+            color: var(--crt-green);
+        }
+
+        .amber-screen {
+            background-color: #140d04;
+            border: 3px solid #222;
+            box-shadow: inset 0 0 25px rgba(255, 176, 0, 0.08), 0 0 10px rgba(0,0,0,0.8);
+            color: var(--amber);
+        }
+
+        .mixer-panel {
+            background-image: linear-gradient(145deg, rgba(29, 31, 36, 0.88) 0%, rgba(18, 19, 22, 0.94) 100%), url('img/q2.png');
+            background-size: cover;
+            background-position: center;
+            border: 2px solid #2e323b;
+            box-shadow: 
+                inset 0 1px 1px rgba(255,255,255,0.08),
+                inset 0 0 18px rgba(0,0,0,0.85),
+                0 6px 16px rgba(0,0,0,0.9);
+            position: relative;
+        }
+
+        .screw {
+            width: 10px;
+            height: 10px;
+            background: radial-gradient(circle, #444 30%, #1a1a1a 100%);
+            border: 1px solid #0d0d0d;
+            border-radius: 50%;
+            position: absolute;
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.2);
+            z-index: 10;
+        }
+        .screw::after {
+            content: '';
+            position: absolute;
+            top: 4px; left: 1px; width: 6px; height: 1px;
+            background: #111;
+            transform: rotate(35deg);
+        }
+        .screw-tl { top: 6px; left: 6px; }
+        .screw-tr { top: 6px; right: 6px; }
+        .screw-bl { bottom: 6px; left: 6px; }
+        .screw-br { bottom: 6px; right: 6px; }
+
+        .led {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #2a1111;
+            border: 1px solid #000;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.8);
+            transition: all 0.15s ease;
+        }
+        .led.red-on {
+            background-color: #ff2a2a;
+            box-shadow: 0 0 12px #ff2a2a, inset 0 0 4px #fff;
+        }
+        .led.amber-on {
+            background-color: #ffb000;
+            box-shadow: 0 0 12px #ffb000, inset 0 0 4px #fff;
+        }
+        .led.green-on {
+            background-color: #2aff2a;
+            box-shadow: 0 0 12px #2aff2a, inset 0 0 4px #fff;
+        }
+
+        @keyframes pulseFast {
+            0%, 100% { background-color: #ff2a2a; box-shadow: 0 0 14px #ff2a2a, inset 0 0 4px #fff; }
+            50% { background-color: #3a0808; box-shadow: none; }
+        }
+        .led.ringing {
+            animation: pulseFast 0.45s infinite;
+        }
+
+        .vu-box {
+            background: linear-gradient(to bottom, #e6cf9e 0%, #f5e5c2 100%);
+            border: 3px solid #1a1a1a;
+            box-shadow: inset 0 3px 10px rgba(0,0,0,0.65), 0 0 12px rgba(255, 176, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        .vu-box.night-backlight {
+            background: linear-gradient(to bottom, #b87c28 0%, #e09f3e 100%);
+            box-shadow: inset 0 3px 12px rgba(0,0,0,0.75), 0 0 16px rgba(255, 150, 0, 0.35);
+        }
+
+        @keyframes spinReel {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .reel-spinning {
+            animation: spinReel 2.8s linear infinite;
+        }
+
+        input[type=range].retro-fader {
+            -webkit-appearance: none;
+            appearance: none;
+            background: #0a0b0d;
+            height: 8px;
+            border-radius: 2px;
+            border: 1px solid #333;
+            box-shadow: inset 0 1px 3px #000;
+        }
+        input[type=range].retro-fader::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 26px;
+            background: linear-gradient(180deg, #555 0%, #222 45%, #ffb000 48%, #ffb000 52%, #222 55%, #444 100%);
+            border: 1px solid #000;
+            border-radius: 2px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.9);
+        }
+
+        .fax-sheet {
+            background-color: #dfd9c8;
+            color: #181818;
+            font-family: 'Courier Prime', monospace;
+            background-image: repeating-linear-gradient(0deg, transparent, transparent 23px, rgba(0,0,0,0.06) 24px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.7);
+            border-left: 6px dotted #8c8573;
+            border-right: 6px dotted #8c8573;
+        }
+
+        .console-btn {
+            background: linear-gradient(180deg, #2d3138 0%, #1c1e22 100%);
+            border: 1px solid #444852;
+            border-bottom: 3px solid #0f1012;
+            color: #d0d4dc;
+            transition: all 0.1s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .console-btn:hover:not(:disabled) {
+            background: linear-gradient(180deg, #383d46 0%, #25282e 100%);
+            border-color: var(--amber);
+            color: #fff;
+        }
+        .console-btn:active:not(:disabled), .console-btn.active {
+            transform: translateY(2px);
+            border-bottom-width: 1px;
+            background: #141619;
+            color: var(--amber);
+            border-color: var(--amber);
+            box-shadow: inset 0 0 8px rgba(255, 176, 0, 0.25);
+        }
+        .console-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        @keyframes anomalyFlash {
+            0%, 100% { box-shadow: inset 0 0 0 rgba(255, 0, 0, 0); }
+            50% { box-shadow: inset 0 0 35px rgba(255, 30, 30, 0.25); }
+        }
+        .glitch-active {
+            animation: anomalyFlash 0.4s ease-in-out;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0d0a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2b4a2b;
+            border-radius: 2px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #33ff33;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between p-2 sm:p-4 select-none">
+
+    <!-- EKRAN STARTOWY -->
+    <div id="start-modal" class="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4 overflow-y-auto">
+        <div class="mixer-panel max-w-2xl w-full p-5 sm:p-7 rounded border-2 border-amber-600/60 shadow-2xl my-auto">
+            <div class="screw screw-tl"></div>
+            <div class="screw screw-tr"></div>
+            <div class="screw screw-bl"></div>
+            <div class="screw screw-br"></div>
+
+            <div class="flex items-center justify-between border-b border-amber-900/60 pb-3 mb-4">
+                <div>
+                    <span class="text-xs tracking-widest text-amber-500/80 block">OKRĘGOWA ROZGŁOŚNIA RADIOWA CZARNY BÓR</span>
+                    <h1 class="text-2xl sm:text-3xl font-bold text-amber-400 tracking-wider mt-1">NOCNA ZMIANA: ARCHIWUM 99.4 FM</h1>
+                </div>
+                <div class="border-2 border-red-600 px-3 py-1 bg-red-950/50 text-red-400 font-bold text-sm tracking-widest animate-pulse">
+                    ROK 1994
+                </div>
+            </div>
+
+            <div class="relative rounded overflow-hidden border-2 border-stone-700 mb-4 h-44 sm:h-52 bg-black">
+                <img src="img/nocna-zmiana.png" alt="Studio B Rozgłośni Czarny Bór" class="w-full h-full object-cover opacity-90">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/30"></div>
+                <div class="absolute bottom-2 left-3 right-3 flex justify-between items-end text-[11px] text-amber-300/90 font-mono">
+                    <span>KAMERA WEWNĘTRZNA: STUDIO B (23:58)</span>
+                    <span class="px-2 py-0.5 bg-black/80 border border-amber-700/60 rounded text-amber-400">WIDOK NA CZARNY BÓR</span>
+                </div>
+            </div>
+
+            <div class="amber-screen p-4 rounded mb-5 text-sm leading-relaxed space-y-2.5">
+                <p class="text-amber-300 font-bold">&gt; INSTRUKCJA DLA REALIZATORA NOCNEJ ZMIANY (00:00 – 05:00):</p>
+                <p>Witaj w studiu nadawczym 99.4 FM. Z powodu gwałtownej burzy magnetycznej w Kotlinie Czarnego Boru wszystkie drogi wyjazdowe są nieprzejezdne, a przekaźniki dalekiego zasięgu milczą. Jesteś jedynym głosem w mieście.</p>
+                <ul class="list-disc list-inside space-y-1 text-amber-200/90 text-xs sm:text-sm">
+                    <li><strong>ODSŁUCH (PFL):</strong> Zanim wpuścisz słuchacza na żywo, możesz przesłuchać linię poza anteną.</li>
+                    <li><strong>WEJŚCIE NA ŻYWO (ON AIR):</strong> Słuchaj głosów mieszkańców i decyduj, jak im odpowiadać. Prawda i kłamstwo niosą swoje konsekwencje.</li>
+                    <li><strong>MAGNETOFON SZPULOWY:</strong> Odtwarzaj taśmy magnetofonowe z archiwum rozgłośni, by sterować nastrojami mieszkańców.</li>
+                    <li><strong>FAKS STUDYJNY:</strong> Czytaj depesze z Urzędu Nadzoru i wskazówki z notatnika poprzednika.</li>
+                </ul>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="text-xs text-stone-400 flex items-center gap-2">
+                    <span class="inline-block w-3 h-3 rounded-full bg-amber-500 animate-ping"></span>
+                    Obsługa taśm magnetofonowych, głosów na żywo i konsolety analogowej
+                </div>
+                <button id="btn-init-game" class="w-full sm:w-auto px-8 py-3 bg-amber-600 hover:bg-amber-500 text-black font-bold tracking-widest rounded shadow-lg transition transform active:scale-95 cursor-pointer text-base">
+                    WŁĄCZ ZASILANIE KONSOLETY [START]
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ZAKOŃCZENIA GRY -->
+    <div id="ending-modal" class="fixed inset-0 z-50 bg-black/95 hidden items-center justify-center p-4 overflow-y-auto">
+        <div class="mixer-panel max-w-2xl w-full p-6 sm:p-8 rounded border-2 border-amber-500 my-8">
+            <div class="screw screw-tl"></div>
+            <div class="screw screw-tr"></div>
+            <div class="screw screw-bl"></div>
+            <div class="screw screw-br"></div>
+
+            <div class="border-b border-amber-800 pb-3 mb-4 flex justify-between items-center">
+                <div>
+                    <span class="text-xs text-stone-400 tracking-widest">TAŚMA DOWODOWA #994-CB</span>
+                    <h2 id="ending-title" class="text-2xl sm:text-3xl font-bold text-amber-400 mt-1">KONIEC TRANSMISJI</h2>
+                </div>
+                <span id="ending-badge" class="px-3 py-1 text-xs font-bold border border-amber-500 text-amber-300 bg-amber-950/60">ARCHIWUM</span>
+            </div>
+
+            <div class="relative rounded overflow-hidden border-2 border-stone-700 mb-4 h-48 sm:h-56 bg-black">
+                <img id="ending-image" src="img/q6.png" alt="Wizualizacja zakończenia" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                <span id="ending-image-caption" class="absolute bottom-2 left-3 text-[11px] text-amber-300 font-mono bg-black/75 px-2 py-0.5 rounded border border-stone-700">
+                    MATERIAŁ ARCHIWALNY // CZARNY BÓR 1994
+                </span>
+            </div>
+
+            <div id="ending-desc" class="crt-screen p-4 rounded mb-5 text-sm sm:text-base leading-relaxed space-y-3"></div>
+
+            <div class="bg-black/60 border border-stone-800 p-4 rounded mb-6">
+                <h3 class="text-xs text-amber-500 tracking-widest uppercase mb-3">Podsumowanie Raportu Studyjnego:</h3>
+                <div class="grid grid-cols-3 gap-3 text-center mb-4">
+                    <div class="p-2 border border-stone-800 bg-stone-900/50 rounded">
+                        <div class="text-xs text-stone-400">PANIKA W MIEŚCIE</div>
+                        <div id="end-stat-panic" class="text-xl font-bold text-amber-400">0%</div>
+                    </div>
+                    <div class="p-2 border border-stone-800 bg-stone-900/50 rounded">
+                        <div class="text-xs text-stone-400">SŁUCHALNOŚĆ</div>
+                        <div id="end-stat-reach" class="text-xl font-bold text-emerald-400">0%</div>
+                    </div>
+                    <div class="p-2 border border-stone-800 bg-stone-900/50 rounded">
+                        <div class="text-xs text-stone-400">SYNCHRONIZACJA</div>
+                        <div id="end-stat-anomaly" class="text-xl font-bold text-red-400">0%</div>
+                    </div>
+                </div>
+                <div id="ending-decisions-log" class="text-xs text-stone-300 space-y-1 max-h-36 overflow-y-auto font-mono pr-2"></div>
+            </div>
+
+            <div class="flex justify-end">
+                <button id="btn-restart-game" class="px-6 py-3 bg-amber-600 hover:bg-amber-500 text-black font-bold tracking-widest rounded cursor-pointer">
+                    ZAŁADUJ KOLEJNĄ SZPULĘ [NOWA GRA]
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAGŁÓWEK KONSOLETY -->
+    <header class="mixer-panel rounded p-3 sm:p-4 mb-3">
+        <div class="screw screw-tl"></div>
+        <div class="screw screw-tr"></div>
+        <div class="screw screw-bl"></div>
+        <div class="screw screw-br"></div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
+            
+            <div class="lg:col-span-4 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 bg-black/50 p-3 rounded border border-stone-800">
+                <div>
+                    <div class="text-[11px] text-stone-400 tracking-widest">CZARNY BÓR // STUDIO B</div>
+                    <div class="text-xl sm:text-2xl font-bold text-amber-400 tracking-wider flex items-center gap-2">
+                        <span>99.4 FM</span>
+                        <span id="freq-drift" class="text-xs font-normal text-stone-500">(STABILNA)</span>
+                    </div>
+                </div>
+
+                <div class="bg-[#0c0505] border-2 border-stone-700 px-3 py-1 rounded shadow-inner text-center">
+                    <span class="text-[10px] text-stone-500 block tracking-widest">CZAS LOKALNY</span>
+                    <span id="studio-clock" class="font-['VT323'] text-3xl sm:text-4xl text-red-500 tracking-widest">
+                        00:00
+                    </span>
+                </div>
+
+                <div id="on-air-sign" class="px-3 py-2 rounded border-2 border-red-950 bg-red-950/30 text-red-900 font-bold text-xs sm:text-sm tracking-widest transition-all duration-300 flex flex-col items-center">
+                    <span>ON AIR</span>
+                    <span id="on-air-sub" class="text-[9px] font-normal">STANDBY</span>
+                </div>
+            </div>
+
+            <!-- Podwójny wskaźnik VU -->
+            <div class="lg:col-span-4 flex items-center justify-center gap-3 bg-black/40 p-2 rounded border border-stone-800">
+                <div class="w-1/2">
+                    <div class="vu-box night-backlight h-16 sm:h-20 rounded relative flex flex-col justify-between p-1.5">
+                        <div class="flex justify-between text-[9px] font-bold text-stone-900 px-1">
+                            <span>-20</span><span>-10</span><span>-3</span><span>0</span><span class="text-red-800">+3dB</span>
+                        </div>
+                        <div class="text-center text-[10px] font-bold text-stone-900/80 tracking-widest">CH L // VU</div>
+                        <div id="vu-needle-l" class="absolute bottom-0 left-1/2 w-0.5 h-14 sm:h-16 bg-stone-900 origin-bottom transition-transform duration-75" style="transform: rotate(-35deg);"></div>
+                        <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-stone-900"></div>
+                    </div>
+                </div>
+                <div class="w-1/2">
+                    <div class="vu-box night-backlight h-16 sm:h-20 rounded relative flex flex-col justify-between p-1.5">
+                        <div class="flex justify-between text-[9px] font-bold text-stone-900 px-1">
+                            <span>-20</span><span>-10</span><span>-3</span><span>0</span><span class="text-red-800">+3dB</span>
+                        </div>
+                        <div class="text-center text-[10px] font-bold text-stone-900/80 tracking-widest">CH R // VU</div>
+                        <div id="vu-needle-r" class="absolute bottom-0 left-1/2 w-0.5 h-14 sm:h-16 bg-stone-900 origin-bottom transition-transform duration-75" style="transform: rotate(-35deg);"></div>
+                        <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-stone-900"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statystyki -->
+            <div class="lg:col-span-4 space-y-2 bg-black/50 p-3 rounded border border-stone-800">
+                <div>
+                    <div class="flex justify-between text-xs mb-0.5">
+                        <span class="text-amber-400">1. PANIKA W MIEŚCIE</span>
+                        <span id="stat-panic-val" class="font-bold text-amber-300">15%</span>
+                    </div>
+                    <div class="w-full h-2.5 bg-stone-900 rounded overflow-hidden border border-stone-700">
+                        <div id="stat-panic-bar" class="h-full bg-gradient-to-r from-amber-600 to-red-600 transition-all duration-300" style="width: 15%;"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between text-xs mb-0.5">
+                        <span class="text-emerald-400">2. ZASIĘG / SŁUCHALNOŚĆ</span>
+                        <span id="stat-reach-val" class="font-bold text-emerald-300">65%</span>
+                    </div>
+                    <div class="w-full h-2.5 bg-stone-900 rounded overflow-hidden border border-stone-700">
+                        <div id="stat-reach-bar" class="h-full bg-gradient-to-r from-emerald-700 to-emerald-400 transition-all duration-300" style="width: 65%;"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between text-xs mb-0.5">
+                        <span class="text-red-400">3. POZIOM ANOMALII (LAS)</span>
+                        <span id="stat-anomaly-val" class="font-bold text-red-400">10%</span>
+                    </div>
+                    <div class="w-full h-2.5 bg-stone-900 rounded overflow-hidden border border-stone-700">
+                        <div id="stat-anomaly-bar" class="h-full bg-gradient-to-r from-purple-700 via-red-600 to-rose-500 transition-all duration-300" style="width: 10%;"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </header>
+
+    <!-- GŁÓWNY PULPIT -->
+    <main class="flex-grow grid grid-cols-1 lg:grid-cols-12 gap-3 mb-3">
+
+        <!-- KOLUMNA LEWA: CENTRALA TELEFONICZNA -->
+        <section class="lg:col-span-3 flex flex-col gap-3">
+            
+            <div class="mixer-panel rounded p-4 flex-grow flex flex-col justify-between">
+                <div class="screw screw-tl"></div>
+                <div class="screw screw-tr"></div>
+                <div class="screw screw-bl"></div>
+                <div class="screw screw-br"></div>
+
+                <div>
+                    <div class="flex items-center justify-between border-b border-stone-700 pb-2 mb-3">
+                        <h2 class="text-sm font-bold tracking-wider text-amber-400 uppercase">CENTRALA TELEFONICZNA</h2>
+                        <span id="Switchboard-status" class="text-[11px] text-stone-400">OCZEKIWANIE</span>
+                    </div>
+
+                    <div class="space-y-3" id="phone-lines-container">
+                        <!-- LINIA 1 -->
+                        <div id="line-card-1" class="bg-black/60 border border-stone-800 rounded p-2.5 transition-all">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <div class="flex items-center gap-2">
+                                    <div id="led-line-1" class="led"></div>
+                                    <span class="font-bold text-xs text-stone-200">LINIA 1 (LOKALNA)</span>
+                                </div>
+                                <span id="line-status-1" class="text-[10px] px-1.5 py-0.5 rounded bg-stone-900 text-stone-500">WOLNA</span>
+                            </div>
+                            <div id="line-caller-1" class="text-xs text-amber-300/90 truncate mb-2 h-4 font-mono">---</div>
+                            <div class="grid grid-cols-3 gap-1.5">
+                                <button onclick="Game.handleLineAction(1, 'pfl')" id="btn-pfl-1" disabled class="console-btn py-1.5 px-2 text-[10px] rounded font-bold">PFL (ODSŁUCH)</button>
+                                <button onclick="Game.handleLineAction(1, 'onair')" id="btn-air-1" disabled class="console-btn py-1.5 px-2 text-[10px] rounded font-bold text-red-300">NA ANTENĘ</button>
+                                <button onclick="Game.handleLineAction(1, 'drop')" id="btn-drop-1" disabled class="console-btn py-1.5 px-2 text-[10px] rounded font-bold">ROZŁĄCZ</button>
+                            </div>
+                        </div>
+
+                        <!-- LINIA 2 -->
+                        <div id="line-card-2" class="bg-black/60 border border-stone-800 rounded p-2.5 transition-all">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <div class="flex items-center gap-2">
+                                    <div id="led-line-2" class="led"></div>
+                                    <span class="font-bold text-xs text-stone-200">LINIA 2 (PODMIEJSKA)</span>
+                                </div>
+                                <span id="line-status-2" class="text-[10px] px-1.5 py-0.5 rounded bg-stone-900 text-stone-500">WOLNA</span>
+                            </div>
+                            <div id="line-caller-2" class="text-xs text-amber-300/90 truncate mb-2 h-4 font-mono">---</div>
+                            <div class="grid grid-cols-3 gap-1.5">
+                                <button onclick="Game.handleLineAction(2, 'pfl')" id="btn-pfl-2" disabled class="console-btn py-1.5 px-2 text-[10px] rounded font-bold">PFL (ODSŁUCH)</button>
+                                <button onclick="Game.handleLineAction(2, 'onair')" id="btn-air-2" disabled class="console-btn py-1.5 px-2 text-[10px] rounded font-bold text-red-300">NA ANTENĘ</button>
+                                <button onclick="Game.handleLineAction(2, 'drop')" id="btn-drop-2" disabled class="console-btn py-1.5 px-2 text-[10px] rounded font-bold">ROZŁĄCZ</button>
+                            </div>
+                        </div>
+
+                        <!-- LINIA 3 -->
+                        <div id="line-card-3" class="bg-black/60 border border-stone-800 rounded p-2.5 transition-all">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <div class="flex items-center gap-2">
+                                    <div id="led-line-3" class="led"></div>
+                                    <span class="font-bold text-xs text-red-400">LINIA 3 (SPECJALNA)</span>
+                                </div>
+                                <span id="line-status-3" class="text-[10px] px-1.5 py-0.5 rounded bg-stone-900 text-stone-500">ZABLOKOWANA</span>
+                            </div>
+                            <div id="line-caller-3" class="text-xs text-red-300/90 truncate mb-2 h-4 font-mono">---</div>
+                            <div class="grid grid-cols-3 gap-1.5">
+                                <button onclick="Game.handleLineAction(3, 'pfl')" id="btn-pfl-3" disabled class="console-btn py-1.5 px-2 text-[10px] rounded font-bold">PFL (ODSŁUCH)</button>
+                                <button onclick="Game.handleLineAction(3, 'onair')" id="btn-air-3" disabled class="console-btn py-1.5 px-2 text-[10px] rounded font-bold text-red-300">NA ANTENĘ</button>
+                                <button onclick="Game.handleLineAction(3, 'drop')" id="btn-drop-3" disabled class="console-btn py-1.5 px-2 text-[10px] rounded font-bold">ROZŁĄCZ</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-t border-stone-800">
+                    <button id="btn-next-event" onclick="Game.advanceShift()" class="w-full py-2.5 px-3 bg-amber-700/30 hover:bg-amber-600/40 border border-amber-500/70 text-amber-300 font-bold text-xs tracking-wider rounded flex items-center justify-center gap-2 cursor-pointer transition shadow-md">
+                        <span>MONITORUJ ETER / KOLEJNE ZGŁOSZENIE</span>
+                        <span>&raquo;</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tłumiki miksera -->
+            <div class="mixer-panel rounded p-4">
+                <div class="screw screw-tl"></div>
+                <div class="screw screw-tr"></div>
+                <div class="screw screw-bl"></div>
+                <div class="screw screw-br"></div>
+
+                <div class="text-xs font-bold text-stone-400 tracking-wider uppercase mb-3 border-b border-stone-800 pb-1">
+                    TŁUMIKI I FILTRY KONSOLETY
+                </div>
+
+                <div class="space-y-3 text-xs">
+                    <div>
+                        <div class="flex justify-between text-[11px] text-stone-400 mb-1">
+                            <span>POZIOM SZUMU ETERU (STATIC)</span>
+                            <span id="val-static">25%</span>
+                        </div>
+                        <input id="fader-static" type="range" min="0" max="100" value="25" class="retro-fader w-full">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-[11px] text-stone-400 mb-1">
+                            <span>WZMOCNIENIE SYGNAŁU (MASTER GAIN)</span>
+                            <span id="val-master">75%</span>
+                        </div>
+                        <input id="fader-master" type="range" min="0" max="100" value="75" class="retro-fader w-full">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 pt-2">
+                        <button id="toggle-mic" onclick="Game.toggleSwitch('mic')" class="console-btn active py-2 px-2 rounded text-[11px] font-bold flex items-center justify-center gap-2">
+                            <span id="led-mic" class="led green-on"></span>
+                            <span>MIKROFON</span>
+                        </button>
+                        <button id="toggle-filter" onclick="Game.toggleSwitch('filter')" class="console-btn py-2 px-2 rounded text-[11px] font-bold flex items-center justify-center gap-2">
+                            <span id="led-filter" class="led"></span>
+                            <span>FILTR ANOMALII</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- KOLUMNA ŚRODKOWA: WIZJA, LOG CRT, WYBORY -->
+        <section class="lg:col-span-5 flex flex-col gap-3">
+            
+            <div class="mixer-panel rounded p-4 flex-grow flex flex-col justify-between">
+                <div class="screw screw-tl"></div>
+                <div class="screw screw-tr"></div>
+                <div class="screw screw-bl"></div>
+                <div class="screw screw-br"></div>
+
+                <div class="flex items-center justify-between gap-2 mb-2">
+                    <div>
+                        <span class="text-[10px] text-stone-400 block">TERMINAL STUDYJNY // UNITRA-CRT</span>
+                        <h2 id="active-channel-title" class="text-sm font-bold text-amber-400 tracking-wider">KANAŁ GŁÓWNY 99.4 FM</h2>
+                    </div>
+                    <div class="w-40 sm:w-48 h-10 bg-[#051205] border border-stone-700 rounded overflow-hidden relative">
+                        <canvas id="scope-canvas" class="w-full h-full block"></canvas>
+                        <span class="absolute top-0.5 right-1 text-[8px] text-emerald-500/70">OSC-94</span>
+                    </div>
+                </div>
+
+                <div class="relative rounded overflow-hidden border-2 border-stone-800 bg-black mb-2.5 h-36 sm:h-44 flex-shrink-0">
+                    <img id="scene-preview-img" src="img/nocna-zmiana.png" alt="Podgląd sytuacyjny" class="w-full h-full object-cover opacity-85 transition-all duration-500">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/40 pointer-events-none"></div>
+                    <div class="absolute top-1.5 left-2.5 right-2.5 flex justify-between items-center text-[10px] font-mono pointer-events-none">
+                        <span id="scene-cam-badge" class="px-1.5 py-0.5 bg-black/80 text-amber-400 border border-amber-700/60 rounded">
+                            PODGLĄD: STUDIO B (CZUWANIE)
+                        </span>
+                        <span id="scene-rec-dot" class="flex items-center gap-1 bg-black/80 px-1.5 py-0.5 rounded text-stone-400 border border-stone-800">
+                            <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+                            <span id="voice-status-indicator">WIZJA AKTYWNA</span>
+                        </span>
+                    </div>
+                    <div id="scene-caption" class="absolute bottom-1.5 left-2.5 right-2.5 text-xs text-amber-200/90 truncate font-mono pointer-events-none">
+                        Konsoleta nadawcza 99.4 FM — widok przez szybę na las w Czarnym Borze.
+                    </div>
+                </div>
+
+                <div id="crt-log" class="crt-screen rounded p-3 sm:p-4 h-56 sm:h-64 overflow-y-auto font-mono text-xs sm:text-sm space-y-3 flex-grow"></div>
+
+                <div class="mt-3 pt-3 border-t border-stone-800">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <span id="prompt-indicator" class="inline-block w-2 h-2 rounded-full bg-amber-500"></span>
+                            <span id="dialogue-header">DECYZJA PROWADZĄCEGO AUDYCJĘ:</span>
+                        </span>
+                        <span id="caller-mode-badge" class="text-[10px] px-2 py-0.5 rounded bg-stone-900 text-stone-400 border border-stone-700">
+                            POZA ANTENĄ
+                        </span>
+                    </div>
+
+                    <div id="choices-container" class="space-y-2 min-h-[124px] flex flex-col justify-center">
+                        <div class="text-xs text-stone-500 text-center py-6 border border-dashed border-stone-800 rounded">
+                            Oczekiwanie na połączenie przychodzące lub puszczenie taśmy...
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- KOLUMNA PRAWA: MAGNETOFON SZPULOWY ORAZ TELEFAKS -->
+        <section class="lg:col-span-4 flex flex-col gap-3">
+            
+            <!-- Magnetofon Szpulowy UNITRA ZK-940 -->
+            <div class="mixer-panel rounded p-4">
+                <div class="screw screw-tl"></div>
+                <div class="screw screw-tr"></div>
+                <div class="screw screw-bl"></div>
+                <div class="screw screw-br"></div>
+
+                <div class="flex items-center justify-between border-b border-stone-700 pb-2 mb-3">
+                    <div>
+                        <span class="text-[10px] text-stone-400 block">MAGNETOFON STUDYJNY</span>
+                        <h2 class="text-sm font-bold text-amber-400 tracking-wider">SZPULOWIEC M-940 STEREO</h2>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span id="tape-status-label" class="text-[10px] text-stone-400">STOP</span>
+                        <div id="led-tape" class="led"></div>
+                    </div>
+                </div>
+
+                <!-- Szpule magnetofonu -->
+                <div class="bg-[#0d0e11] border-2 border-stone-800 rounded p-3 mb-3 relative overflow-hidden">
+                    <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 300 110">
+                        <line x1="75" y1="55" x2="150" y2="95" stroke="#3d271d" stroke-width="2.5" />
+                        <line x1="225" y1="55" x2="150" y2="95" stroke="#3d271d" stroke-width="2.5" />
+                        <rect x="135" y="88" width="30" height="14" rx="2" fill="#2a2d35" stroke="#555" stroke-width="1"/>
+                    </svg>
+
+                    <div class="flex items-center justify-around relative z-10 py-1">
+                        <div id="reel-left" class="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-stone-600 bg-stone-900 flex items-center justify-center shadow-inner relative">
+                            <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[#24160e] border border-stone-700"></div>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <div class="w-full h-1.5 bg-stone-500/80"></div>
+                                <div class="w-full h-1.5 bg-stone-500/80 rotate-60 absolute"></div>
+                                <div class="w-full h-1.5 bg-stone-500/80 -rotate-60 absolute"></div>
+                                <div class="w-5 h-5 rounded-full bg-stone-300 border-2 border-stone-800 z-10"></div>
+                            </div>
+                        </div>
+
+                        <div id="reel-right" class="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-stone-600 bg-stone-900 flex items-center justify-center shadow-inner relative">
+                            <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[#24160e] border border-stone-700"></div>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <div class="w-full h-1.5 bg-stone-500/80"></div>
+                                <div class="w-full h-1.5 bg-stone-500/80 rotate-60 absolute"></div>
+                                <div class="w-full h-1.5 bg-stone-500/80 -rotate-60 absolute"></div>
+                                <div class="w-5 h-5 rounded-full bg-stone-300 border-2 border-stone-800 z-10"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4 KAFELKI TAŚM SZPULOWYCH -->
+                <div class="text-[11px] text-stone-400 mb-1.5 flex justify-between">
+                    <span>ZAŁADUJ TAŚMĘ NA GŁOWICĘ:</span>
+                    <span id="tape-cooldown-msg" class="text-amber-400 font-bold">GOTOWY</span>
+                </div>
+                <div class="grid grid-cols-2 gap-1.5">
+                    <button id="btn-tape-jazz" onclick="Game.playTape('jazz')" class="console-btn p-2 rounded text-left flex flex-col justify-between cursor-pointer">
+                        <span class="text-[11px] font-bold text-amber-300">TAŚMA #1: NOCNY JAZZ</span>
+                        <span class="text-[9px] text-stone-400">PANIKA -12% | ZASIĘG +5%</span>
+                    </button>
+                    <button id="btn-tape-weather" onclick="Game.playTape('weather')" class="console-btn p-2 rounded text-left flex flex-col justify-between cursor-pointer">
+                        <span class="text-[11px] font-bold text-emerald-300">TAŚMA #2: KOMUNIKAT IMGW</span>
+                        <span class="text-[9px] text-stone-400">PANIKA -8% | ANOMALIA -6%</span>
+                    </button>
+                    <button id="btn-tape-jingle" onclick="Game.playTape('jingle')" class="console-btn p-2 rounded text-left flex flex-col justify-between cursor-pointer">
+                        <span class="text-[11px] font-bold text-sky-300">TAŚMA #3: DŻINGIEL 99.4</span>
+                        <span class="text-[9px] text-stone-400">ZASIĘG +14% | PANIKA +4%</span>
+                    </button>
+                    <button id="btn-tape-forbidden" onclick="Game.playTape('forbidden')" class="console-btn p-2 rounded text-left flex flex-col justify-between border-red-900/60 cursor-pointer">
+                        <span class="text-[11px] font-bold text-red-400">TAŚMA #4: [BEZ OPISU]</span>
+                        <span class="text-[9px] text-red-300/80">DŹWIĘKI Z GŁĘBI (ZAGROŻENIE)</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Faks Studyjny i Notatnik -->
+            <div class="mixer-panel rounded p-4 flex-grow flex flex-col">
+                <div class="screw screw-tl"></div>
+                <div class="screw screw-tr"></div>
+                <div class="screw screw-bl"></div>
+                <div class="screw screw-br"></div>
+
+                <div class="flex items-center justify-between border-b border-stone-700 pb-2 mb-2">
+                    <div class="flex gap-2">
+                        <button id="tab-fax" onclick="Game.switchDocTab('fax')" class="text-xs font-bold px-2.5 py-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/50 cursor-pointer">
+                            FAKS URZĘDOWY <span id="fax-new-dot" class="inline-block w-2 h-2 rounded-full bg-red-500 ml-1 hidden"></span>
+                        </button>
+                        <button id="tab-notes" onclick="Game.switchDocTab('notes')" class="text-xs font-bold px-2.5 py-1 rounded bg-stone-900 text-stone-400 border border-stone-700 cursor-pointer">
+                            NOTATNIK MARKA
+                        </button>
+                    </div>
+                    <span class="text-[10px] text-stone-500">TELEFAKS FX-90</span>
+                </div>
+
+                <div id="doc-viewer" class="fax-sheet rounded p-3 text-xs leading-relaxed h-48 sm:h-52 overflow-y-auto flex-grow"></div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- STOPKA -->
+    <footer class="mixer-panel rounded px-4 py-2 flex flex-wrap items-center justify-between gap-2 text-xs text-stone-400">
+        <div class="flex items-center gap-4">
+            <span>STATUS NADAJNIKA: <strong id="tx-power-status" class="text-emerald-400">MOC 5.0 kW (NORMA)</strong></span>
+            <span class="hidden sm:inline">|</span>
+            <span>ZMIANA: <strong id="shift-progress-label" class="text-amber-400">ETAP 1 / 10</strong></span>
+        </div>
+        <div class="flex items-center gap-2">
+            <button onclick="Game.triggerEmergencyTone()" class="px-3 py-1 bg-red-950/80 hover:bg-red-900 border border-red-600 text-red-200 text-[11px] font-bold rounded cursor-pointer transition">
+                SYGNAŁ ALARMOWY EAS (OCZYSZCZENIE PASMA)
+            </button>
+        </div>
+    </footer>
+
+    <!-- SKRYPT LOGIKI, SYNTEZY GŁOSÓW MĘSKICH/DAMSKICH ORAZ TAŚM MAGNETOFONOWYCH -->
+    <script>
+        /**
+         * Silnik Dźwiękowy obsługujący konsoletę analogową, taśmy szpulowe oraz męskie i damskie głosy rozmówców
+         */
+        const SoundEngine = {
+            ctx: null,
+            noiseNode: null,
+            noiseGain: null,
+            masterGain: null,
+            droneGain: null,
+            droneOsc: null,
+            audioLevel: 0,
+            activeTapeAudio: null,
+            speechTimer: null,
+            voices: [],
+
+            // Ścieżki dźwiękowe przypisane do poszczególnych szpul magnetofonowych
+            tapeTracks: {
+                jazz: 'mp3/jazz.mp3',             // Taśma #1: Nocny Jazz
+                weather: 'mp3/imgw.mp3',           // Taśma #2: Komunikat IMGW
+                jingle: 'mp3/dzingiel.mp3',        // Taśma #3: Dżingiel 99.4 FM
+                forbidden: 'mp3/anomalia.mp3'      // Taśma #4: Dźwięki z Głębi / Zagrożenie
+            },
+
+            init() {
+                if (this.ctx) return;
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                this.ctx = new AudioCtx();
+
+                this.masterGain = this.ctx.createGain();
+                this.masterGain.gain.value = 0.75;
+                this.masterGain.connect(this.ctx.destination);
+
+                // Inicjalizacja głosów Web Speech API
+                if ('speechSynthesis' in window) {
+                    const loadVoices = () => {
+                        this.voices = window.speechSynthesis.getVoices();
+                    };
+                    loadVoices();
+                    window.speechSynthesis.onvoiceschanged = loadVoices;
+                }
+
+                // Szum różowy/biały tła radiowego
+                const bufferSize = 2 * this.ctx.sampleRate;
+                const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const output = noiseBuffer.getChannelData(0);
+                let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+                for (let i = 0; i < bufferSize; i++) {
+                    const white = Math.random() * 2 - 1;
+                    b0 = 0.99886 * b0 + white * 0.0555179;
+                    b1 = 0.99332 * b1 + white * 0.0750759;
+                    b2 = 0.96900 * b2 + white * 0.1538520;
+                    b3 = 0.86650 * b3 + white * 0.3104856;
+                    b4 = 0.55000 * b4 + white * 0.5329522;
+                    b5 = -0.7616 * b5 - white * 0.0168980;
+                    output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.04;
+                    b6 = white * 0.115926;
+                }
+
+                this.noiseNode = this.ctx.createBufferSource();
+                this.noiseNode.buffer = noiseBuffer;
+                this.noiseNode.loop = true;
+
+                const bandpass = this.ctx.createBiquadFilter();
+                bandpass.type = 'bandpass';
+                bandpass.frequency.value = 1100;
+                bandpass.Q.value = 0.7;
+
+                this.noiseGain = this.ctx.createGain();
+                this.noiseGain.gain.value = 0.10;
+
+                this.noiseNode.connect(bandpass);
+                bandpass.connect(this.noiseGain);
+                this.noiseGain.connect(this.masterGain);
+                this.noiseNode.start(0);
+
+                // Dron anomalii
+                this.droneOsc = this.ctx.createOscillator();
+                this.droneGain = this.ctx.createGain();
+                this.droneOsc.type = 'sawtooth';
+                this.droneOsc.frequency.value = 52;
+
+                const lowpass = this.ctx.createBiquadFilter();
+                lowpass.type = 'lowpass';
+                lowpass.frequency.value = 120;
+
+                this.droneGain.gain.value = 0.01;
+                this.droneOsc.connect(lowpass);
+                lowpass.connect(this.droneGain);
+                this.droneGain.connect(this.masterGain);
+                this.droneOsc.start();
+            },
+
+            setStaticVolume(val) {
+                if (!this.noiseGain) return;
+                this.noiseGain.gain.setTargetAtTime((val / 100) * 0.35, this.ctx.currentTime, 0.1);
+            },
+
+            setMasterVolume(val) {
+                const vol = val / 100;
+                if (this.masterGain) {
+                    this.masterGain.gain.setTargetAtTime(vol, this.ctx.currentTime, 0.1);
+                }
+                if (this.activeTapeAudio) {
+                    this.activeTapeAudio.volume = vol;
+                }
+            },
+
+            updateAnomalyDrone(anomalyPercent) {
+                if (!this.droneGain || !this.droneOsc) return;
+                const intensity = (anomalyPercent / 100) * 0.18;
+                this.droneGain.gain.setTargetAtTime(intensity, this.ctx.currentTime, 0.4);
+                this.droneOsc.frequency.setTargetAtTime(48 + (anomalyPercent * 0.35), this.ctx.currentTime, 0.4);
+            },
+
+            playClick(pitch = 800) {
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(pitch, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(120, this.ctx.currentTime + 0.045);
+                gain.gain.setValueAtTime(0.35, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.045);
+                osc.connect(gain);
+                gain.connect(this.masterGain);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.05);
+                this.bumpVU(0.35);
+            },
+
+            playPhoneRing() {
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc1 = this.ctx.createOscillator();
+                const osc2 = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc1.type = 'square';
+                osc2.type = 'square';
+                osc1.frequency.setValueAtTime(440, now);
+                osc2.frequency.setValueAtTime(480, now);
+
+                gain.gain.setValueAtTime(0.12, now);
+                for (let i = 0; i < 6; i++) {
+                    gain.gain.setValueAtTime(0.14, now + i * 0.06);
+                    gain.gain.setValueAtTime(0.02, now + i * 0.06 + 0.03);
+                }
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.42);
+
+                osc1.connect(gain);
+                osc2.connect(gain);
+                gain.connect(this.masterGain);
+
+                osc1.start(now);
+                osc2.start(now);
+                osc1.stop(now + 0.45);
+                osc2.stop(now + 0.45);
+                this.bumpVU(0.5);
+            },
+
+            playFaxBeep() {
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                [1046, 1318, 987].forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(0.08, now + idx * 0.09);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.09 + 0.08);
+                    osc.connect(gain);
+                    gain.connect(this.masterGain);
+                    osc.start(now + idx * 0.09);
+                    osc.stop(now + idx * 0.09 + 0.085);
+                });
+                this.bumpVU(0.45);
+            },
+
+            /**
+             * Pojedyncza sylaba telefoniczna z podziałem na barwę męską (niższy formant) i damską (wyższy formant)
+             */
+            playVoiceBlip(type = 'normal', gender = 'male') {
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const formantFilter = this.ctx.createBiquadFilter();
+                const gain = this.ctx.createGain();
+
+                // Pasmo telefoniczne i formant zależny od płci
+                formantFilter.type = 'bandpass';
+                if (type === 'anomaly') {
+                    formantFilter.frequency.value = gender === 'female' ? 880 : 520;
+                    formantFilter.Q.value = 3.5;
+                    osc.type = 'sawtooth';
+                    osc.frequency.value = gender === 'female' ? (170 + Math.random() * 60) : (85 + Math.random() * 45);
+                } else if (gender === 'female') {
+                    // Głos damski (wyższa częstotliwość podstawowa ~210-290 Hz)
+                    formantFilter.frequency.value = 1450;
+                    formantFilter.Q.value = 2.4;
+                    osc.type = type === 'panic' ? 'triangle' : 'sine';
+                    const panicBoost = type === 'panic' ? 45 : 0;
+                    osc.frequency.value = 215 + panicBoost + Math.random() * 65;
+                } else {
+                    // Głos męski (niższa częstotliwość podstawowa ~105-155 Hz)
+                    formantFilter.frequency.value = 980;
+                    formantFilter.Q.value = 2.4;
+                    osc.type = type === 'panic' ? 'triangle' : 'sawtooth';
+                    const panicBoost = type === 'panic' ? 30 : 0;
+                    osc.frequency.value = 108 + panicBoost + Math.random() * 45;
+                }
+
+                gain.gain.setValueAtTime(0.11, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+
+                osc.connect(formantFilter);
+                formantFilter.connect(gain);
+                gain.connect(this.masterGain);
+
+                osc.start(now);
+                osc.stop(now + 0.085);
+                this.bumpVU(type === 'anomaly' ? 0.85 : 0.6);
+            },
+
+            /**
+             * Zatrzymanie aktualnie mówiącego głosu słuchacza
+             */
+            stopCallerVoice() {
+                if (this.speechTimer) {
+                    clearInterval(this.speechTimer);
+                    this.speechTimer = null;
+                }
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                }
+                const indicator = document.getElementById('voice-status-indicator');
+                if (indicator) {
+                    indicator.textContent = 'WIZJA AKTYWNA';
+                    indicator.className = '';
+                }
+            },
+
+            /**
+             * Odtwarzanie głosu osoby łączącej się na żywo (męski lub damski)
+             */
+            speakCallerLine(text, gender = 'male', voiceType = 'normal', customPitch = null, customRate = null) {
+                this.stopCallerVoice();
+
+                // Oczyszczenie tekstu z cudzysłowów i didaskaliów w nawiasach kwadratowych
+                const cleanText = text
+                    .replace(/\[.*?\]/g, '')
+                    .replace(/[„”"»«]/g, '')
+                    .trim();
+
+                if (!cleanText) return;
+
+                const indicator = document.getElementById('voice-status-indicator');
+                if (indicator) {
+                    indicator.textContent = gender === 'female' ? 'GŁOS DAMSKI (LIVE)' : 'GŁOS MĘSKI (LIVE)';
+                    indicator.className = 'text-amber-300 font-bold animate-pulse';
+                }
+
+                // Podkład radiowych formantów i wysterowania VU na czas mówienia
+                const estimatedDurationMs = Math.min(11000, Math.max(2200, cleanText.length * 58));
+                let elapsed = 0;
+                this.speechTimer = setInterval(() => {
+                    this.playVoiceBlip(voiceType, gender);
+                    elapsed += 140;
+                    if (elapsed >= estimatedDurationMs) {
+                        clearInterval(this.speechTimer);
+                        this.speechTimer = null;
+                        if (indicator) {
+                            indicator.textContent = 'WIZJA AKTYWNA';
+                            indicator.className = '';
+                        }
+                    }
+                }, 140);
+
+                // Synteza mowy Web Speech API z doborem polskiego głosu męskiego lub żeńskiego
+                if ('speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance(cleanText);
+                    utterance.lang = 'pl-PL';
+
+                    const masterFader = document.getElementById('fader-master');
+                    const curVol = masterFader ? (parseInt(masterFader.value, 10) / 100) : 0.75;
+                    utterance.volume = Math.min(1, Math.max(0.1, curVol));
+
+                    const plVoices = this.voices.filter(v => v.lang && v.lang.toLowerCase().startsWith('pl'));
+                    if (plVoices.length > 0) {
+                        const maleKeywords = ['marek', 'adam', 'krzysztof', 'jacek', 'male', 'męski', 'stefan'];
+                        const femaleKeywords = ['zofia', 'paulina', 'agnieszka', 'ewa', 'maja', 'female', 'żeński', 'kobieta', 'google polski'];
+
+                        let chosenVoice = null;
+                        if (gender === 'female') {
+                            chosenVoice = plVoices.find(v => femaleKeywords.some(k => v.name.toLowerCase().includes(k)));
+                            if (!chosenVoice && plVoices.length > 1) chosenVoice = plVoices[0];
+                        } else {
+                            chosenVoice = plVoices.find(v => maleKeywords.some(k => v.name.toLowerCase().includes(k)));
+                            if (!chosenVoice && plVoices.length > 1) chosenVoice = plVoices[plVoices.length - 1];
+                        }
+                        utterance.voice = chosenVoice || plVoices[0];
+                    }
+
+                    // Ustawienie wysokości głosu (pitch) i tempa (rate) wyraźnie różnicujące głos męski i damski
+                    if (customPitch !== null) {
+                        utterance.pitch = customPitch;
+                    } else if (voiceType === 'anomaly') {
+                        utterance.pitch = gender === 'female' ? 1.15 : 0.55;
+                    } else {
+                        utterance.pitch = gender === 'female' ? 1.35 : 0.72;
+                    }
+
+                    if (customRate !== null) {
+                        utterance.rate = customRate;
+                    } else if (voiceType === 'panic') {
+                        utterance.rate = 1.14;
+                    } else if (voiceType === 'anomaly') {
+                        utterance.rate = 0.86;
+                    } else {
+                        utterance.rate = 1.0;
+                    }
+
+                    utterance.onend = () => {
+                        if (this.speechTimer) {
+                            clearInterval(this.speechTimer);
+                            this.speechTimer = null;
+                        }
+                        if (indicator) {
+                            indicator.textContent = 'WIZJA AKTYWNA';
+                            indicator.className = '';
+                        }
+                    };
+
+                    window.speechSynthesis.speak(utterance);
+                }
+            },
+
+            /**
+             * Odtwarzanie taśmy magnetofonowej ze szpulowca
+             */
+            playTapeAudio(tapeType, onComplete) {
+                if (this.activeTapeAudio) {
+                    this.activeTapeAudio.pause();
+                    this.activeTapeAudio = null;
+                }
+
+                const src = this.tapeTracks[tapeType];
+                const audio = new Audio(src);
+                this.activeTapeAudio = audio;
+
+                const masterFader = document.getElementById('fader-master');
+                const curVol = masterFader ? (parseInt(masterFader.value, 10) / 100) : 0.75;
+                audio.volume = curVol;
+
+                let vuTimer = setInterval(() => {
+                    if (audio.paused || audio.ended) {
+                        clearInterval(vuTimer);
+                    } else {
+                        this.bumpVU(0.55 + Math.random() * 0.35);
+                    }
+                }, 100);
+
+                audio.play().then(() => {
+                    this.bumpVU(0.7);
+                }).catch(err => {
+                    console.warn(`Nie można odczytać ścieżki taśmy (${src}), włączam syntezę głowicy:`, err);
+                    this.playSynthesizedFallback(tapeType);
+                });
+
+                audio.onended = () => {
+                    clearInterval(vuTimer);
+                    this.activeTapeAudio = null;
+                    if (onComplete) onComplete();
+                };
+
+                setTimeout(() => {
+                    if (this.activeTapeAudio === audio) {
+                        if (onComplete) onComplete();
+                    }
+                }, 18000);
+            },
+
+            playSynthesizedFallback(tapeType) {
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = tapeType === 'forbidden' ? 'sawtooth' : 'sine';
+                osc.frequency.setValueAtTime(tapeType === 'weather' ? 880 : 330, now);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 3.0);
+                osc.connect(gain);
+                gain.connect(this.masterGain);
+                osc.start(now);
+                osc.stop(now + 3.0);
+            },
+
+            playEASAlert() {
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc1 = this.ctx.createOscillator();
+                const osc2 = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc1.type = 'sawtooth';
+                osc2.type = 'sawtooth';
+                osc1.frequency.value = 853;
+                osc2.frequency.value = 960;
+
+                gain.gain.setValueAtTime(0.18, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 1.4);
+
+                osc1.connect(gain);
+                osc2.connect(gain);
+                gain.connect(this.masterGain);
+
+                osc1.start(now);
+                osc2.start(now);
+                osc1.stop(now + 1.45);
+                osc2.stop(now + 1.45);
+                this.bumpVU(1.0);
+            },
+
+            bumpVU(amount) {
+                this.audioLevel = Math.min(1.0, Math.max(this.audioLevel, amount));
+            }
+        };
+
+        const NIGHT_EVENTS = [
+            {
+                id: 'call_01',
+                time: '00:00',
+                line: 1,
+                caller: 'Pan Stanisław (Leśniczówka Północ)',
+                gender: 'male',
+                voicePitch: 0.68,
+                voiceRate: 0.95,
+                voiceType: 'normal',
+                image: 'img/q7.png',
+                imageCaption: 'LEŚNICZÓWKA PÓŁNOC // Wariujący kompas i fioletowa łuna za oknem',
+                pflPreview: 'Słychać ciężki oddech i ujadanie psa w tle. Starszy mężczyzna mówi niskim głosem o dziwnej łunie nad drzewami.',
+                transcript: '„Halo? Panie redaktorze, słychać mnie? Dzwonię z leśniczówki pod Czarną Górą. Mój pies drapie w drzwi i skowyczy od godziny. Nad lasem wisi takie... fioletowe światło. Nie rusza się, nie mruga, a kompas na moim biurku kręci się jak oszalały. Czy wojsko ma dzisiaj jakieś ćwiczenia na poligonie?”',
+                faxAfter: {
+                    sender: 'KOMENDA REJONOWA POLICJI CZARNY BÓR',
+                    title: 'OKÓLNIK PORZĄDKOWY NR 12/94',
+                    body: 'Z uwagi na silne wyładowania atmosferyczne w Kotlinie prosimy redakcję 99.4 FM o uspokajanie mieszkańców. Wszelkie doniesienia o nietypowych zjawiskach świetlnych należy tłumaczyć odbiciem reflektorów w niskich chmurach.'
+                },
+                choices: [
+                    {
+                        label: '[USPOKÓJ] „Panie Stanisławie, to tylko zorza polarna i odbicia od chmur burzowych.”',
+                        response: '„Zorza? W październiku na południu Polski? No... może i racja. Zamknę okiennice i wezmę psa do piwnicy. Dziękuję, spokojnej nocy.”',
+                        effects: { panic: -5, reach: +5, anomaly: 0 },
+                        logNote: '00:00 - Zracjonalizowano fioletową łunę nad lasem.'
+                    },
+                    {
+                        label: '[OSTRZEŻ] „Na poligonie nikogo nie ma. Proszę natychmiast zgasić światła w domu i nie podchodzić do okien.”',
+                        response: '„Jezus Maria... Wiedziałem, że to nie są zwykłe chmury. Już gaszę lampy! Ludzie, słyszycie? Gaście światła!”',
+                        effects: { panic: +12, reach: +10, anomaly: -5 },
+                        logNote: '00:00 - Ostrzeżono leśniczego przed światłem nad Czarną Górą.'
+                    },
+                    {
+                        label: '[DOCIEKAJ] „Czy oprócz światła słyszy pan z lasu jakiś niski dźwięk przypominający buczenie transformatora?”',
+                        response: '„Skąd pan wie?! Tak! Szyby w oknach drżą, jakby pod ziemią pracował ogromny silnik... Zaraz, światło właśnie przygasło. Coś idzie między drzewami.”',
+                        effects: { panic: +8, reach: +12, anomaly: +12 },
+                        logNote: '00:00 - Potwierdzono podziemną wibrację w okolicach leśniczówki.'
+                    }
+                ]
+            },
+            {
+                id: 'call_02',
+                time: '00:30',
+                line: 2,
+                caller: 'Marek (Kierowca furgonetki pocztowej)',
+                gender: 'male',
+                voicePitch: 0.82,
+                voiceRate: 1.15,
+                voiceType: 'panic',
+                image: 'img/q8.png',
+                imageCaption: 'ULICA KWIATOWA // Asfalt urywający się w ścianie gęstego lasu',
+                pflPreview: 'Warkot silnika diesla. Męski głos kierowcy drży z przerażenia, twierdzi że zniknęła cała ulica.',
+                transcript: '„Studio?! Wpuśćcie mnie na antenę! Jadę z przesyłkami przez osiedle Słoneczne i skręciłem w ulicę Kwiatową. Tylko że... ulicy Kwiatowej nie ma! Rozumiecie?! Tam gdzie stało dwadzieścia domów jednorodzinnych, rosną stare, gęste świerki, a asfalt urywający się w mchu! Co tu się dzieje?!”',
+                faxAfter: {
+                    sender: 'URZĄD DOZORU RADIOWEGO - ODDZIAŁ ZAMKNIĘTY',
+                    title: 'DYREKTYWA CENZORSKA ALFA-4',
+                    body: 'Zabrania się prowadzącemu audycję potwierdzania jakichkolwiek anomalii topograficznych w obrębie ul. Kwiatowej. W mapach geodezyjnych z 1994 roku ulica Kwiatowa nigdy nie istniała.'
+                },
+                choices: [
+                    {
+                        label: '[KŁAMSTWO] „Panie Marku, we mgle musiał pan pomylić zjazdy za obwodnicą. Proszę zawrócić do centrum.”',
+                        response: '„Pomylić zjazdy?! Jeżdżę tą trasą od dwunastu lat! Ale dobra, zawracam, nie będę tu stał sam po ciemku...”',
+                        effects: { panic: -6, reach: -4, anomaly: +5 },
+                        logNote: '00:30 - Zaprzeczono zniknięciu ulicy Kwiatowej.'
+                    },
+                    {
+                        label: '[ALARMUJ MIASTO] „Potwierdzamy problemy w rejonie ul. Kwiatowej. Mieszkańcy sąsiednich ulic proszeni są o pozostanie w domach!”',
+                        response: '„Wrzucam wsteczny! Niech nikt tu nie podjeżdża, te drzewa wyglądają jakby stały tu od stu lat!”',
+                        effects: { panic: +15, reach: +12, anomaly: -4 },
+                        logNote: '00:30 - Ogłoszono otwarte ostrzeżenie o anomalii na ul. Kwiatowej.'
+                    }
+                ]
+            },
+            {
+                id: 'call_03',
+                time: '01:00',
+                line: 3,
+                caller: 'NIEZNANY NADAWCA (Węzeł Północ)',
+                gender: 'female',
+                voicePitch: 1.25,
+                voiceRate: 0.85,
+                voiceType: 'anomaly',
+                image: 'img/q4.png',
+                imageCaption: 'PASMO SPECJALNE // Anomalna modulacja z wieży na Górze Kruczej',
+                pflPreview: 'UWAGA: Silna modulacja fazowa! Zimny, kobiecy głos stacji numerycznej odczytuje współrzędne.',
+                transcript: '„[SZUM] ...CZTERDZIEŚCI DZIEWIĘĆ. ZERO. SIEDEM. DWA. BRAMA OTWARTA NA CZĘSTOTLIWOŚCI DZIEWIĘĆDZIESIĄT DZIEWIĘĆ PRZECINEK CZTERY. SŁUCHACZE SĄ GOTOWI DO SYNCHRONIZACJI. POWTÓRZ SEKWENCJĘ NA ANTENIE...”',
+                faxAfter: {
+                    sender: 'NOTATKA Z SZUFLADY (PISMO MARKA)',
+                    title: 'OSTRZEŻENIE DLA ZMIENNIKA',
+                    body: 'Jeśli na Linii 3 odezwie się kobiecy głos stacji numerycznej, pod żadnym pozorem nie powtarzaj jej cyfr do mikrofonu!'
+                },
+                choices: [
+                    {
+                        label: '[ODETNIJ I ZAGŁUSZ] Natychmiast rozłącz transmisję i ostrzeż słuchaczy przed pirackim zakłóceniem.',
+                        response: '[POŁĄCZENIE PRZERWANE] Na antenie słychać tylko krótki trzask wyładowania elektrostatycznego.',
+                        effects: { panic: +4, reach: +4, anomaly: -12 },
+                        logNote: '01:00 - Zablokowano transmisję stacji numerycznej na Linii 3.'
+                    },
+                    {
+                        label: '[HIPNOZA] Powtórz ciąg liczb na antenie, aby sprawdzić reakcję eteru.',
+                        response: '„Czterdzieści dziewięć... zero... siedem... dwa...” [Wskaźniki w studiu wychylają się do maksimum].',
+                        effects: { panic: +14, reach: +15, anomaly: +25 },
+                        logNote: '01:00 - POWTÓRZONO SEKWENCJĘ LICZBOWĄ NA ANTENIE.'
+                    }
+                ]
+            },
+            {
+                id: 'call_04',
+                time: '01:30',
+                line: 1,
+                caller: 'Pani Halina (Rynek Ratuszowy)',
+                gender: 'female',
+                voicePitch: 1.4,
+                voiceRate: 1.08,
+                voiceType: 'panic',
+                image: 'img/q9.png',
+                imageCaption: 'RYNEK RATUSZOWY // Mieszkańcy w transie wpatrzeni w nocne niebo',
+                pflPreview: 'Starsza kobieta mówi drżącym, damskim głosem. Wygląda przez okno na główny plac miasteczka.',
+                transcript: '„Panie redaktorze, mówię cichutko... Na rynku stoi ze trzydzieści osób. Stoją na środku skrzyżowania w deszczu, nieruchomo, z głowami zadartymi pionowo w górę. Mój mąż właśnie ubrał płaszcz i chce do nich wyjść!”',
+                choices: [
+                    {
+                        label: '[RATUJ] „Pani Halino! Proszę przekręcić klucz w zamku i puścić radio głośno przy uchu męża!”',
+                        response: '„Dobrze! Kiedy podgłośniłam odbiornik, mąż zamrugał oczami i usiadł na krześle... Boże, dziękuję!”',
+                        effects: { panic: +8, reach: +10, anomaly: -10 },
+                        logNote: '01:30 - Uratowano mieszkańców Rynku przed transem dźwiękowym.'
+                    },
+                    {
+                        label: '[USPOKÓJ] „To zapewne nocna obserwacja nieba. Proszę się nie bać.”',
+                        response: '„Mąż właśnie otworzył drzwi i zszedł po schodach... Nawet się nie obejrzał...”',
+                        effects: { panic: -4, reach: -6, anomaly: +15 },
+                        logNote: '01:30 - Pozwolono na wyjście mieszkańców na Rynek Ratuszowy.'
+                    }
+                ]
+            },
+            {
+                id: 'call_05',
+                time: '02:00',
+                line: 2,
+                caller: 'Sierżant Kowalczyk (Radiowóz 04)',
+                gender: 'male',
+                voicePitch: 0.65,
+                voiceRate: 1.12,
+                voiceType: 'panic',
+                image: 'img/q3.png',
+                imageCaption: 'DROGA KRAJOWA NR 4 // Policyjna blokada przed ścianą czarnej mgły',
+                pflPreview: 'Trzaski policyjnej radiostacji. Sierżant mówi stanowczym, męskim głosem z budki przy obwodnicy.',
+                transcript: '„Tu sierżant Kowalczyk! Zablokowaliśmy wyjazd na drogę krajową nr 4, bo asfalt kończy się ścianą czarnej mgły. Ludzie gromadzą się przy barykadzie, zaraz wybuchnie panika!”',
+                choices: [
+                    {
+                        label: '[WSPÓŁPRACA] Nadaj oficjalny komunikat nakazujący powrót spod barykady do domów pod groźbą skażenia.',
+                        response: '„Dobry pomysł z tym skażeniem, redaktorze! Ludzie zaczynają zawracać samochody do centrum.”',
+                        effects: { panic: +6, reach: +12, anomaly: -6 },
+                        logNote: '02:00 - Powstrzymano tłum przed wejściem w czarną mgłę na DK4.'
+                    },
+                    {
+                        label: '[PRZEMILCZ] Rozłącz policjanta i powiedz słuchaczom, że droga jest przejezdna.',
+                        response: '[ROZŁĄCZONO] W oddali słychać klaksony samochodów jadących prosto we mgłę...',
+                        effects: { panic: -15, reach: -8, anomaly: +16 },
+                        logNote: '02:00 - Ukryto prawdę o blokadzie DK4.'
+                    }
+                ]
+            },
+            {
+                id: 'call_06',
+                time: '02:30',
+                line: 1,
+                caller: 'Anna (Osiedle Leśne, blok 4)',
+                gender: 'female',
+                voicePitch: 1.45,
+                voiceRate: 1.16,
+                voiceType: 'panic',
+                image: 'img/q10.png',
+                imageCaption: 'OSIEDLE LEŚNE, BLOK 4 // Postać za szybą balkonową',
+                pflPreview: 'Słychać rytmiczne pukanie w szybę i spanikowany kobiecy głos.',
+                transcript: '„Mieszkam na trzecim piętrze. Za oknem mojego balkonu stoi... ja. Wygląda identycznie jak ja, puka w szybę i mówi moim własnym głosem: »Aniu, otwórz, w studiu radiowym mówili, że już bezpiecznie«!”',
+                choices: [
+                    {
+                        label: '[RATUNEK] „Pani Anno, proszę zaciągnąć zasłony, zamknąć się w łazience i nie patrzeć w okno!”',
+                        response: '„Zaciągnęłam zasłony! Przestało pukać... Słyszę jak schodzi po barierce w dół!”',
+                        effects: { panic: +10, reach: +10, anomaly: -8 },
+                        logNote: '02:30 - Wydano instrukcję obrony przed sobowtórem.'
+                    },
+                    {
+                        label: '[BŁĄD] „To halucynacja ze zmęczenia, proszę otworzyć okno i przewietrzyć pokój.”',
+                        response: '„Otwieram okno... Zaraz, dlaczego jej dłoń jest taka zimna—” [TRZASK SŁUCHAWKI]',
+                        effects: { panic: -5, reach: -10, anomaly: +20 },
+                        logNote: '02:30 - Tragiczny finał na Osiedlu Leśnym.'
+                    }
+                ]
+            },
+            {
+                id: 'call_07',
+                time: '03:00',
+                line: 3,
+                caller: 'ARCHIWUM 99.4 FM (Taśma z 1974 r.)',
+                gender: 'male',
+                voicePitch: 0.58,
+                voiceRate: 0.88,
+                voiceType: 'anomaly',
+                image: 'img/q5.png',
+                imageCaption: 'ANOMALIA CZASOWA // Ruiny spalonej rozgłośni z 1974 roku',
+                pflPreview: 'Męski głos spikera sprzed 20 lat mówi z archiwalnej taśmy o dzisiejszej nocy!',
+                transcript: '„Tu Rozgłośnia Czarny Bór, 22 października 1974 roku... Dlaczego wciąż siedzisz przy mikrofonie? Przecież wieża nadawcza spłonęła dwadzieścia lat temu. Nadajesz z pustego fundamentu.”',
+                choices: [
+                    {
+                        label: '[OPÓR] „Jest rok 1994, nadaję na żywo dla mieszkańców Czarnego Boru!”',
+                        response: '[Głos z 1974 roku rozpada się w suchy trzask magnetofonowej taśmy].',
+                        effects: { panic: +2, reach: +14, anomaly: -12 },
+                        logNote: '03:00 - Odrzucono iluzję pętli czasowej z 1974 roku.'
+                    },
+                    {
+                        label: '[WĄTPLIWOŚĆ] „Czy ktokolwiek mnie jeszcze słyszy w tym mieście...?”',
+                        response: '[W eterze zapada przerażająca cisza].',
+                        effects: { panic: +15, reach: -15, anomaly: +18 },
+                        logNote: '03:00 - Zwątpiono w realność transmisji.'
+                    }
+                ]
+            },
+            {
+                id: 'call_08',
+                time: '03:30',
+                line: 2,
+                caller: 'Inżynier Nowak (Rozdzielnia Elektryczna)',
+                gender: 'male',
+                voicePitch: 0.75,
+                voiceRate: 1.05,
+                voiceType: 'normal',
+                image: 'img/q4.png',
+                imageCaption: 'GÓRA KRUCZA // Przeciążenie energetyczne wieży',
+                pflPreview: 'Huk transformatorów. Inżynier mówi rzeczowym, męskim głosem o zrzucie mocy.',
+                transcript: '„Coś pobiera gigantyczną moc z pana anteny na Górze Kruczej! Mogę odciąć sekcję leśną i puścić impuls zwrotny, ale w połowie miasta zgaśnie światło. Co robimy?!”',
+                choices: [
+                    {
+                        label: '[IMPULS ZWROTNY] „Niech pan odcina sekcję leśną! Uprzedzę miasto o braku prądu!”',
+                        response: '„Zrozumiałem! Przełączam odłącznik... TERAZ!” [Pomruk w lesie wyraźnie słabnie].',
+                        effects: { panic: +12, reach: +6, anomaly: -22 },
+                        logNote: '03:30 - Zrzut mocy na Górze Kruczej.'
+                    },
+                    {
+                        label: '[UTRZYMAJ ZASILANIE] „Zostawiamy jak jest, bez prądu wybuchną zamieszki!”',
+                        response: '„Na pana odpowiedzialność, redaktorze!”',
+                        effects: { panic: -8, reach: +4, anomaly: +15 },
+                        logNote: '03:30 - Pozostawiono pełne zasilanie dla anomalii.'
+                    }
+                ]
+            },
+            {
+                id: 'call_09',
+                time: '04:00',
+                line: 1,
+                caller: 'Marek (Poprzedni spiker - z głębi lasu)',
+                gender: 'male',
+                voicePitch: 0.70,
+                voiceRate: 0.96,
+                voiceType: 'anomaly',
+                image: 'img/q8.png',
+                imageCaption: 'GŁĄB CZARNEGO BORU // Połączenie z budki w lesie',
+                pflPreview: 'Twój zmiennik dzwoni ze środka gęstego lasu, słychać jego zmęczony męski głos.',
+                transcript: '„Tu Marek... Za chwilę spróbują wejść przez drzwi Twojego studia. Kiedy usłyszysz pukanie, pod żadnym pozorem nie wyłączaj mikrofonu! Dopóki mówisz na żywo, nie przekroczą progu!”',
+                choices: [
+                    {
+                        label: '[ZAUFAJ] „Będę mówił na żywo aż do wschodu słońca!”',
+                        response: '„Wytrzymaj... Już widać pierwsze przejaśnienie nad drzewami!”',
+                        effects: { panic: +4, reach: +12, anomaly: -10 },
+                        logNote: '04:00 - Utrzymano ciągłość transmisji przed drzwiami Studia B.'
+                    },
+                    {
+                        label: '[PANIKA] „Marek nie żyje! Wyciszam mikrofon!”',
+                        response: '[W korytarzu za drzwiami rozlega się potężne uderzenie w metal].',
+                        effects: { panic: +14, reach: -12, anomaly: +16 },
+                        logNote: '04:00 - Wyciszono mikrofon w obliczu zagrożenia.'
+                    }
+                ]
+            },
+            {
+                id: 'call_10',
+                time: '04:30',
+                line: 3,
+                caller: 'GŁOS Z CZARNEGO BORU (Finałowa Konfrontacja)',
+                gender: 'male',
+                voicePitch: 0.5,
+                voiceRate: 0.82,
+                voiceType: 'anomaly',
+                image: 'img/nocna-zmiana.png',
+                imageCaption: 'STUDIO B (04:30) // Konfrontacja przed świtem',
+                pflPreview: 'Wszystkie lampki pulsują jednocześnie. Z głębi eteru dobiega niski, dudniący głos.',
+                transcript: '„DOCHODZI PIĄTA RANO. SŁOŃCE WZEJDZIE TYLKO WTEDY, GDY ODDASZ NAM CZĘSTOTLIWOŚĆ 99.4 FM. JAKI JEST TWÓJ OSTATNI KOMUNIKAT?”',
+                choices: [
+                    {
+                        label: '[WALCZ] „Mieszkańcy Czarnego Boru! Odsłońcie okna, nadchodzi świt! 99.4 FM należy do żywych!”',
+                        response: '[Przez okno studia przebija się pierwszy blady promień słońca!]',
+                        effects: { panic: -10, reach: +15, anomaly: -18 },
+                        logNote: '04:30 - Stawiono opór; przebito mgłę o świcie.'
+                    },
+                    {
+                        label: '[UKŁAD] „Wygaszam nadajnik, ale wypuśćcie ludzi z Kotliny!”',
+                        response: '„UMOWA ZAWARTA... ZOSTAJESZ Z NAMI NA KOLEJNĄ NOCNĄ ZMIANĘ.”',
+                        effects: { panic: -25, reach: -20, anomaly: +35 },
+                        logNote: '04:30 - Pakt z Anomalią.'
+                    }
+                ]
+            }
+        ];
+
+        const MAREK_NOTES = `
+            <div class="font-bold border-b border-stone-600 pb-1 mb-2 text-red-900">PRYWATNY NOTATNIK REALIZATORA (MAREK K.)</div>
+            <p class="mb-2"><strong>18.10.1994:</strong> Na fali 99.4 FM po północy słychać ciche echo, jakby drugi nadajnik w lesie powtarzał moje słowa.</p>
+            <p class="mb-2"><strong>20.10.1994:</strong> Znalazłem w archiwum <em>Taśmę #4 [Bez opisu]</em>. Kiedy założyłem szpulę na magnetofon i puściłem ją na słuchawkach, wskaźnik Anomalii skoczył o 25%! Nie puszczaj tej taśmy na antenę bez potrzeby!</p>
+            <p class="mb-2"><strong>ARCHIWUM TAŚM MAGNETOFONOWYCH:</strong><br>
+            - <strong>Taśma #1 (Jazz):</strong> Panika -12%, Zasięg +5%<br>
+            - <strong>Taśma #2 (IMGW):</strong> Panika -8%, Anomalia -6%<br>
+            - <strong>Taśma #3 (Dżingiel):</strong> Zasięg +14%, Panika +4%<br>
+            - <strong>Taśma #4 (Bez opisu):</strong> Gwałtowny rezonans z lasem!</p>
+        `;
+
+        const Game = {
+            panic: 15,
+            reach: 65,
+            anomaly: 10,
+            currentStep: 0,
+            activeLine: null,
+            lineState: 'idle',
+            micEnabled: true,
+            filterEnabled: false,
+            tapeCooldown: false,
+            easUsedCount: 0,
+            decisionsLog: [],
+            faxes: [
+                {
+                    time: '23:55',
+                    sender: 'ZARZĄD ROZGŁOŚNI 99.4 FM',
+                    title: 'HARMONOGRAM NOCNEJ ZMIANY',
+                    body: 'Witamy na nocnym dyżurze. Pilnuj poziomu paniki i słuchalności. W krytycznych chwilach odtwarzaj taśmy magnetofonowe ze szpulowca M-940.'
+                }
+            ],
+            currentDocTab: 'fax',
+
+            init() {
+                const faderStatic = document.getElementById('fader-static');
+                const faderMaster = document.getElementById('fader-master');
+
+                faderStatic.addEventListener('input', (e) => {
+                    document.getElementById('val-static').textContent = `${e.target.value}%`;
+                    SoundEngine.setStaticVolume(parseInt(e.target.value, 10));
+                });
+
+                faderMaster.addEventListener('input', (e) => {
+                    document.getElementById('val-master').textContent = `${e.target.value}%`;
+                    SoundEngine.setMasterVolume(parseInt(e.target.value, 10));
+                });
+
+                document.getElementById('btn-init-game').addEventListener('click', () => {
+                    SoundEngine.init();
+                    SoundEngine.playClick(950);
+                    document.getElementById('start-modal').classList.add('hidden');
+                    this.renderDocs();
+                    this.updateStatsUI();
+                    this.logToCRT('SYSTEM', 'Zasilanie konsolety UNITRA włączone. Nadajnik 99.4 FM pracuje na pełnej mocy.', 'system');
+                    this.logToCRT('STUDIO', 'Kliknij przycisk „MONITORUJ ETER” po lewej, by rozpocząć dyżur.', 'info');
+                });
+
+                document.getElementById('btn-restart-game').addEventListener('click', () => {
+                    SoundEngine.playClick(900);
+                    this.resetGame();
+                });
+
+                this.startVisualLoop();
+            },
+
+            updateSceneVisual(imgSrc, badgeText, captionText, isAlert = false) {
+                const imgEl = document.getElementById('scene-preview-img');
+                const badgeEl = document.getElementById('scene-cam-badge');
+                const captionEl = document.getElementById('scene-caption');
+
+                if (imgEl) imgEl.src = imgSrc;
+                if (badgeEl) {
+                    badgeEl.textContent = badgeText;
+                    badgeEl.className = isAlert
+                        ? 'px-1.5 py-0.5 bg-red-950/90 text-red-300 border border-red-500 rounded animate-pulse'
+                        : 'px-1.5 py-0.5 bg-black/80 text-amber-400 border border-amber-700/60 rounded';
+                }
+                if (captionEl) captionEl.textContent = captionText;
+            },
+
+            resetGame() {
+                this.panic = 15;
+                this.reach = 65;
+                this.anomaly = 10;
+                this.currentStep = 0;
+                this.activeLine = null;
+                this.lineState = 'idle';
+                this.tapeCooldown = false;
+                this.easUsedCount = 0;
+                this.decisionsLog = [];
+
+                SoundEngine.stopCallerVoice();
+                if (SoundEngine.activeTapeAudio) {
+                    SoundEngine.activeTapeAudio.pause();
+                    SoundEngine.activeTapeAudio = null;
+                }
+
+                document.getElementById('ending-modal').classList.add('hidden');
+                document.getElementById('ending-modal').classList.remove('flex');
+                document.getElementById('crt-log').innerHTML = '';
+                document.getElementById('studio-clock').textContent = '00:00';
+                document.getElementById('shift-progress-label').textContent = 'ETAP 1 / 10';
+                const nextBtn = document.getElementById('btn-next-event');
+                nextBtn.disabled = false;
+                nextBtn.innerHTML = '<span>MONITORUJ ETER / KOLEJNE ZGŁOSZENIE</span><span>&raquo;</span>';
+
+                this.clearAllLinesUI();
+                this.resetChoicesUI('Oczekiwanie na połączenie przychodzące...');
+                this.setOnAirSign(false);
+                this.updateSceneVisual('img/nocna-zmiana.png', 'PODGLĄD: STUDIO B (CZUWANIE)', 'Konsoleta nadawcza 99.4 FM — widok przez szybę na las.', false);
+                this.updateStatsUI();
+                this.renderDocs();
+                this.logToCRT('SYSTEM', 'Konsoleta zresetowana. Głowice magnetofonu oczyszczone.', 'system');
+            },
+
+            advanceShift() {
+                if (this.lineState !== 'idle') {
+                    this.logToCRT('SYSTEM', 'Najpierw obsłuż lub rozłącz aktywną linię telefoniczną!', 'warn');
+                    SoundEngine.playClick(300);
+                    return;
+                }
+
+                if (this.currentStep >= NIGHT_EVENTS.length) {
+                    this.triggerEnding('SURVIVED');
+                    return;
+                }
+
+                SoundEngine.playClick(720);
+                this.tapeCooldown = false;
+                document.getElementById('tape-cooldown-msg').textContent = 'GOTOWY';
+
+                const ev = NIGHT_EVENTS[this.currentStep];
+                document.getElementById('studio-clock').textContent = ev.time;
+                document.getElementById('shift-progress-label').textContent = `ETAP ${this.currentStep + 1} / ${NIGHT_EVENTS.length}`;
+                document.getElementById('btn-next-event').disabled = true;
+
+                this.activeLine = ev.line;
+                this.lineState = 'ringing';
+                this.updateLineUI(ev.line, 'ringing', ev.caller);
+                this.updateSceneVisual(ev.image, `SYGNAŁ PRZYCHODZĄCY // LINIA ${ev.line}`, ev.imageCaption, ev.voiceType === 'anomaly');
+
+                SoundEngine.playPhoneRing();
+                this.logToCRT('CENTRALA', `[${ev.time}] Połączenie na LINII ${ev.line}: ${ev.caller}.`, 'info');
+            },
+
+            handleLineAction(lineNum, action) {
+                if (this.activeLine !== lineNum) return;
+                const ev = NIGHT_EVENTS[this.currentStep];
+
+                if (action === 'pfl') {
+                    SoundEngine.playClick(880);
+                    SoundEngine.playVoiceBlip(ev.voiceType, ev.gender);
+                    this.lineState = 'pfl';
+                    this.setOnAirSign(false);
+                    document.getElementById('caller-mode-badge').textContent = 'TRYB PFL (POZA ANTENĄ)';
+                    this.updateLineUI(lineNum, 'pfl', ev.caller);
+                    this.logToCRT(`PFL LINIA ${lineNum}`, `[ODSŁUCH]: ${ev.pflPreview}`, 'pfl');
+                    this.resetChoicesUI('Połączenie w odsłuchu PFL. Wybierz „NA ANTENĘ” lub „ROZŁĄCZ”.');
+                } else if (action === 'onair') {
+                    SoundEngine.playClick(1020);
+                    this.lineState = 'onair';
+                    this.setOnAirSign(true);
+                    const genderLabel = ev.gender === 'female' ? 'GŁOS DAMSKI' : 'GŁOS MĘSKI';
+                    document.getElementById('caller-mode-badge').textContent = `NA ŻYWO (${genderLabel})`;
+                    this.updateLineUI(lineNum, 'onair', ev.caller);
+
+                    // Odtworzenie głosu męskiego lub damskiego na żywo
+                    SoundEngine.speakCallerLine(ev.transcript, ev.gender, ev.voiceType, ev.voicePitch, ev.voiceRate);
+
+                    this.logToCRT(`NA ŻYWO [${ev.caller}]`, ev.transcript, ev.voiceType === 'anomaly' ? 'anomaly' : 'caller');
+                    this.renderDialogueChoices(ev);
+                } else if (action === 'drop') {
+                    SoundEngine.stopCallerVoice();
+                    SoundEngine.playClick(420);
+                    this.setOnAirSign(false);
+                    this.logToCRT('CENTRALA', `Rozłączono połączenie (${ev.caller}).`, 'warn');
+
+                    if (ev.voiceType === 'anomaly') {
+                        this.applyStatChanges({ panic: 0, reach: -3, anomaly: -6 });
+                    } else {
+                        this.applyStatChanges({ panic: +4, reach: -7, anomaly: 0 });
+                    }
+
+                    this.finishCurrentEvent(ev);
+                }
+            },
+
+            renderDialogueChoices(ev) {
+                const container = document.getElementById('choices-container');
+                container.innerHTML = '';
+
+                ev.choices.forEach((ch, idx) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'console-btn w-full p-2.5 rounded text-left text-xs leading-snug cursor-pointer flex items-start gap-2';
+                    btn.innerHTML = `<span class="text-amber-400 font-bold">${idx + 1}.</span><span>${ch.label}</span>`;
+                    btn.onclick = () => this.selectDialogueChoice(ev, ch);
+                    container.appendChild(btn);
+                });
+            },
+
+            selectDialogueChoice(ev, choice) {
+                if (!this.micEnabled) {
+                    this.logToCRT('BŁĄD', 'Twój MIKROFON jest wyciszony na pulpicie!', 'warn');
+                    SoundEngine.playClick(250);
+                    return;
+                }
+
+                SoundEngine.stopCallerVoice();
+                SoundEngine.playClick(920);
+                this.logToCRT('PROWADZĄCY (TY)', choice.label.replace(/^\[.*?\]\s*/, ''), 'host');
+                
+                setTimeout(() => {
+                    this.logToCRT(`ODPOWIEDŹ [${ev.caller}]`, choice.response, ev.voiceType === 'anomaly' ? 'anomaly' : 'caller');
+                    SoundEngine.speakCallerLine(choice.response, ev.gender, ev.voiceType, ev.voicePitch, ev.voiceRate);
+                    this.applyStatChanges(choice.effects);
+                    this.decisionsLog.push(choice.logNote);
+                    this.finishCurrentEvent(ev);
+                }, 350);
+            },
+
+            finishCurrentEvent(ev) {
+                this.clearAllLinesUI();
+                this.lineState = 'idle';
+                this.activeLine = null;
+                this.setOnAirSign(false);
+
+                document.getElementById('caller-mode-badge').textContent = 'POZA ANTENĄ';
+
+                if (ev.faxAfter) {
+                    setTimeout(() => {
+                        SoundEngine.playFaxBeep();
+                        this.faxes.unshift({
+                            time: ev.time,
+                            sender: ev.faxAfter.sender,
+                            title: ev.faxAfter.title,
+                            body: ev.faxAfter.body
+                        });
+                        document.getElementById('fax-new-dot').classList.remove('hidden');
+                        this.renderDocs();
+                        this.logToCRT('TELEFAKS', `Odebrano: „${ev.faxAfter.title}”.`, 'system');
+                    }, 500);
+                }
+
+                this.currentStep++;
+
+                if (this.checkGameOverConditions()) return;
+
+                if (this.currentStep >= NIGHT_EVENTS.length) {
+                    document.getElementById('studio-clock').textContent = '05:00';
+                    this.updateSceneVisual('img/q6.png', 'STUDIO B // 05:00', 'Świt nad Czarnym Borem.', false);
+                    this.resetChoicesUI('Dochodzi 05:00 rano. Kliknij poniżej, by zakończyć zmianę.');
+                    const nextBtn = document.getElementById('btn-next-event');
+                    nextBtn.disabled = false;
+                    nextBtn.innerHTML = '<span>GODZINA 05:00 - ZAKOŃCZ NOCNĄ ZMIANĘ</span><span>&raquo;</span>';
+                } else {
+                    const nextTime = NIGHT_EVENTS[this.currentStep].time;
+                    this.resetChoicesUI(`Linia wolna. Możesz puścić taśmę magnetofonową ze szpulowca lub przejść do ${nextTime}.`);
+                    document.getElementById('btn-next-event').disabled = false;
+                }
+            },
+
+            /**
+             * Główna funkcja odtwarzania taśm magnetofonowych ze szpulowca
+             */
+            playTape(tapeType) {
+                if (this.tapeCooldown) {
+                    this.logToCRT('MAGNETOFON', 'Szpule przewijają taśmę. Poczekaj na kolejny segment audycji.', 'warn');
+                    SoundEngine.playClick(300);
+                    return;
+                }
+
+                this.tapeCooldown = true;
+                document.getElementById('tape-cooldown-msg').textContent = 'EMISJA TAŚMY...';
+
+                const reelL = document.getElementById('reel-left');
+                const reelR = document.getElementById('reel-right');
+                const ledTape = document.getElementById('led-tape');
+                const statusLabel = document.getElementById('tape-status-label');
+
+                reelL.classList.add('reel-spinning');
+                reelR.classList.add('reel-spinning');
+                ledTape.classList.add('amber-on');
+                statusLabel.textContent = 'PRZESUW TAŚMY';
+
+                SoundEngine.playClick(850);
+
+                SoundEngine.playTapeAudio(tapeType, () => {
+                    reelL.classList.remove('reel-spinning');
+                    reelR.classList.remove('reel-spinning');
+                    ledTape.classList.remove('amber-on');
+                    statusLabel.textContent = 'STOP';
+                    document.getElementById('tape-cooldown-msg').textContent = 'ZAKOŃCZONO';
+                });
+
+                if (tapeType === 'jazz') {
+                    this.updateSceneVisual('img/nocna-zmiana.png', 'MAGNETOFON // TAŚMA #1', 'Emisja z taśmy: Nocny Jazz — Panika -12%, Zasięg +5%', false);
+                    this.logToCRT('SZPULA #1 (TAŚMA)', 'Na antenie z taśmy szpulowej płynie kojący utwór jazzowy. Nastroje w mieście stabilizują się.', 'system');
+                    this.applyStatChanges({ panic: -12, reach: +5, anomaly: 0 });
+                } else if (tapeType === 'weather') {
+                    this.updateSceneVisual('img/nocna-zmiana.png', 'MAGNETOFON // TAŚMA #2', 'Emisja z taśmy: Komunikat IMGW — Panika -8%, Anomalia -6%', false);
+                    this.logToCRT('SZPULA #2 (TAŚMA)', 'Odtworzono z taśmy oficjalny komunikat hydrologiczno-meteorologiczny IMGW.', 'system');
+                    this.applyStatChanges({ panic: -8, reach: 0, anomaly: -6 });
+                } else if (tapeType === 'jingle') {
+                    this.updateSceneVisual('img/nocna-zmiana.png', 'MAGNETOFON // TAŚMA #3', 'Emisja z taśmy: Dżingiel 99.4 — Zasięg +14%, Panika +4%', false);
+                    this.logToCRT('SZPULA #3 (TAŚMA)', 'Głośny, analogowy dżingiel radiowy 99.4 FM przebija zakłócenia w eterze.', 'system');
+                    this.applyStatChanges({ panic: +4, reach: +14, anomaly: 0 });
+                } else if (tapeType === 'forbidden') {
+                    this.updateSceneVisual('img/q4.png', 'OSTRZEŻENIE // TAŚMA #4', 'NIEZNANA TAŚMA: Dźwięki z głębi lasu!', true);
+                    this.logToCRT('SZPULA #4 (TAŚMA)', 'Na antenę puszczono niepokojącą taśmę [BEZ OPISU]. Igła anomalii bije o ogranicznik!', 'anomaly');
+                    this.applyStatChanges({ panic: +16, reach: +18, anomaly: +24 });
+                    this.decisionsLog.push('Odtworzono zakazaną Taśmę #4 (Dźwięki z Głębi).');
+                }
+
+                this.checkGameOverConditions();
+            },
+
+            toggleSwitch(type) {
+                SoundEngine.playClick(980);
+                if (type === 'mic') {
+                    this.micEnabled = !this.micEnabled;
+                    document.getElementById('toggle-mic').classList.toggle('active', this.micEnabled);
+                    document.getElementById('led-mic').classList.toggle('green-on', this.micEnabled);
+                } else if (type === 'filter') {
+                    this.filterEnabled = !this.filterEnabled;
+                    document.getElementById('toggle-filter').classList.toggle('active', this.filterEnabled);
+                    document.getElementById('led-filter').classList.toggle('amber-on', this.filterEnabled);
+                }
+            },
+
+            triggerEmergencyTone() {
+                if (this.easUsedCount >= 2) return;
+                this.easUsedCount++;
+                SoundEngine.playEASAlert();
+                this.logToCRT('ALARM EAS', 'Dwutonowy sygnał alarmowy oczyścił pasmo radiowe!', 'warn');
+                this.applyStatChanges({ panic: +14, reach: +8, anomaly: -18 });
+                this.checkGameOverConditions();
+            },
+
+            applyStatChanges(changes) {
+                let dPanic = changes.panic || 0;
+                let dReach = changes.reach || 0;
+                let dAnomaly = changes.anomaly || 0;
+
+                if (this.filterEnabled) {
+                    if (dAnomaly > 0) dAnomaly = Math.ceil(dAnomaly * 0.5);
+                    dReach -= 3;
+                }
+
+                this.panic = Math.max(0, Math.min(100, this.panic + dPanic));
+                this.reach = Math.max(0, Math.min(100, this.reach + dReach));
+                this.anomaly = Math.max(0, Math.min(100, this.anomaly + dAnomaly));
+
+                this.updateStatsUI();
+                SoundEngine.updateAnomalyDrone(this.anomaly);
+
+                if (dAnomaly >= 12) {
+                    document.body.classList.add('glitch-active');
+                    setTimeout(() => document.body.classList.remove('glitch-active'), 500);
+                }
+            },
+
+            updateStatsUI() {
+                document.getElementById('stat-panic-val').textContent = `${this.panic}%`;
+                document.getElementById('stat-panic-bar').style.width = `${this.panic}%`;
+
+                document.getElementById('stat-reach-val').textContent = `${this.reach}%`;
+                document.getElementById('stat-reach-bar').style.width = `${this.reach}%`;
+
+                document.getElementById('stat-anomaly-val').textContent = `${this.anomaly}%`;
+                document.getElementById('stat-anomaly-bar').style.width = `${this.anomaly}%`;
+
+                const driftEl = document.getElementById('freq-drift');
+                if (this.anomaly > 70) {
+                    driftEl.textContent = '(ODCHYŁKA 99.46)';
+                    driftEl.className = 'text-xs font-bold text-red-500 animate-pulse';
+                } else if (this.anomaly > 40) {
+                    driftEl.textContent = '(ZAKŁÓCENIA)';
+                    driftEl.className = 'text-xs font-normal text-amber-400';
+                } else {
+                    driftEl.textContent = '(STABILNA)';
+                    driftEl.className = 'text-xs font-normal text-stone-500';
+                }
+            },
+
+            checkGameOverConditions() {
+                if (this.panic >= 100) {
+                    this.triggerEnding('PANIC_MAX');
+                    return true;
+                }
+                if (this.anomaly >= 100) {
+                    this.triggerEnding('ANOMALY_MAX');
+                    return true;
+                }
+                if (this.reach <= 0) {
+                    this.triggerEnding('REACH_ZERO');
+                    return true;
+                }
+                return false;
+            },
+
+            triggerEnding(type) {
+                SoundEngine.stopCallerVoice();
+                const modal = document.getElementById('ending-modal');
+                const title = document.getElementById('ending-title');
+                const badge = document.getElementById('ending-badge');
+                const desc = document.getElementById('ending-desc');
+                const endImg = document.getElementById('ending-image');
+
+                document.getElementById('end-stat-panic').textContent = `${this.panic}%`;
+                document.getElementById('end-stat-reach').textContent = `${this.reach}%`;
+                document.getElementById('end-stat-anomaly').textContent = `${this.anomaly}%`;
+
+                const logContainer = document.getElementById('ending-decisions-log');
+                logContainer.innerHTML = this.decisionsLog.map(item => `<div>&gt; ${item}</div>`).join('') || '&gt; Brak wpisów.';
+
+                if (type === 'PANIC_MAX') {
+                    title.textContent = 'ZAKOŃCZENIE #1: NOC ZAMIESZEK';
+                    badge.textContent = 'KATASTROFA SPOŁECZNA';
+                    endImg.src = 'img/q3.png';
+                    desc.innerHTML = '<p>Panika osiągnęła 100%. Tłum wdarł się do budynku rozgłośni i zniszczył aparaturę nadawczą.</p>';
+                } else if (type === 'ANOMALY_MAX') {
+                    title.textContent = 'ZAKOŃCZENIE #2: SYNCHRONIZACJA Z LASEM';
+                    badge.textContent = 'PRZEJĘCIE CZĘSTOTLIWOŚCI';
+                    endImg.src = 'img/q4.png';
+                    desc.innerHTML = '<p>Synchronizacja osiągnęła 100%. Nadajnik stał się rezonatorem dla bytu z lasu.</p>';
+                } else if (type === 'REACH_ZERO') {
+                    title.textContent = 'ZAKOŃCZENIE #3: MARTWA CISZA';
+                    badge.textContent = 'UTRATA KOTWICY';
+                    endImg.src = 'img/q5.png';
+                    desc.innerHTML = '<p>Słuchalność spadła do zera. Ostatni odbiornik umilkł, a studio zniknęło we mgle.</p>';
+                } else {
+                    title.textContent = 'ZAKOŃCZENIE #4: ŚWIT NAD CZARNYM BOREM';
+                    badge.textContent = 'PRZETRWANO';
+                    endImg.src = 'img/q6.png';
+                    desc.innerHTML = '<p>Godzina 05:00. Pierwsze promienie słońca przebiły mgłę. Przetrwałeś nocną zmianę!</p>';
+                }
+
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            },
+
+            updateLineUI(lineNum, state, callerName) {
+                const led = document.getElementById(`led-line-${lineNum}`);
+                const status = document.getElementById(`line-status-${lineNum}`);
+                const caller = document.getElementById(`line-caller-${lineNum}`);
+                caller.textContent = callerName;
+
+                if (state === 'ringing') {
+                    led.className = 'led ringing';
+                    status.textContent = 'DZWONI!';
+                    ['btn-pfl-', 'btn-air-', 'btn-drop-'].forEach(p => document.getElementById(p + lineNum).disabled = false);
+                } else if (state === 'pfl') {
+                    led.className = 'led amber-on';
+                    status.textContent = 'ODSŁUCH PFL';
+                    document.getElementById(`btn-pfl-${lineNum}`).disabled = true;
+                } else if (state === 'onair') {
+                    led.className = 'led red-on';
+                    status.textContent = 'NA ANTENIE';
+                    document.getElementById(`btn-air-${lineNum}`).disabled = true;
+                }
+            },
+
+            clearAllLinesUI() {
+                for (let i = 1; i <= 3; i++) {
+                    document.getElementById(`led-line-${i}`).className = 'led';
+                    document.getElementById(`line-status-${i}`).textContent = i === 3 ? 'PASMO SPEC.' : 'WOLNA';
+                    document.getElementById(`line-caller-${i}`).textContent = '---';
+                    ['btn-pfl-', 'btn-air-', 'btn-drop-'].forEach(p => document.getElementById(p + i).disabled = true);
+                }
+            },
+
+            resetChoicesUI(msg) {
+                document.getElementById('choices-container').innerHTML = `
+                    <div class="text-xs text-stone-400 text-center py-6 px-3 border border-dashed border-stone-800 rounded">
+                        ${msg}
+                    </div>
+                `;
+            },
+
+            setOnAirSign(active) {
+                const sign = document.getElementById('on-air-sign');
+                const sub = document.getElementById('on-air-sub');
+                if (active) {
+                    sign.className = 'px-3 py-2 rounded border-2 border-red-400 bg-red-600 text-white font-bold text-xs sm:text-sm tracking-widest shadow-[0_0_20px_rgba(255,30,30,0.9)] flex flex-col items-center';
+                    sub.textContent = 'TRANSMISJA LIVE';
+                } else {
+                    sign.className = 'px-3 py-2 rounded border-2 border-red-950 bg-red-950/30 text-red-900 font-bold text-xs sm:text-sm tracking-widest transition-all duration-300 flex flex-col items-center';
+                    sub.textContent = 'STANDBY';
+                }
+            },
+
+            switchDocTab(tab) {
+                SoundEngine.playClick(780);
+                this.currentDocTab = tab;
+                document.getElementById('tab-fax').className = tab === 'fax' ? 'text-xs font-bold px-2.5 py-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/50 cursor-pointer' : 'text-xs font-bold px-2.5 py-1 rounded bg-stone-900 text-stone-400 border border-stone-700 cursor-pointer';
+                document.getElementById('tab-notes').className = tab === 'notes' ? 'text-xs font-bold px-2.5 py-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/50 cursor-pointer' : 'text-xs font-bold px-2.5 py-1 rounded bg-stone-900 text-stone-400 border border-stone-700 cursor-pointer';
+                this.renderDocs();
+            },
+
+            renderDocs() {
+                const viewer = document.getElementById('doc-viewer');
+                if (this.currentDocTab === 'notes') {
+                    viewer.innerHTML = MAREK_NOTES;
+                } else {
+                    viewer.innerHTML = this.faxes.map(f => `
+                        <div class="mb-3 pb-2 border-b border-stone-500/60">
+                            <div class="flex justify-between text-[10px] font-bold text-stone-700">
+                                <span>OD: ${f.sender}</span>
+                                <span>${f.time}</span>
+                            </div>
+                            <div class="font-bold text-red-900 mt-0.5">${f.title}</div>
+                            <p class="mt-1 text-stone-900">${f.body}</p>
+                        </div>
+                    `).join('');
+                }
+            },
+
+            logToCRT(author, text, style = 'normal') {
+                const log = document.getElementById('crt-log');
+                const entry = document.createElement('div');
+                let colorClass = 'text-emerald-400';
+                let borderClass = 'border-emerald-900/60';
+
+                if (style === 'caller') { colorClass = 'text-emerald-300'; borderClass = 'border-emerald-600'; }
+                else if (style === 'host') { colorClass = 'text-amber-300'; borderClass = 'border-amber-600'; }
+                else if (style === 'pfl') { colorClass = 'text-yellow-300 italic'; borderClass = 'border-yellow-700'; }
+                else if (style === 'anomaly') { colorClass = 'text-red-400 font-bold'; borderClass = 'border-red-600'; }
+                else if (style === 'warn') { colorClass = 'text-orange-400'; borderClass = 'border-orange-700'; }
+                else if (style === 'system') { colorClass = 'text-emerald-500/80 text-xs'; borderClass = 'border-emerald-950'; }
+
+                entry.className = `border-l-2 ${borderClass} pl-2.5 py-0.5 ${colorClass}`;
+                entry.innerHTML = `<span class="font-bold tracking-wider">[${author}]:</span> ${text}`;
+                log.appendChild(entry);
+                log.scrollTop = log.scrollHeight;
+            },
+
+            startVisualLoop() {
+                const needleL = document.getElementById('vu-needle-l');
+                const needleR = document.getElementById('vu-needle-r');
+                const canvas = document.getElementById('scope-canvas');
+                const ctx = canvas.getContext('2d');
+
+                const resizeCanvas = () => {
+                    canvas.width = canvas.clientWidth || 180;
+                    canvas.height = canvas.clientHeight || 40;
+                };
+                window.addEventListener('resize', resizeCanvas);
+                resizeCanvas();
+
+                let phase = 0;
+
+                const animate = () => {
+                    SoundEngine.audioLevel *= 0.92;
+                    const isTapePlaying = SoundEngine.activeTapeAudio && !SoundEngine.activeTapeAudio.paused;
+                    const baseJitter = (this.lineState === 'onair' || isTapePlaying ? 0.28 : 0.08) + (this.anomaly / 400);
+                    const levelL = Math.min(1, SoundEngine.audioLevel + Math.random() * baseJitter);
+                    const levelR = Math.min(1, SoundEngine.audioLevel + Math.random() * baseJitter);
+
+                    const angleL = -38 + (levelL * 78);
+                    const angleR = -38 + (levelR * 78);
+
+                    if (needleL && needleR) {
+                        needleL.style.transform = `rotate(${angleL.toFixed(1)}deg)`;
+                        needleR.style.transform = `rotate(${angleR.toFixed(1)}deg)`;
+                    }
+
+                    ctx.fillStyle = 'rgba(5, 18, 5, 0.35)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.lineWidth = 1.5;
+                    ctx.strokeStyle = this.anomaly > 65 ? '#ff3b3b' : '#33ff33';
+                    ctx.beginPath();
+
+                    const midY = canvas.height / 2;
+                    const amp = (levelL * (canvas.height * 0.42)) + 2;
+
+                    for (let x = 0; x < canvas.width; x += 2) {
+                        const freq = (this.lineState === 'onair' || isTapePlaying) ? 0.14 : 0.06;
+                        const noise = (Math.random() - 0.5) * (this.anomaly * 0.12);
+                        const y = midY + Math.sin(x * freq + phase) * amp + noise;
+                        if (x === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
+                    ctx.stroke();
+
+                    phase += 0.28;
+                    requestAnimationFrame(animate);
+                };
+
+                requestAnimationFrame(animate);
+            }
+        };
+
+        window.onload = function () {
+            Game.init();
+        };
+    </script>
+</body>
+</html>

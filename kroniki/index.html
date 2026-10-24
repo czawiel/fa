@@ -1,0 +1,2497 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kroniki Karczmy na Rozdrożu – Słowiańskie Cozy RPG</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@500;700;800&family=Lora:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --wood-dark: #160d08;
+            --wood-mid: #28170e;
+            --wood-light: #3f2416;
+            --parchment-light: #f3e5c8;
+            --parchment-mid: #e6d0a7;
+            --parchment-dark: #c8ab7c;
+            --ink-dark: #23160c;
+            --ink-red: #7c1f17;
+            --amber-glow: #e07a22;
+            --gold-accent: #d4a359;
+            --forest-green: #2c4c34;
+            --perun-red: #8c271e;
+            --amber-blue: #b87324;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        /* Główne tło karczmy z plikiem img/p2.png */
+        body {
+            background-color: var(--wood-dark);
+            color: var(--parchment-light);
+            font-family: 'Lora', Georgia, serif;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            background-image: 
+                linear-gradient(180deg, rgba(16, 9, 5, 0.78) 0%, rgba(28, 16, 9, 0.65) 50%, rgba(16, 9, 5, 0.88) 100%),
+                url('img/p2.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        .font-cinzel {
+            font-family: 'Cinzel', serif;
+        }
+
+        .font-title {
+            font-family: 'Cinzel Decorative', cursive, serif;
+        }
+
+        /* Stylizacja pergaminu z teksturą img/p3.png */
+        .parchment-box {
+            background-color: var(--parchment-light);
+            color: var(--ink-dark);
+            background-image: 
+                linear-gradient(to bottom, rgba(243, 229, 200, 0.82), rgba(230, 208, 167, 0.88)),
+                url('img/p3.png');
+            background-size: cover;
+            background-position: center;
+            box-shadow: 
+                inset 0 0 28px rgba(120, 78, 35, 0.45),
+                0 10px 30px rgba(0, 0, 0, 0.75);
+            border: 2px solid #8a6236;
+            position: relative;
+        }
+
+        .parchment-box::before {
+            content: "";
+            position: absolute;
+            inset: 4px;
+            border: 1px solid rgba(124, 31, 23, 0.28);
+            pointer-events: none;
+            border-radius: inherit;
+        }
+
+        /* Drewniane panele */
+        .wood-panel {
+            background: linear-gradient(165deg, rgba(46, 27, 16, 0.94) 0%, rgba(29, 17, 10, 0.96) 100%);
+            border: 2px solid #593822;
+            box-shadow: 
+                inset 0 1px 0 rgba(255, 210, 150, 0.15),
+                inset 0 0 20px rgba(0, 0, 0, 0.8),
+                0 8px 20px rgba(0, 0, 0, 0.65);
+        }
+
+        /* Słowiański szlaczek */
+        .slavic-border {
+            height: 8px;
+            background: repeating-linear-gradient(
+                45deg,
+                #7c1f17,
+                #7c1f17 6px,
+                #d4a359 6px,
+                #d4a359 12px,
+                #28170e 12px,
+                #28170e 18px
+            );
+            border-top: 1px solid #d4a359;
+            border-bottom: 1px solid #d4a359;
+        }
+
+        /* Przyciski odpowiedzi */
+        .choice-btn {
+            background: linear-gradient(to right, rgba(235, 217, 183, 0.92), rgba(223, 197, 153, 0.92));
+            border: 1px solid #966d3e;
+            border-left: 5px solid #7c1f17;
+            color: #23160c;
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.18);
+            text-align: left;
+        }
+
+        .choice-btn:hover:not(:disabled) {
+            background: linear-gradient(to right, #f7ebd2, #ebd2a6);
+            border-left-width: 9px;
+            border-left-color: #b52b1e;
+            transform: translateX(3px);
+            box-shadow: 0 4px 12px rgba(124, 31, 23, 0.25);
+        }
+
+        .choice-btn.special-choice {
+            background: linear-gradient(to right, rgba(242, 223, 179, 0.95), rgba(230, 198, 124, 0.95));
+            border-left-color: #b5651d;
+            border-color: #b5853b;
+        }
+
+        /* Karty trunków */
+        .drink-card {
+            background: linear-gradient(180deg, #331e12 0%, #21130b 100%);
+            border: 1px solid #6e472b;
+            transition: all 0.2s ease;
+        }
+
+        .drink-card:hover:not(:disabled) {
+            border-color: #e09f3e;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(224, 122, 34, 0.25);
+        }
+
+        .drink-card:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Animacja blasku ognia */
+        @keyframes hearthPulse {
+            0%, 100% { box-shadow: 0 0 25px rgba(224, 122, 34, 0.25), inset 0 0 15px rgba(224, 122, 34, 0.15); }
+            50% { box-shadow: 0 0 38px rgba(235, 145, 45, 0.4), inset 0 0 25px rgba(235, 145, 45, 0.25); }
+        }
+
+        .hearth-glow {
+            animation: hearthPulse 4s infinite ease-in-out;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(35, 22, 12, 0.2);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #8a6236;
+            border-radius: 4px;
+            border: 1px solid #d4a359;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #7c1f17;
+        }
+
+        /* Inicjał w tekście */
+        .drop-cap::first-letter {
+            font-family: 'Cinzel Decorative', serif;
+            float: left;
+            font-size: 3.1rem;
+            line-height: 0.85;
+            padding-top: 4px;
+            padding-right: 10px;
+            padding-bottom: 2px;
+            color: var(--ink-red);
+            font-weight: 900;
+        }
+
+        /* Płynne pojawianie */
+        @keyframes fadeInSlide {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade-in {
+            animation: fadeInSlide 0.35s ease-out forwards;
+        }
+
+        /* Styl suwaka głośności */
+        input[type=range].amber-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            background: #1a0f09;
+            height: 6px;
+            border-radius: 4px;
+            border: 1px solid #6e472b;
+        }
+        input[type=range].amber-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #e09f3e;
+            border: 2px solid #fff3d1;
+            cursor: pointer;
+            box-shadow: 0 0 6px rgba(224, 122, 34, 0.8);
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen justify-between">
+
+    <!-- EKRAN TYTUŁOWY / POWITALNY MODAL -->
+    <div id="intro-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm">
+        <div class="parchment-box max-w-2xl w-full rounded-xl p-6 md:p-10 text-center relative overflow-hidden border-4 border-[#6e472b]">
+            <div class="slavic-border -mx-10 -mt-10 mb-6"></div>
+            
+            <!-- Ikona Świętego Ognia img/p10.png -->
+            <div class="flex justify-center mb-4">
+                <img src="img/p10.png" alt="Święty Płomień" class="w-20 h-20 rounded-full object-cover border-2 border-[#7c1f17] shadow-lg" onerror="this.style.display='none'">
+            </div>
+
+            <p class="font-cinzel text-xs md:text-sm uppercase tracking-[0.25em] text-[#7c1f17] font-bold mb-1">Słowiańska Opowieść Przy Palenisku</p>
+            <h1 class="font-title text-2xl md:text-4xl font-black text-[#23160c] mb-4 leading-tight">Kroniki Karczmy na Rozdrożu</h1>
+            
+            <div class="text-sm md:text-base text-[#362214] space-y-3 text-left leading-relaxed mb-6 bg-[#e6d0a7]/65 p-4 rounded-lg border border-[#b59264]">
+                <p class="drop-cap">
+                    Jesień spowiła Rozdroże gęstą mgłą, a w powietrzu czuć żelazo, dym i stare czary. Prowadzisz gospodę <strong>„Pod Złotym Żmijem”</strong> – jedyne bezpieczne schronienie na styku granic trzech zwaśnionych potęg: twardego <strong>Księstwa Wiślan</strong>, tajemniczych <strong>Plemion Puszczy</strong> oraz chciwego <strong>Kupieckiego Sojuszu</strong>.
+                </p>
+                <p>
+                    Przez najbliższe <strong>siedem wieczorów</strong> u Twego progu staną wojowie, szeptuchy, przemytnicy i istoty ze starych wierzeń. Nalewaj im odpowiedni trunek, by rozwiązać języki, słuchaj plotek, udzielaj schronienia na strychu i zapisuj dzieje krainy. Każde Twoje słowo przybliży jedno ze stronnictw do zwycięstwa... lub pomoże ocalić wszystkich przed nadciągającą Koniunkcją Dziadów.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-left mb-6 text-[#3b2516]">
+                <div class="bg-[#e8d5b5]/90 p-2.5 rounded border border-[#a88252] flex items-start gap-2">
+                    <img src="img/p14.png" alt="Miód" class="w-8 h-8 rounded object-cover shrink-0 border border-[#8a6236]">
+                    <div>
+                        <strong class="font-cinzel text-[#7c1f17] block mb-0.5">Warz i Polewaj</strong>
+                        Dopasuj napitek do gościa, aby odblokować sekretne opcje dialogowe.
+                    </div>
+                </div>
+                <div class="bg-[#e8d5b5]/90 p-2.5 rounded border border-[#a88252] flex items-start gap-2">
+                    <img src="img/p13.png" alt="Sojusz" class="w-8 h-8 rounded object-cover shrink-0 border border-[#8a6236]">
+                    <div>
+                        <strong class="font-cinzel text-[#2c4c34] block mb-0.5">Waż Słowa i Czyny</strong>
+                        Udzielaj schronienia, handluj sekretami i decyduj o losie trzech potęg.
+                    </div>
+                </div>
+                <div class="bg-[#e8d5b5]/90 p-2.5 rounded border border-[#a88252] flex items-start gap-2">
+                    <img src="img/p10.png" alt="Ogień" class="w-8 h-8 rounded object-cover shrink-0 border border-[#8a6236]">
+                    <div>
+                        <strong class="font-cinzel text-[#965a18] block mb-0.5">Posłuchaj Ognia</strong>
+                        Włącz dźwięk trzaskającego kominka, by poczuć klimat wieczoru.
+                    </div>
+                </div>
+            </div>
+
+            <button id="start-game-btn" class="w-full sm:w-auto px-8 py-3.5 rounded-lg font-cinzel font-bold text-lg text-[#fff5e1] bg-gradient-to-r from-[#6e1b14] via-[#8c271e] to-[#6e1b14] border-2 border-[#d4a359] shadow-xl hover:scale-[1.02] active:scale-[0.99] transition-all cursor-pointer flex items-center justify-center gap-2 mx-auto">
+                <img src="img/p10.png" alt="" class="w-6 h-6 rounded-full object-cover border border-[#d4a359]">
+                <span>Rozpal Ogień w Palenisku i Otwórz Karczmę</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL WARZELNI / SPIŻARNI -->
+    <div id="brew-modal" class="fixed inset-0 z-40 hidden items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+        <div class="parchment-box max-w-xl w-full rounded-xl p-6 relative border-4 border-[#593822]">
+            <div class="flex justify-between items-center border-b-2 border-[#a88252] pb-3 mb-4">
+                <div class="flex items-center gap-2.5">
+                    <img src="img/p14.png" alt="Warzelnia" class="w-10 h-10 rounded-lg object-cover border border-[#7c1f17]">
+                    <div>
+                        <h2 class="font-cinzel text-xl font-bold text-[#7c1f17]">Spiżarnia i Kocioł Karczmarza</h2>
+                        <p class="text-xs text-[#4a311e]">Uwarz świeże napitki i jadło za Złote Grzywny lub uzupełnij zapasy.</p>
+                    </div>
+                </div>
+                <button id="close-brew-btn" class="px-3 py-1 rounded bg-[#7c1f17] text-[#f3e5c8] font-cinzel text-sm hover:bg-[#5e1610] cursor-pointer">Zamknij ✕</button>
+            </div>
+
+            <div class="flex items-center justify-between bg-[#e2caa0]/90 px-4 py-2 rounded-lg border border-[#a88252] mb-4">
+                <span class="font-cinzel font-bold text-sm text-[#23160c] flex items-center gap-2">
+                    <img src="img/p9.png" alt="Grzywny" class="w-6 h-6 rounded object-cover border border-[#8a6236]">
+                    Twoja Sakiewka:
+                </span>
+                <span class="font-cinzel font-extrabold text-lg text-[#7c1f17]" id="brew-modal-gold">16 Złotych Grzywien</span>
+            </div>
+
+            <div id="brew-list" class="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+                <!-- Wypełniane przez JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL KOŃCA WIECZORU / PRZEJŚCIA -->
+    <div id="night-summary-modal" class="fixed inset-0 z-40 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div class="parchment-box max-w-xl w-full rounded-xl p-6 md:p-8 text-center border-4 border-[#6e472b]">
+            <p class="font-cinzel text-xs uppercase tracking-widest text-[#7c1f17] font-bold">Drzwi Zaryglowane, Świece Dogasają</p>
+            <h2 id="summary-title" class="font-title text-2xl md:text-3xl font-bold text-[#23160c] mt-1 mb-4">Koniec Wieczoru I</h2>
+            
+            <div id="summary-events" class="text-left bg-[#e6d0a7]/75 p-4 rounded-lg border border-[#a88252] space-y-2.5 text-sm text-[#2c1b10] mb-5 max-h-60 overflow-y-auto">
+                <!-- Podsumowanie decyzji z nocy -->
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 mb-6 text-xs font-cinzel">
+                <div class="bg-[#e8d5b5]/90 p-2.5 rounded border border-[#a88252] flex flex-col items-center">
+                    <img src="img/p11.png" alt="Wiślanie" class="w-8 h-8 rounded object-cover mb-1 border border-[#7c1f17]">
+                    <span class="block text-[#7c1f17] font-bold">Wiślanie</span>
+                    <span id="sum-fac-wislanie" class="text-base font-extrabold">50%</span>
+                </div>
+                <div class="bg-[#e8d5b5]/90 p-2.5 rounded border border-[#a88252] flex flex-col items-center">
+                    <img src="img/p12.png" alt="Puszcza" class="w-8 h-8 rounded object-cover mb-1 border border-[#2c4c34]">
+                    <span class="block text-[#2c4c34] font-bold">Puszcza</span>
+                    <span id="sum-fac-puszcza" class="text-base font-extrabold">50%</span>
+                </div>
+                <div class="bg-[#e8d5b5]/90 p-2.5 rounded border border-[#a88252] flex flex-col items-center">
+                    <img src="img/p13.png" alt="Sojusz" class="w-8 h-8 rounded object-cover mb-1 border border-[#9c5a14]">
+                    <span class="block text-[#9c5a14] font-bold">Sojusz</span>
+                    <span id="sum-fac-sojusz" class="text-base font-extrabold">50%</span>
+                </div>
+            </div>
+
+            <button id="next-night-btn" class="w-full py-3 rounded-lg font-cinzel font-bold text-base text-[#fff5e1] bg-gradient-to-r from-[#6e1b14] via-[#8c271e] to-[#6e1b14] border-2 border-[#d4a359] shadow-lg hover:brightness-110 transition-all cursor-pointer flex items-center justify-center gap-2">
+                <img src="img/p9.png" alt="" class="w-5 h-5 rounded object-cover">
+                <span>Powitaj Kolejny Zmierzch (+3 Złote Grzywny z noclegów)</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL WIELKIEGO FINAŁU (Z GRAFIKAMI img/p4.png - img/p8.png) -->
+    <div id="ending-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/90 backdrop-blur-md overflow-y-auto">
+        <div class="parchment-box max-w-3xl w-full rounded-xl p-6 md:p-10 my-8 border-4 border-[#d4a359]">
+            <div class="slavic-border -mx-10 -mt-10 mb-6"></div>
+            <div class="text-center mb-4">
+                <span class="px-3 py-1 rounded-full bg-[#7c1f17] text-[#f3e5c8] font-cinzel text-xs uppercase tracking-widest">Ostatnia Karta Kroniki</span>
+                <h1 id="ending-title" class="font-title text-2xl md:text-4xl font-black text-[#23160c] mt-3">Epilog Rozdroża</h1>
+                <p id="ending-subtitle" class="font-cinzel text-sm text-[#7c1f17] font-bold mt-1"></p>
+            </div>
+
+            <!-- Grafika ilustrująca zakończenie (img/p4.png - img/p8.png) -->
+            <div class="mb-5 rounded-xl overflow-hidden border-2 border-[#593822] shadow-xl bg-[#160d08] h-52 sm:h-64">
+                <img id="ending-image" src="img/p4.png" alt="Ilustracja Epilogu" class="w-full h-full object-cover">
+            </div>
+
+            <div id="ending-description" class="text-sm md:text-base text-[#29190e] space-y-4 leading-relaxed bg-[#e6d0a7]/75 p-5 rounded-lg border border-[#a88252] mb-6">
+                <!-- Opis zakończenia -->
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6 text-center text-xs font-cinzel">
+                <div class="bg-[#e8d5b5]/90 p-3 rounded border border-[#a88252] flex flex-col items-center">
+                    <img src="img/p11.png" alt="" class="w-7 h-7 rounded object-cover mb-1">
+                    <span class="block text-[#6b4c2b]">Księstwo Wiślan</span>
+                    <strong id="end-stat-wislanie" class="text-lg text-[#7c1f17]">0%</strong>
+                </div>
+                <div class="bg-[#e8d5b5]/90 p-3 rounded border border-[#a88252] flex flex-col items-center">
+                    <img src="img/p12.png" alt="" class="w-7 h-7 rounded object-cover mb-1">
+                    <span class="block text-[#6b4c2b]">Plemiona Puszczy</span>
+                    <strong id="end-stat-puszcza" class="text-lg text-[#2c4c34]">0%</strong>
+                </div>
+                <div class="bg-[#e8d5b5]/90 p-3 rounded border border-[#a88252] flex flex-col items-center">
+                    <img src="img/p13.png" alt="" class="w-7 h-7 rounded object-cover mb-1">
+                    <span class="block text-[#6b4c2b]">Kupiecki Sojusz</span>
+                    <strong id="end-stat-sojusz" class="text-lg text-[#9c5a14]">0%</strong>
+                </div>
+                <div class="bg-[#e8d5b5]/90 p-3 rounded border border-[#a88252] flex flex-col items-center">
+                    <img src="img/p10.png" alt="" class="w-7 h-7 rounded object-cover mb-1">
+                    <span class="block text-[#6b4c2b]">Ciepło Ogniska</span>
+                    <strong id="end-stat-renoma" class="text-lg text-[#b55414]">0</strong>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <button id="restart-game-btn" class="px-8 py-3.5 rounded-lg font-cinzel font-bold text-base text-[#fff5e1] bg-gradient-to-r from-[#593822] via-[#7c1f17] to-[#593822] border-2 border-[#d4a359] shadow-xl hover:scale-105 transition-all cursor-pointer">
+                    📖 Otwórz Nową Księgę (Zagraj Ponownie)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GÓRNY PASEK NAWIGACJI I ZASOBÓW -->
+    <header class="wood-panel border-b-2 border-[#8a6236] px-3 py-2.5 sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+            
+            <!-- Tytuł i Wieczór -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-[#3d2314] border border-[#d4a359] overflow-hidden flex items-center justify-center shadow-inner">
+                    <img src="img/p10.png" alt="Herb Karczmy" class="w-full h-full object-cover">
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="font-title text-base md:text-lg text-[#f3e5c8] tracking-wide">Pod Złotym Żmijem</h1>
+                        <span id="night-badge" class="px-2 py-0.5 text-xs font-cinzel font-bold rounded bg-[#7c1f17] text-[#f3e5c8] border border-[#d4a359]">
+                            Wieczór I / VII
+                        </span>
+                    </div>
+                    <p id="night-name-subtitle" class="text-xs text-[#d4a359] italic">Szron na Gościńcu • Gość 1 z 2</p>
+                </div>
+            </div>
+
+            <!-- Zasoby Karczmarza + Paski Frakcji -->
+            <div class="flex flex-wrap items-center gap-2 md:gap-4">
+                
+                <!-- Monety (img/p9.png) i Ciepło Ogniska (img/p10.png) -->
+                <div class="flex items-center gap-2 bg-[#160d08]/90 px-3 py-1.5 rounded-lg border border-[#6e472b]">
+                    <div class="flex items-center gap-1.5 pr-2 border-r border-[#4a2f1d]" title="Złote Grzywny – na warzenie trunków, przekupstwa i pomoc wędrowcom">
+                        <img src="img/p9.png" alt="Grzywny" class="w-5 h-5 rounded object-cover border border-[#9e6b14]">
+                        <span class="text-xs text-[#c8ab7c]">Grzywny:</span>
+                        <strong id="stat-gold" class="font-cinzel text-sm text-[#f5b841]">16</strong>
+                    </div>
+
+                    <div class="flex items-center gap-1.5 pl-1" title="Ciepło Ogniska i Renoma – określa zaufanie gości oraz pokój przy wspólnym stole">
+                        <img src="img/p10.png" alt="Renoma" class="w-5 h-5 rounded object-cover border border-[#b55414]">
+                        <span class="text-xs text-[#c8ab7c]">Renoma:</span>
+                        <strong id="stat-hearth" class="font-cinzel text-sm text-[#ff9f43]">60</strong>
+                    </div>
+                </div>
+
+                <!-- Paski Trzech Frakcji (z herbami img/p11.png, img/p12.png, img/p13.png) -->
+                <div class="hidden lg:flex items-center gap-3 bg-[#160d08]/90 px-3 py-1.5 rounded-lg border border-[#6e472b]">
+                    <!-- Księstwo Wiślan -->
+                    <div class="w-32" title="Księstwo Wiślan (Perun, żelazo, grody Kneźa)">
+                        <div class="flex justify-between items-center text-[11px] font-cinzel mb-0.5">
+                            <span class="text-[#e88379] flex items-center gap-1">
+                                <img src="img/p11.png" alt="" class="w-4 h-4 rounded-sm object-cover">
+                                Wiślanie
+                            </span>
+                            <span id="val-wislanie" class="text-[#f3e5c8] font-bold">50%</span>
+                        </div>
+                        <div class="w-full h-2 bg-[#2b1911] rounded-full overflow-hidden border border-[#593822]">
+                            <div id="bar-wislanie" class="h-full bg-gradient-to-r from-[#8c271e] to-[#d9534f] transition-all duration-500" style="width: 50%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Plemiona Puszczy -->
+                    <div class="w-32" title="Plemiona Puszczy (Weles, szeptuchy, stare gaje)">
+                        <div class="flex justify-between items-center text-[11px] font-cinzel mb-0.5">
+                            <span class="text-[#87c995] flex items-center gap-1">
+                                <img src="img/p12.png" alt="" class="w-4 h-4 rounded-sm object-cover">
+                                Puszcza
+                            </span>
+                            <span id="val-puszcza" class="text-[#f3e5c8] font-bold">50%</span>
+                        </div>
+                        <div class="w-full h-2 bg-[#2b1911] rounded-full overflow-hidden border border-[#593822]">
+                            <div id="bar-puszcza" class="h-full bg-gradient-to-r from-[#2c5e38] to-[#5cb85c] transition-all duration-500" style="width: 50%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Kupiecki Sojusz -->
+                    <div class="w-32" title="Kupiecki Sojusz Bursztynowego Szlaku (Złoto, wolny handel, najemnicy)">
+                        <div class="flex justify-between items-center text-[11px] font-cinzel mb-0.5">
+                            <span class="text-[#f0c165] flex items-center gap-1">
+                                <img src="img/p13.png" alt="" class="w-4 h-4 rounded-sm object-cover">
+                                Sojusz
+                            </span>
+                            <span id="val-sojusz" class="text-[#f3e5c8] font-bold">50%</span>
+                        </div>
+                        <div class="w-full h-2 bg-[#2b1911] rounded-full overflow-hidden border border-[#593822]">
+                            <div id="bar-sojusz" class="h-full bg-gradient-to-r from-[#9e6318] to-[#f0ad4e] transition-all duration-500" style="width: 50%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kontrolki Dźwięku Web Audio API -->
+                <div class="flex items-center gap-2 bg-[#160d08]/90 px-2.5 py-1.5 rounded-lg border border-[#6e472b]">
+                    <button id="audio-toggle-btn" class="flex items-center gap-1 text-xs font-cinzel px-2 py-1 rounded bg-[#382012] hover:bg-[#4f2d19] text-[#f3e5c8] border border-[#8a6236] transition cursor-pointer" title="Włącz/Wyłącz odgłosy paleniska i karczmy">
+                        <span id="audio-icon">🔊</span>
+                        <span id="audio-label" class="hidden sm:inline">Ogień</span>
+                    </button>
+                    <input id="volume-slider" type="range" min="0" max="100" value="45" class="amber-slider w-16 md:w-20" title="Głośność trzaskającego ognia i efektów">
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobilne paski frakcji -->
+        <div class="flex lg:hidden justify-between gap-2 mt-2 pt-2 border-t border-[#422818] text-[10px] font-cinzel">
+            <div class="flex-1">
+                <div class="flex justify-between items-center text-[#e88379]">
+                    <span class="flex items-center gap-1"><img src="img/p11.png" alt="" class="w-3.5 h-3.5 rounded-sm object-cover">Wiślanie</span>
+                    <span id="m-val-wislanie">50%</span>
+                </div>
+                <div class="w-full h-1.5 bg-[#2b1911] rounded-full overflow-hidden"><div id="m-bar-wislanie" class="h-full bg-[#d9534f]" style="width:50%"></div></div>
+            </div>
+            <div class="flex-1">
+                <div class="flex justify-between items-center text-[#87c995]">
+                    <span class="flex items-center gap-1"><img src="img/p12.png" alt="" class="w-3.5 h-3.5 rounded-sm object-cover">Puszcza</span>
+                    <span id="m-val-puszcza">50%</span>
+                </div>
+                <div class="w-full h-1.5 bg-[#2b1911] rounded-full overflow-hidden"><div id="m-bar-puszcza" class="h-full bg-[#5cb85c]" style="width:50%"></div></div>
+            </div>
+            <div class="flex-1">
+                <div class="flex justify-between items-center text-[#f0c165]">
+                    <span class="flex items-center gap-1"><img src="img/p13.png" alt="" class="w-3.5 h-3.5 rounded-sm object-cover">Sojusz</span>
+                    <span id="m-val-sojusz">50%</span>
+                </div>
+                <div class="w-full h-1.5 bg-[#2b1911] rounded-full overflow-hidden"><div id="m-bar-sojusz" class="h-full bg-[#f0ad4e]" style="width:50%"></div></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- GŁÓWNY OBSZAR GRY (3 KOLUMNY: PALENISKO I LADA | KSIĘGA SPOTKAŃ | KRONIKA) -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-3 md:p-4 grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+
+        <!-- LEWA KOLUMNA: PALENISKO, STAN STRYCHU I LADA Z TRUNKAMI (3 z 12) -->
+        <section class="lg:col-span-3 space-y-4 w-full">
+            
+            <!-- Animowane Palenisko Karczmy z tłem img/p1.png -->
+            <div class="wood-panel rounded-xl p-3 hearth-glow relative overflow-hidden">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="font-cinzel text-xs uppercase tracking-wider text-[#f3e5c8] font-bold flex items-center gap-1.5">
+                        <img src="img/p10.png" alt="" class="w-4 h-4 rounded-full object-cover">
+                        <span>Palenisko Karczmy</span>
+                    </h2>
+                    <span id="hearth-mood-badge" class="text-[11px] px-2 py-0.5 rounded bg-[#3b2112] text-[#f5b841] border border-[#754829]">
+                        Ciepły Blask
+                    </span>
+                </div>
+
+                <!-- Kontener z tłem kominka img/p1.png i przezroczystym Canvasem płomieni -->
+                <div class="relative rounded-lg overflow-hidden border-2 border-[#4d2f1c] bg-[#0e0805] h-40">
+                    <img src="img/p1.png" alt="Wnętrze kominka" class="absolute inset-0 w-full h-full object-cover opacity-90 pointer-events-none">
+                    <canvas id="hearth-canvas" class="relative z-10 w-full h-full block"></canvas>
+                    <div class="absolute z-20 bottom-1.5 left-2 right-2 flex justify-between items-center text-[10px] text-[#f3e5c8] bg-black/55 px-2 py-0.5 rounded pointer-events-none">
+                        <span id="attic-status">Strych: Wolny na nocleg</span>
+                        <span id="cellar-status">Piwnica: Spokojna</span>
+                    </div>
+                </div>
+
+                <!-- Przycisk dorzucenia do ognia -->
+                <div class="mt-2.5 flex gap-2">
+                    <button id="stoke-fire-btn" class="w-full py-1.5 px-2 rounded bg-[#3b2112] hover:bg-[#522e19] text-[#f3e5c8] border border-[#8a6236] text-xs font-cinzel transition flex items-center justify-center gap-1.5 cursor-pointer" title="Dorzuć szczapę dębową do ognia (poprawia nastrój i iskry)">
+                        <img src="img/p10.png" alt="" class="w-4 h-4 rounded-full object-cover">
+                        <span>Dorzuć Dębiny do Ognia</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Szynkwas / Lada z Napitkami (img/p14.png - img/p17.png) -->
+            <div class="wood-panel rounded-xl p-3.5">
+                <div class="flex justify-between items-center mb-2 pb-1.5 border-b border-[#4d2f1c]">
+                    <div>
+                        <h2 class="font-cinzel text-sm font-bold text-[#f3e5c8] flex items-center gap-1.5">
+                            <img src="img/p14.png" alt="" class="w-5 h-5 rounded object-cover border border-[#8a6236]">
+                            <span>Szynkwas i Napitki</span>
+                        </h2>
+                        <p class="text-[11px] text-[#c8ab7c]">Nalej gościowi przed wyborem odpowiedzi</p>
+                    </div>
+                    <button id="open-brew-btn" class="px-2.5 py-1 rounded bg-[#7c1f17] hover:bg-[#9c281e] text-[#f3e5c8] border border-[#d4a359] text-xs font-cinzel font-bold transition cursor-pointer">
+                        + Warzelnia
+                    </button>
+                </div>
+
+                <div id="drinks-container" class="space-y-2">
+                    <!-- Generowane dynamicznie karty 4 napitków z grafikami p14-p17 -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ŚRODKOWA KOLUMNA: GOŚĆ PRZY LADZIE I DRZEWKO DIALOGOWE (6 z 12) -->
+        <section class="lg:col-span-6 w-full">
+            <div class="parchment-box rounded-xl p-4 md:p-6 min-h-[560px] flex flex-col justify-between">
+                
+                <!-- Górna belka karty gościa -->
+                <div>
+                    <div class="flex flex-wrap justify-between items-center gap-2 pb-3 mb-4 border-b-2 border-[#a88252]">
+                        <div class="flex items-center gap-2">
+                            <span id="guest-faction-badge" class="px-2.5 py-1 rounded text-xs font-cinzel font-bold bg-[#7c1f17] text-[#f3e5c8] flex items-center gap-1.5">
+                                <img id="guest-faction-icon" src="img/p11.png" alt="" class="w-4 h-4 rounded-sm object-cover">
+                                <span id="guest-faction-name">Księstwo Wiślan</span>
+                            </span>
+                            <span id="guest-need-badge" class="px-2.5 py-1 rounded text-xs font-cinzel bg-[#d9c096]/90 text-[#3b2313] border border-[#966d3e]">
+                                Szuka: Rady i Napitku
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-xs font-cinzel text-[#593822]">
+                            <span>Nastawienie:</span>
+                            <strong id="guest-mood-text" class="text-[#7c1f17]">Nieufny (50%)</strong>
+                        </div>
+                    </div>
+
+                    <!-- Sekcja Portretu (Zdjęcie o1-o13) + Opis Gościa -->
+                    <div class="flex flex-col sm:flex-row gap-4 items-center sm:items-start mb-5">
+                        <!-- Ramka na portret -->
+                        <div class="w-32 h-36 sm:w-36 sm:h-40 shrink-0 rounded-lg bg-[#e3cba1] border-2 border-[#593822] shadow-md p-1 relative overflow-hidden flex items-center justify-center">
+                            <div id="guest-portrait-svg" class="w-full h-full flex items-center justify-center overflow-hidden rounded">
+                                <!-- Zdjęcie Bohatera img/o1.png - img/o13.jfif (z fallbackiem SVG) -->
+                            </div>
+                            <div id="drink-served-indicator" class="hidden absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-[#2c4c34] text-[#f3e5c8] text-[10px] font-cinzel border border-[#d4a359] shadow flex items-center gap-1">
+                                <img id="drink-served-icon" src="img/p14.png" alt="" class="w-3.5 h-3.5 rounded-sm object-cover">
+                                <span>Ugoszczony</span>
+                            </div>
+                        </div>
+
+                        <!-- Imię, przydomek i wprowadzenie atmosferyczne -->
+                        <div class="flex-1 text-center sm:text-left">
+                            <h2 id="guest-name" class="font-title text-xl md:text-2xl font-bold text-[#23160c] leading-snug">
+                                Dobromir z Wiślicy
+                            </h2>
+                            <p id="guest-title" class="font-cinzel text-xs uppercase tracking-wider text-[#7c1f17] font-bold mb-2">
+                                Ranny Drużynnik Kneźa • Sługa Peruna
+                            </p>
+                            <p id="guest-intro-desc" class="text-xs md:text-sm italic text-[#4a311e] bg-[#e6d0a7]/75 p-2.5 rounded border border-[#b89566]">
+                                Drzwi karczmy otwierają się z hukiem. Do środka wchodzi wsparty na włóczni woj w kolczudze zbroczonej posoką.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Główny tekst wypowiedzi gościa / narracji -->
+                    <div id="dialogue-box" class="bg-[#efe0c4]/90 p-4 rounded-lg border border-[#a88252] shadow-inner mb-4 animate-fade-in">
+                        <p id="guest-dialogue" class="text-sm md:text-base text-[#1f130a] leading-relaxed drop-cap">
+                            <!-- Tekst dialogu -->
+                        </p>
+                        <!-- Informacja zwrotna po podaniu napitku lub podjęciu decyzji -->
+                        <div id="reaction-banner" class="hidden mt-3 p-2.5 rounded bg-[#dfC699] border-l-4 border-[#7c1f17] text-xs md:text-sm text-[#2c1a0e] font-medium">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista opcji dialogowych i decyzji -->
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-cinzel text-xs uppercase tracking-wider text-[#593822] font-bold">
+                            Twoja odpowiedź lub czyn:
+                        </span>
+                        <span id="drink-hint-text" class="text-[11px] italic text-[#7c1f17]">
+                            Wskazówka: Nalej odpowiedni trunek, by otworzyć serce gościa.
+                        </span>
+                    </div>
+
+                    <div id="choices-container" class="space-y-2.5">
+                        <!-- Przyciski wyborów generowane przez JS -->
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- PRAWA KOLUMNA: DZIENNIK KRONIKARZA, PLOTKI I BESTIARIUSZ (3 z 12) -->
+        <section class="lg:col-span-3 w-full">
+            <div class="parchment-box rounded-xl p-4 min-h-[560px] flex flex-col">
+                <div class="border-b-2 border-[#a88252] pb-2 mb-3">
+                    <h2 class="font-cinzel text-base font-bold text-[#7c1f17] flex items-center gap-1.5">
+                        <span>📜</span> Księga Kronikarza
+                    </h2>
+                    <p class="text-xs text-[#4a311e]">Zapis decyzji, plotek z traktów i wiedzy o świecie</p>
+                </div>
+
+                <!-- Zakładki Kroniki -->
+                <div class="grid grid-cols-3 gap-1 mb-3 bg-[#dac094]/90 p-1 rounded-lg border border-[#966d3e] text-xs font-cinzel font-bold">
+                    <button id="tab-btn-chronicle" class="py-1.5 px-1 rounded bg-[#7c1f17] text-[#f3e5c8] transition cursor-pointer">
+                        Kronika
+                    </button>
+                    <button id="tab-btn-rumors" class="py-1.5 px-1 rounded text-[#3b2313] hover:bg-[#cbb082] transition cursor-pointer">
+                        Plotki (<span id="rumor-count">1</span>)
+                    </button>
+                    <button id="tab-btn-lore" class="py-1.5 px-1 rounded text-[#3b2313] hover:bg-[#cbb082] transition cursor-pointer">
+                        Leksykon
+                    </button>
+                </div>
+
+                <!-- Zawartość Zakładki 1: Kronika Decyzji -->
+                <div id="tab-content-chronicle" class="flex-1 overflow-y-auto space-y-2.5 pr-1 max-h-[430px]">
+                    <!-- Wpisy kroniki -->
+                </div>
+
+                <!-- Zawartość Zakładki 2: Zasłyszane Plotki i Tajemnice -->
+                <div id="tab-content-rumors" class="hidden flex-1 overflow-y-auto space-y-2.5 pr-1 max-h-[430px]">
+                    <!-- Plotki -->
+                </div>
+
+                <!-- Zawartość Zakładki 3: Leksykon Słowiański (z herbami img/p10.png - img/p13.png) -->
+                <div id="tab-content-lore" class="hidden flex-1 overflow-y-auto space-y-2.5 pr-1 max-h-[430px] text-xs text-[#2b1a0e]">
+                    <div class="p-2.5 rounded bg-[#e6d0a7]/85 border border-[#a88252] flex items-start gap-2.5">
+                        <img src="img/p11.png" alt="Wiślanie" class="w-9 h-9 rounded object-cover shrink-0 border border-[#7c1f17]">
+                        <div>
+                            <strong class="font-cinzel text-[#7c1f17] block">Księstwo Wiślan</strong>
+                            Władane przez twardego Kneźa Drogomira z grodu nad Wisłą. Czczą gromowładnego Peruna, wierzą w siłę żelaza i chcą podporządkować sobie Puszczę oraz kupieckie szlaki.
+                        </div>
+                    </div>
+                    <div class="p-2.5 rounded bg-[#e6d0a7]/85 border border-[#a88252] flex items-start gap-2.5">
+                        <img src="img/p12.png" alt="Puszcza" class="w-9 h-9 rounded object-cover shrink-0 border border-[#2c4c34]">
+                        <div>
+                            <strong class="font-cinzel text-[#2c4c34] block">Plemiona Puszczy</strong>
+                            Żercy Welesa, szeptuchy i łowcy z Uroczysk. Bronią świętych dębów przed toporami Wiślan i potrafią rozmawiać ze stworami lasu – Leszymi oraz Południcami.
+                        </div>
+                    </div>
+                    <div class="p-2.5 rounded bg-[#e6d0a7]/85 border border-[#a88252] flex items-start gap-2.5">
+                        <img src="img/p13.png" alt="Sojusz" class="w-9 h-9 rounded object-cover shrink-0 border border-[#9c5a14]">
+                        <div>
+                            <strong class="font-cinzel text-[#9c5a14] block">Kupiecki Sojusz</strong>
+                            Związek faktorii na Bursztynowym Szlaku. Cenią złote grzywny, wolny handel i najemne ostrza. Boją się, że wojna zniszczy karawany, lecz chętnie zarabiają na obu stronach.
+                        </div>
+                    </div>
+                    <div class="p-2.5 rounded bg-[#e6d0a7]/85 border border-[#a88252] flex items-start gap-2.5">
+                        <img src="img/p10.png" alt="Ogień" class="w-9 h-9 rounded object-cover shrink-0 border border-[#59253a]">
+                        <div>
+                            <strong class="font-cinzel text-[#59253a] block">Noc Dziadów i Żmij</strong>
+                            Gdy krew wsiąka w rozdroża, budzą się Wąpierze, Strzygi i Morowe Panny. Tylko karczma, w której płonie święty ogień gościnności, może zatrzymać gniew bogów.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- STOPKA Z POWIADOMIENIAMI (TOAST) -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-50 space-y-2 pointer-events-none"></div>
+
+    <script>
+        /**************************************************************************
+         * 1. SYSTEM DŹWIĘKOWY WEB AUDIO API (Trzaskający ogień, nalewanie, monety)
+         **************************************************************************/
+        class TavernAudioEngine {
+            constructor() {
+                this.ctx = null;
+                this.isPlaying = false;
+                this.masterGain = null;
+                this.fireGain = null;
+                this.crackleInterval = null;
+                this.volume = 0.45;
+            }
+
+            init() {
+                if (this.ctx) return;
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                this.ctx = new AudioCtx();
+
+                this.masterGain = this.ctx.createGain();
+                this.masterGain.gain.value = this.volume;
+                this.masterGain.connect(this.ctx.destination);
+
+                this.setupFireAmbience();
+                this.isPlaying = true;
+            }
+
+            setupFireAmbience() {
+                if (!this.ctx) return;
+
+                const bufferSize = 2 * this.ctx.sampleRate;
+                const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const output = noiseBuffer.getChannelData(0);
+                let lastOut = 0.0;
+                for (let i = 0; i < bufferSize; i++) {
+                    const white = Math.random() * 2 - 1;
+                    output[i] = (lastOut + (0.02 * white)) / 1.02;
+                    lastOut = output[i];
+                    output[i] *= 2.8;
+                }
+
+                const whiteNoise = this.ctx.createBufferSource();
+                whiteNoise.buffer = noiseBuffer;
+                whiteNoise.loop = true;
+
+                const rumbleFilter = this.ctx.createBiquadFilter();
+                rumbleFilter.type = 'lowpass';
+                rumbleFilter.frequency.value = 190;
+
+                this.fireGain = this.ctx.createGain();
+                this.fireGain.gain.value = 0.35;
+
+                whiteNoise.connect(rumbleFilter);
+                rumbleFilter.connect(this.fireGain);
+                this.fireGain.connect(this.masterGain);
+
+                whiteNoise.start(0);
+
+                this.crackleInterval = setInterval(() => {
+                    if (!this.isPlaying || !this.ctx || this.ctx.state !== 'running') return;
+                    if (Math.random() < 0.65) {
+                        this.triggerCrackle();
+                    }
+                }, 260);
+            }
+
+            triggerCrackle(intensity = 1) {
+                if (!this.ctx || !this.isPlaying) return;
+                const now = this.ctx.currentTime;
+
+                const dur = 0.02 + Math.random() * 0.035;
+                const bufferSize = Math.floor(this.ctx.sampleRate * dur);
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.3));
+                }
+
+                const src = this.ctx.createBufferSource();
+                src.buffer = buffer;
+
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.value = 1400 + Math.random() * 2400;
+                filter.Q.value = 2.5;
+
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.18 * intensity * (0.4 + Math.random() * 0.6), now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+
+                src.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.masterGain);
+
+                src.start(now);
+            }
+
+            playPourDrink() {
+                if (!this.ctx || !this.isPlaying) return;
+                const now = this.ctx.currentTime;
+                for (let i = 0; i < 6; i++) {
+                    const start = now + i * 0.075;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    const baseFreq = 320 + i * 48 + Math.random() * 40;
+                    osc.frequency.setValueAtTime(baseFreq, start);
+                    osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.45, start + 0.06);
+
+                    gain.gain.setValueAtTime(0.12, start);
+                    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.065);
+
+                    osc.connect(gain);
+                    gain.connect(this.masterGain);
+                    osc.start(start);
+                    osc.stop(start + 0.07);
+                }
+            }
+
+            playCoinClink() {
+                if (!this.ctx || !this.isPlaying) return;
+                const now = this.ctx.currentTime;
+                [1850, 2480].forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.07);
+
+                    gain.gain.setValueAtTime(0.15, now + idx * 0.07);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.07 + 0.28);
+
+                    osc.connect(gain);
+                    gain.connect(this.masterGain);
+                    osc.start(now + idx * 0.07);
+                    osc.stop(now + idx * 0.07 + 0.3);
+                });
+            }
+
+            playPageTurn() {
+                if (!this.ctx || !this.isPlaying) return;
+                const now = this.ctx.currentTime;
+                const dur = 0.16;
+                const bufferSize = Math.floor(this.ctx.sampleRate * dur);
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = (Math.random() * 2 - 1) * Math.sin((i / bufferSize) * Math.PI);
+                }
+
+                const src = this.ctx.createBufferSource();
+                src.buffer = buffer;
+
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.value = 950;
+                filter.Q.value = 1.2;
+
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.exponentialRampToValueAtTime(0.005, now + dur);
+
+                src.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.masterGain);
+                src.start(now);
+            }
+
+            setVolume(val) {
+                this.volume = val;
+                if (this.masterGain && this.ctx) {
+                    this.masterGain.gain.setTargetAtTime(this.isPlaying ? this.volume : 0, this.ctx.currentTime, 0.05);
+                }
+            }
+
+            toggleMute() {
+                if (!this.ctx) {
+                    this.init();
+                    return true;
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+                this.isPlaying = !this.isPlaying;
+                this.masterGain.gain.setTargetAtTime(this.isPlaying ? this.volume : 0, this.ctx.currentTime, 0.05);
+                return this.isPlaying;
+            }
+        }
+
+        const audioEngine = new TavernAudioEngine();
+
+        /**************************************************************************
+         * 2. ANIMOWANE PALENISKO NA TLE OBRAZU img/p1.png (CANVAS 2D)
+         **************************************************************************/
+        class HearthRenderer {
+            constructor(canvasId) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.particles = [];
+                this.sparks = [];
+                this.boostTimer = 0;
+
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+                this.initParticles();
+            }
+
+            resize() {
+                if (!this.canvas) return;
+                const rect = this.canvas.parentElement.getBoundingClientRect();
+                this.canvas.width = rect.width || 280;
+                this.canvas.height = rect.height || 160;
+            }
+
+            initParticles() {
+                for (let i = 0; i < 42; i++) {
+                    this.particles.push(this.createFlameParticle());
+                }
+                for (let i = 0; i < 18; i++) {
+                    this.sparks.push(this.createSpark());
+                }
+            }
+
+            createFlameParticle() {
+                const w = this.canvas.width || 280;
+                const h = this.canvas.height || 160;
+                return {
+                    x: w * 0.5 + (Math.random() - 0.5) * 76,
+                    y: h - 26 + Math.random() * 8,
+                    vx: (Math.random() - 0.5) * 0.6,
+                    vy: -(0.85 + Math.random() * 1.65),
+                    radius: 10 + Math.random() * 16,
+                    life: Math.random(),
+                    decay: 0.012 + Math.random() * 0.016
+                };
+            }
+
+            createSpark() {
+                const w = this.canvas.width || 280;
+                const h = this.canvas.height || 160;
+                return {
+                    x: w * 0.5 + (Math.random() - 0.5) * 70,
+                    y: h - 28,
+                    vx: (Math.random() - 0.5) * 1.4,
+                    vy: -(1.2 + Math.random() * 2.2),
+                    size: 1.5 + Math.random() * 2,
+                    alpha: 0.8 + Math.random() * 0.2
+                };
+            }
+
+            stokeFire() {
+                this.boostTimer = 90;
+                for (let i = 0; i < 14; i++) {
+                    this.sparks.push(this.createSpark());
+                }
+            }
+
+            render() {
+                const ctx = this.ctx;
+                const w = this.canvas.width;
+                const h = this.canvas.height;
+
+                // Przezroczyste czyszczenie, aby widoczny był obraz kominka img/p1.png pod spodem
+                ctx.clearRect(0, 0, w, h);
+
+                const bgGrad = ctx.createRadialGradient(w * 0.5, h - 24, 8, w * 0.5, h * 0.55, w * 0.65);
+                const glowIntensity = this.boostTimer > 0 ? 0.48 : 0.28;
+                bgGrad.addColorStop(0, `rgba(235, 115, 25, ${glowIntensity})`);
+                bgGrad.addColorStop(0.6, 'rgba(90, 28, 10, 0.14)');
+                bgGrad.addColorStop(1, 'rgba(14, 8, 5, 0.15)');
+                ctx.fillStyle = bgGrad;
+                ctx.fillRect(0, 0, w, h);
+
+                if (this.boostTimer > 0) this.boostTimer--;
+
+                // Żar na polanach kominka
+                const emberGrad = ctx.createRadialGradient(w * 0.5, h - 22, 4, w * 0.5, h - 22, 54);
+                emberGrad.addColorStop(0, 'rgba(255, 207, 89, 0.85)');
+                emberGrad.addColorStop(0.5, 'rgba(217, 78, 31, 0.5)');
+                emberGrad.addColorStop(1, 'transparent');
+                ctx.fillStyle = emberGrad;
+                ctx.beginPath();
+                ctx.ellipse(w * 0.5, h - 22, 50, 9, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Cząsteczki płomienia
+                ctx.globalCompositeOperation = 'lighter';
+                for (let i = 0; i < this.particles.length; i++) {
+                    const p = this.particles[i];
+                    p.x += p.vx + Math.sin(Date.now() * 0.005 + i) * 0.25;
+                    p.y += p.vy * (this.boostTimer > 0 ? 1.35 : 1);
+                    p.life -= p.decay;
+
+                    if (p.life <= 0) {
+                        this.particles[i] = this.createFlameParticle();
+                        continue;
+                    }
+
+                    const r = p.radius * p.life;
+                    const grad = ctx.createRadialGradient(p.x, p.y, 1, p.x, p.y, r);
+                    const greenChannel = Math.floor(180 * p.life);
+                    grad.addColorStop(0, `rgba(255, ${greenChannel + 50}, 80, ${p.life * 0.72})`);
+                    grad.addColorStop(0.5, `rgba(224, ${Math.floor(greenChannel * 0.6)}, 20, ${p.life * 0.42})`);
+                    grad.addColorStop(1, 'rgba(140, 20, 5, 0)');
+
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Iskry unoszące się w górę
+                for (let i = this.sparks.length - 1; i >= 0; i--) {
+                    const s = this.sparks[i];
+                    s.x += s.vx + Math.sin(s.y * 0.08) * 0.4;
+                    s.y += s.vy;
+                    s.alpha -= 0.012;
+
+                    if (s.alpha <= 0 || s.y < 5) {
+                        if (this.sparks.length > 18) {
+                            this.sparks.splice(i, 1);
+                        } else {
+                            this.sparks[i] = this.createSpark();
+                        }
+                        continue;
+                    }
+
+                    ctx.fillStyle = `rgba(255, 220, 110, ${s.alpha})`;
+                    ctx.fillRect(s.x, s.y, s.size, s.size);
+                }
+
+                ctx.globalCompositeOperation = 'source-over';
+                requestAnimationFrame(() => this.render());
+            }
+        }
+
+        /**************************************************************************
+         * 3. RYCINY SVG (ZAPASOWE PORTRETY GOŚCI)
+         **************************************************************************/
+        const PortraitsSVG = {
+            warrior: `
+                <svg viewBox="0 0 120 140" class="w-full h-full">
+                    <rect width="120" height="140" fill="#dcc092"/>
+                    <circle cx="60" cy="56" r="44" fill="none" stroke="#8c271e" stroke-width="1.5" stroke-dasharray="3 2"/>
+                    <path d="M18 140 C22 102, 98 102, 102 140 Z" fill="#5e1912" stroke="#23160c" stroke-width="2.5"/>
+                    <path d="M35 140 L42 108 L78 108 L85 140 Z" fill="#7d7a72" stroke="#23160c" stroke-width="2"/>
+                    <ellipse cx="60" cy="64" rx="22" ry="26" fill="#d4ab7d" stroke="#23160c" stroke-width="2"/>
+                    <path d="M39 68 Q60 102 81 68 L77 88 Q60 105 43 88 Z" fill="#4a311e" stroke="#23160c" stroke-width="1.8"/>
+                    <path d="M36 55 C36 22, 84 22, 84 55 Z" fill="#8c877a" stroke="#23160c" stroke-width="2.5"/>
+                    <path d="M60 16 L60 66" stroke="#23160c" stroke-width="4"/>
+                    <path d="M34 55 L86 55" stroke="#d4a359" stroke-width="3.5"/>
+                    <circle cx="50" cy="60" r="2.2" fill="#23160c"/>
+                    <circle cx="70" cy="60" r="2.2" fill="#23160c"/>
+                    <path d="M67 52 L75 68" stroke="#7c1f17" stroke-width="2"/>
+                </svg>`,
+
+            whisperer: `
+                <svg viewBox="0 0 120 140" class="w-full h-full">
+                    <rect width="120" height="140" fill="#d9c398"/>
+                    <circle cx="60" cy="56" r="45" fill="none" stroke="#2c4c34" stroke-width="1.5"/>
+                    <path d="M15 140 C20 90, 100 90, 105 140 Z" fill="#2c4c34" stroke="#1b2618" stroke-width="2.5"/>
+                    <path d="M26 95 C25 25, 95 25, 94 95 C80 80, 40 80, 26 95 Z" fill="#3a5e43" stroke="#1b2618" stroke-width="2.2"/>
+                    <ellipse cx="60" cy="65" rx="20" ry="24" fill="#e6c69c" stroke="#23160c" stroke-width="2"/>
+                    <path d="M42 75 L36 122 M78 75 L84 122" stroke="#593a22" stroke-width="5" stroke-linecap="round"/>
+                    <circle cx="52" cy="63" r="2.3" fill="#1f3b26"/>
+                    <circle cx="68" cy="63" r="2.3" fill="#1f3b26"/>
+                    <path d="M54 76 Q60 80 66 76" stroke="#7c1f17" stroke-width="2" fill="none"/>
+                    <path d="M36 48 Q60 56 84 48" stroke="#85b865" stroke-width="4" fill="none"/>
+                    <circle cx="48" cy="50" r="3" fill="#d4a359"/>
+                    <circle cx="60" cy="52" r="3.5" fill="#7c1f17"/>
+                    <circle cx="72" cy="50" r="3" fill="#d4a359"/>
+                </svg>`,
+
+            merchant: `
+                <svg viewBox="0 0 120 140" class="w-full h-full">
+                    <rect width="120" height="140" fill="#dfc496"/>
+                    <circle cx="60" cy="58" r="44" fill="none" stroke="#b87324" stroke-width="1.5"/>
+                    <path d="M14 140 C20 96, 100 96, 106 140 Z" fill="#8c5319" stroke="#23160c" stroke-width="2.5"/>
+                    <path d="M26 105 Q60 125 94 105" stroke="#472910" stroke-width="12" fill="none" stroke-linecap="round"/>
+                    <ellipse cx="60" cy="66" rx="21" ry="24" fill="#deb68a" stroke="#23160c" stroke-width="2"/>
+                    <path d="M34 52 C36 22, 84 22, 86 52 Z" fill="#7c1f17" stroke="#23160c" stroke-width="2"/>
+                    <rect x="32" y="45" width="56" height="12" rx="5" fill="#472910" stroke="#23160c" stroke-width="2"/>
+                    <circle cx="60" cy="51" r="5" fill="#f5b841" stroke="#23160c" stroke-width="1.5"/>
+                    <circle cx="52" cy="63" r="2.2" fill="#23160c"/>
+                    <circle cx="68" cy="63" r="2.2" fill="#23160c"/>
+                    <path d="M46 75 Q60 70 74 75" stroke="#3b2210" stroke-width="3.5" fill="none"/>
+                </svg>`,
+
+            witcherSlav: `
+                <svg viewBox="0 0 120 140" class="w-full h-full">
+                    <rect width="120" height="140" fill="#d4ba8d"/>
+                    <path d="M16 140 C20 98, 100 98, 104 140 Z" fill="#2e2925" stroke="#171310" stroke-width="2.5"/>
+                    <path d="M25 140 L95 25" stroke="#5e4934" stroke-width="5"/>
+                    <ellipse cx="60" cy="64" rx="21" ry="25" fill="#cfa77e" stroke="#23160c" stroke-width="2"/>
+                    <path d="M38 56 C38 30, 82 30, 82 56" fill="#3a3532" stroke="#23160c" stroke-width="2"/>
+                    <line x1="38" y1="50" x2="82" y2="50" stroke="#7c1f17" stroke-width="4"/>
+                    <circle cx="51" cy="60" r="2.5" fill="#d4891c"/>
+                    <circle cx="69" cy="60" r="2.5" fill="#d4891c"/>
+                    <path d="M46 53 L55 56 M74 53 L65 56" stroke="#23160c" stroke-width="2"/>
+                    <path d="M52 76 L68 76" stroke="#23160c" stroke-width="2"/>
+                    <path d="M50 106 Q60 120 70 106" stroke="#e6e6e6" stroke-width="3" fill="none"/>
+                </svg>`,
+
+            velesPriest: `
+                <svg viewBox="0 0 120 140" class="w-full h-full">
+                    <rect width="120" height="140" fill="#d1b78a"/>
+                    <line x1="24" y1="25" x2="24" y2="140" stroke="#4a2e16" stroke-width="4"/>
+                    <path d="M12 22 Q24 38 36 22" stroke="#d4a359" stroke-width="3" fill="none"/>
+                    <path d="M22 140 C28 96, 96 96, 102 140 Z" fill="#2a3629" stroke="#182117" stroke-width="2.5"/>
+                    <ellipse cx="62" cy="62" rx="20" ry="24" fill="#d6b48d" stroke="#23160c" stroke-width="2"/>
+                    <path d="M42 66 Q62 132 82 66 Z" fill="#c9c5bc" stroke="#59554d" stroke-width="1.8"/>
+                    <path d="M40 48 C42 26, 82 26, 84 48 Z" fill="#4a321f" stroke="#23160c" stroke-width="2"/>
+                    <path d="M40 40 C22 25, 22 15, 32 14 M84 40 C102 25, 102 15, 92 14" stroke="#6e5239" stroke-width="4" fill="none" stroke-linecap="round"/>
+                    <circle cx="54" cy="58" r="2" fill="#23160c"/>
+                    <circle cx="70" cy="58" r="2" fill="#23160c"/>
+                </svg>`,
+
+            mysteriousWanderer: `
+                <svg viewBox="0 0 120 140" class="w-full h-full">
+                    <rect width="120" height="140" fill="#c9ae80"/>
+                    <circle cx="60" cy="60" r="46" fill="none" stroke="#7c1f17" stroke-width="2" stroke-dasharray="6 3"/>
+                    <path d="M12 140 C18 85, 102 85, 108 140 Z" fill="#1e1713" stroke="#d4a359" stroke-width="2"/>
+                    <path d="M28 92 C28 18, 92 18, 92 92 Z" fill="#291f1a" stroke="#d4a359" stroke-width="2"/>
+                    <ellipse cx="60" cy="64" rx="19" ry="22" fill="#140e0b"/>
+                    <path d="M44 74 Q60 118 76 74 Z" fill="#9e9689" opacity="0.85"/>
+                    <circle cx="52" cy="60" r="3" fill="#f5b841"/>
+                    <circle cx="68" cy="60" r="3" fill="#f5b841"/>
+                </svg>`
+        };
+
+        /**************************************************************************
+         * 4. BAZA DANYCH TRUNKÓW I JADŁA (Z GRAFIKAMI img/p14.png - img/p17.png)
+         **************************************************************************/
+        const DRINKS_DATA = {
+            miod: {
+                id: 'miod',
+                name: 'Miód Pitny Trójniak',
+                shortDesc: 'Złocisty trunek z lipowych pasiek. Rozwiązuje języki wojów i kupców.',
+                icon: '🍯',
+                image: 'img/p14.png',
+                brewCost: 3,
+                brewAmount: 2,
+                bestFor: 'Księstwo Wiślan oraz Kupiecki Sojusz'
+            },
+            napar: {
+                id: 'napar',
+                name: 'Napar z Paproci i Szałwii',
+                shortDesc: 'Pachnący lasem wywar. Budzi zaufanie szeptuch, żerców i duchów.',
+                icon: '🌿',
+                image: 'img/p15.png',
+                brewCost: 3,
+                brewAmount: 2,
+                bestFor: 'Plemiona Puszczy oraz Istoty ze Starych Wierzeń'
+            },
+            okowita: {
+                id: 'okowita',
+                name: 'Okowita z Piołunem',
+                shortDesc: 'Paląca gardło gorzałka. Dodaje odwagi najemnikom i koi lęk przed zmorami.',
+                icon: '🍶',
+                image: 'img/p16.png',
+                brewCost: 3,
+                brewAmount: 2,
+                bestFor: 'Łowcy Strzyg, Przemytnicy i Zbiegowie'
+            },
+            polewka: {
+                id: 'polewka',
+                name: 'Polewka z Kaszy i Grzybów',
+                shortDesc: 'Gorąca miska z borowikami. Daje siłę strudzonym i zjednuje wdzięczność.',
+                icon: '🍲',
+                image: 'img/p17.png',
+                brewCost: 2,
+                brewAmount: 2,
+                bestFor: 'Ranni, Posłańcy i Zmarznięci Wędrowcy'
+            }
+        };
+
+        // Ikony frakcji (img/p11.png - img/p13.png)
+        const FACTION_ICONS = {
+            wislanie: 'img/p11.png',
+            puszcza: 'img/p12.png',
+            sojusz: 'img/p13.png'
+        };
+
+        /**************************************************************************
+         * 5. SCENARIUSZ 7 WIECZORÓW (GOŚCIE 1-13 Z OBRAZKAMI img/o1.png - img/o13.jfif)
+         **************************************************************************/
+        const NIGHTS_SCENARIO = [
+            // ==================== WIECZÓR I ====================
+            {
+                nightNumber: 1,
+                roman: 'I',
+                title: 'Szron na Gościńcu',
+                guests: [
+                    {
+                        id: 'g1_dobromir',
+                        name: 'Dobromir z Wiślicy',
+                        title: 'Ranny Drużynnik Kneźa • Sługa Peruna',
+                        faction: 'Księstwo Wiślan',
+                        factionKey: 'wislanie',
+                        need: 'Opatrunek i Wieści z Traktu',
+                        portrait: 'warrior',
+                        image: 'img/o1.png',
+                        preferredDrinks: ['miod', 'polewka'],
+                        drinkReaction: {
+                            miod: 'Dobromir wychyla kufel trójniaka jednym tchem, a jego surowe oblicze łagodnieje: „Chwała Perunowi! Taki miód pijają tylko na dworze w Wiślicy. Powiem ci szczerze, co widziałem w borze...”',
+                            polewka: 'Drużynnik z wdzięcznością spożywa gorącą polewkę: „Od dwóch dni żułem tylko suchary. Masz dobre serce, karczmarzu. Posłuchaj więc ostrzeżenia.”',
+                            other: 'Woj przyjmuje poczęstunek z lekkim skinieniem głowy, choć wciąż zaciska dłoń na rękojeści miecza.'
+                        },
+                        intro: 'Drzwi karczmy otwierają się z trzaskiem. Do środka wchodzi wysoki drużynnik w kolczudze noszącej ślady pazurów. Na jego ramieniu widnieje znak gromu Peruna.',
+                        dialogue: '„Niech będzie pochwalony gromowładny Perun, gospodarzu! Nasz podjazd wpadł we mgle na wilcze doły przy Czarnym Jarze. Ludzie gadają, że to sprawka zielarzy z Puszczy, którzy nasłali na nas Leszego. Kneź Drogomir szykuje odwet, ale ja zgubiłem swój oddział. Widziałeś dziś kogoś z leśnych ludzi na rozdrożu?”',
+                        choices: [
+                            {
+                                text: '„Opatrzę twoją ranę i dam ci miejsce przy ogniu. Odpocznij, zanim wrócisz do grodu.”',
+                                effects: { wislanie: 8, hearth: 5, gold: 2 },
+                                reaction: 'Dobromir dziękuje za opatrzenie ramienia i zostawia na ladzie dwie srebrne grzywny.',
+                                chronicle: 'Wieczór I: Opatrzyłeś rannego drużynnika Dobromira. Księstwo Wiślan patrzy na karczmę przychylniejszym okiem.',
+                                rumor: 'W Czarnym Jarze ktoś wykopał wilcze doły przeciwko jeźdźcom Kneźa.'
+                            },
+                            {
+                                text: '„To nie ludzie z Puszczy was zaatakowali, lecz kupieccy najemnicy przebrani w skóry, by wywołać wojnę.” [Wymaga: Miód lub Polewka]',
+                                reqDrink: true,
+                                effects: { wislanie: 6, puszcza: 8, hearth: 6 },
+                                setFlag: 'warned_dobromir_peace',
+                                reaction: 'Oczy drużynnika rozszerzają się ze zdumienia: „Przeklęci handlarze bronią! Powstrzymam gniew Kneźa przed pochopnym spaleniem świętego gaju.”',
+                                chronicle: 'Wieczór I: Dzięki miodowi przekonałeś Dobromira, by nie oskarżał pochopnie Plemion Puszczy o zasadzkę.',
+                                rumor: 'Ktoś celowo podjudza Wiślan przeciwko Szeptuchom z Puszczy.'
+                            },
+                            {
+                                text: '„W mojej karczmie nie mieszam się w wojny kneziów. Zapłać za ławę i ruszaj o świcie.”',
+                                effects: { wislanie: -5, sojusz: 5, gold: 4 },
+                                reaction: 'Woj rzuca na stół garść monet z posępną miną: „Zimne masz serce, gospodarzu. Zapamiętamy to w grodzie.”',
+                                chronicle: 'Wieczór I: Potraktowałeś chłodno wysłannika Wiślan, dbając wyłącznie o zysk gospody.'
+                            }
+                        ]
+                    },
+                    {
+                        id: 'g1_jaruga',
+                        name: 'Szeptucha Jaruga z Uroczyska',
+                        title: 'Strażniczka Świętego Gaju • Córka Welesa',
+                        faction: 'Plemiona Puszczy',
+                        factionKey: 'puszcza',
+                        need: 'Ukrycie Ściganego Zielarza',
+                        portrait: 'whisperer',
+                        image: 'img/o2.png',
+                        preferredDrinks: ['napar', 'polewka'],
+                        drinkReaction: {
+                            napar: 'Jaruga wdycha woń szałwii i kwiatu paproci, przymykając oczy: „Znasz stare receptury, gospodarzu. Duchy lasu szepczą, że pod twoim dachem mieszka dawna przysięga.”',
+                            polewka: 'Staruszka ogrzewa dłonie o glinianą miskę: „Dar ziemi i lasu. Niech Weles darzy twoje stada zdrowiem.”',
+                            other: 'Szeptucha upija mały łyk i uważnie wpatruje się w płomień świecy.'
+                        },
+                        intro: 'Gdy wiatr zawył w kominie, próg bezszelestnie przekroczyła kobieta w płaszczu pachnącym mchem, jałowcem i dymem kadzideł.',
+                        dialogue: '„Pokój temu domowi. Za mną idzie młody zielarz, Miłosz. Zbierał jemiołę pod granicznym kurhanem, gdy natknął się na straże Wiślan. Jeśli go złapią, powieszą go jako szpiega, a nasz lud odpowie krwią. Ukryjesz chłopaka na strychu swojej karczmy przez tę jedną noc?”',
+                        choices: [
+                            {
+                                text: '„Niech wejdzie na strych za snopki siana. Pod moim dachem nikt nie przeleje niewinnej krwi.”',
+                                effects: { puszcza: 10, wislanie: -4, hearth: 6 },
+                                setFlag: 'hid_herbalist',
+                                atticUsed: 'Zielarz Miłosz (Puszcza)',
+                                reaction: 'Jaruga kładzie na ladzie woreczek rzadkich ziół: „Puszcza nie zapomina długów wdzięczności.”',
+                                chronicle: 'Wieczór I: Ukryłeś na strychu młodego zielarza Miłosza przed pogonią Wiślan.',
+                                rumor: 'Pod granicznym kurhanem budzi się coś starego – korzenie drzew krwawią żywicą.'
+                            },
+                            {
+                                text: '„Ukryję go w piwnicy i dam mu mapę kupieckich ścieżek, by bezpiecznie ominął posterunki.” [Wymaga: Napar lub Polewka]',
+                                reqDrink: true,
+                                effects: { puszcza: 12, sojusz: 4, hearth: 8, gold: 2 },
+                                setFlag: 'hid_herbalist_smart',
+                                cellarUsed: 'Zielarz Miłosz (Bezpieczny szlak)',
+                                reaction: 'Szeptucha uśmiecha się z głębokim szacunkiem: „Mądrość godna dawnych żerców. Ocaliłeś życie i uchroniłeś trakt przed bitwą!”',
+                                chronicle: 'Wieczór I: Udzieliłeś schronienia zielarzowi i wskazałeś mu tajne przejście, zapobiegając potyczce na granicy.'
+                            },
+                            {
+                                text: '„Nie mogę narażać karczmy na gniew Kneźa. Musisz zabrać chłopaka dalej w las.”',
+                                effects: { puszcza: -8, wislanie: 5, hearth: -4 },
+                                reaction: 'Jaruga odwraca się w stronę drzwi: „Gdy topory zetną ostatni dąb, przyjdą też po belki twojego dachu, karczmarzu.”',
+                                chronicle: 'Wieczór I: Odmówiłeś schronienia ściganemu zielarzowi z Puszczy.'
+                            }
+                        ]
+                    }
+                ]
+            },
+
+            // ==================== WIECZÓR II ====================
+            {
+                nightNumber: 2,
+                roman: 'II',
+                title: 'Bursztynowe Złoto i Wilczy Szlak',
+                guests: [
+                    {
+                        id: 'g2_bozena',
+                        name: 'Bożena z Truso',
+                        title: 'Starsza Kupieckiego Sojuszu • Pani Karawan',
+                        faction: 'Kupiecki Sojusz',
+                        factionKey: 'sojusz',
+                        need: 'Bezpieczeństwo Karawany',
+                        portrait: 'merchant',
+                        image: 'img/o3.png',
+                        preferredDrinks: ['miod', 'okowita'],
+                        drinkReaction: {
+                            miod: 'Bożena unosi czarkę pod światło: „Przedni trójniak! Od razu widać, że prowadzisz interes z głową, a nie z mieczem.”',
+                            okowita: 'Kupcowa krztusi się lekko, po czym wybucha śmiechem: „Mocna jak morski wiatr w Truso! Od razu cieplej w żyłach.”',
+                            other: 'Bożena dziękuje skinieniem głowy, przeliczając w palcach bursztynowe paciorki.'
+                        },
+                        intro: 'Przed karczmą zatrzymują się ciężkie wozy okute żelazem. Do izby wkracza bogato odziana kupcowa w futrze z kuny.',
+                        dialogue: '„Złoto otwiera każde wrota, gospodarzu, ale dziś potrzebuję dobrej rady. Moja karawana wiezie bursztyn i solone ryby, a w ukrytych skrzyniach... groty włóczni. Zarówno Kneź Wiślan, jak i Plemiona Puszczy chcą odkupić ten transport. Komu mam sprzedać żelazo, by szlak nie stanął w ogniu?”',
+                        choices: [
+                            {
+                                text: '„Sprzedaj groty drużynie Wiślan. Silny gród utrzyma porządek na głównym gościńcu.”',
+                                effects: { wislanie: 10, puszcza: -6, sojusz: 6, gold: 5 },
+                                reaction: 'Bożena rzuca ci ciężką sakiewkę za pośrednictwo: „Niech więc stal idzie do Wiślicy. Oby tylko Kneź płacił na czas!”',
+                                chronicle: 'Wieczór II: Skierowałeś transport broni Bożeny do Księstwa Wiślan, wzmacniając ich zbrojnych.'
+                            },
+                            {
+                                text: '„Przekaż groty łowcom z Puszczy. Bez nich nie obronią swoich osad przed najazdem.”',
+                                effects: { puszcza: 10, wislanie: -6, sojusz: 5, gold: 4 },
+                                reaction: 'Kupcowa kiwa głową: „Leśni płacą rzadkim futrem i bursztynem. Dobijemy targu przy Starym Brodzie.”',
+                                chronicle: 'Wieczór II: Pomogłeś Plemionom Puszczy zdobyć żelazne groty z karawany Bożeny.'
+                            },
+                            {
+                                text: '„Zatrzymaj broń w piwnicy mojej karczmy, a sprzedaj im tylko sól i zboże. Nie karm wojny!” [Wymaga: Miód lub Okowita]',
+                                reqDrink: true,
+                                effects: { sojusz: 10, wislanie: 3, puszcza: 3, hearth: 10, gold: 3 },
+                                setFlag: 'stopped_weapons_trade',
+                                reaction: 'Bożena patrzy na ciebie z podziwem: „Sól i zboże przyniosą mniejszy zysk dziś, ale ocalą kupców jutro. Niech tak będzie!”',
+                                chronicle: 'Wieczór II: Przekonałeś kupcową Bożenę, by zamiast broni sprzedawała zwaśnionym stronom żywność i sól.',
+                                rumor: 'Kupiecki Sojusz rozważa ogłoszenie Rozdroża wolnym miastem handlowym.'
+                            }
+                        ]
+                    },
+                    {
+                        id: 'g2_sulislaw',
+                        name: 'Sulisław „Wilczy Kieł”',
+                        title: 'Łowca Strzyg i Najemny Tropemiec',
+                        faction: 'Kupiecki Sojusz',
+                        factionKey: 'sojusz',
+                        need: 'Zlecenie na Strzygę ze Starego Młyna',
+                        portrait: 'witcherSlav',
+                        image: 'img/o4.png',
+                        preferredDrinks: ['okowita', 'polewka'],
+                        drinkReaction: {
+                            okowita: 'Sulisław wpatruje się w mętną okowitę z piołunem: „Gorzka jak życie najemnika. Tylko to tłumi smród trupiarni ze Starego Młyna. Powiem ci prawdę o tej bestii.”',
+                            polewka: 'Łowca opróżnia miskę do dna: „Dobra kasza. Przed walką ze strzygą człowiek potrzebuje siły w barkach.”',
+                            other: 'Łowca przyjmuje kubek, kładąc na stole srebrny łańcuch.'
+                        },
+                        intro: 'Blask ognia odbija się w bursztynowych oczach mężczyzny z dwoma toporami – jednym stalowym, drugim kutym ze starego srebra.',
+                        dialogue: '„Ludzie gadają, że w Starym Młynie przy rzece zalęgła się Strzyga o dwóch sercach. Kupcy boją się jeździć przez most. Mogę ją ściąć przed świtem za 4 grzywny, albo... odczynić urok bez zabijania, jeśli szeptuchy mają rację, że to zaklęta córka młynarza. Co radzisz, gospodarzu?”',
+                        choices: [
+                            {
+                                text: '„Zapłacę ci 4 Złote Grzywny z kasy karczmy. Odczaruj dziewczynę przy pianiu kura, zamiast przelewać krew!”',
+                                costGold: 4,
+                                effects: { puszcza: 8, sojusz: 8, hearth: 12 },
+                                setFlag: 'saved_strzyga',
+                                reaction: 'Sulisław chowa srebrny łańcuch do torby: „Trudniejsza robota niż cięcie mieczem, ale niech bogowie widzą, że nie jestem rzeźnikiem.”',
+                                chronicle: 'Wieczór II: Opłaciłeś odczarowanie Strzygi ze Starego Młyna. Córka młynarza odzyskała ludzką postać!',
+                                rumor: 'Odczarowana córka młynarza widziała w podziemiach młyna stare insygnia pokoju dawnych plemion.'
+                            },
+                            {
+                                text: '„Przepędź ją ogniem i piołunem bez przelewu krwi – zdradzę ci sekret starego wejścia do młyna.” [Wymaga: Okowita lub Polewka]',
+                                reqDrink: true,
+                                effects: { sojusz: 9, puszcza: 6, hearth: 8, gold: 3 },
+                                setFlag: 'saved_strzyga',
+                                reaction: 'Łowca uderza pięścią w dłoń: „Stary kanał młyński! Zdejmę z niej klątwę bez jednego draśnięcia, a kupcy jeszcze nam zapłacą.”',
+                                chronicle: 'Wieczór II: Dzięki twojej radzie łowca Sulisław zdjął urok ze Strzygi, otwierając bezpieczny most dla kupców.'
+                            },
+                            {
+                                text: '„Zabij bestię żelazem i zatknij jej głowę na moście, jak nakazuje prawo Wiślan.”',
+                                effects: { wislanie: 8, sojusz: 5, puszcza: -8, hearth: -5, gold: 3 },
+                                reaction: 'Sulisław kiwa ponuro głową: „Szybka robota, krwawy zarobek. Most będzie wolny przed świtem.”',
+                                chronicle: 'Wieczór II: Nakazałeś zgładzenie Strzygi w Starym Młynie. Duchy puszczy zawyły z gniewu.'
+                            }
+                        ]
+                    }
+                ]
+            },
+
+            // ==================== WIECZÓR III ====================
+            {
+                nightNumber: 3,
+                roman: 'III',
+                title: 'Posłańcy Burzy i Szepty Welesa',
+                guests: [
+                    {
+                        id: 'g3_radzimir',
+                        name: 'Żerca Radzimir',
+                        title: 'Wędrowny Kapłan Welesa • Strażnik Przysiąg',
+                        faction: 'Plemiona Puszczy',
+                        factionKey: 'puszcza',
+                        need: 'Ofiara dla Welesa i Rozsądzenie Sporu',
+                        portrait: 'velesPriest',
+                        image: 'img/o5.png',
+                        preferredDrinks: ['napar', 'miod'],
+                        drinkReaction: {
+                            napar: 'Żerca skrapia odrobinę naparu na podłogę dla duchów przodków: „Błogosławiony bądź, karczmarzu. Widzę, że szanujesz stary obyczaj.”',
+                            miod: 'Radzimir unosi czarkę miodu: „Słodki dar pszczół dla pana Zaświatów i przysiąg kupieckich!”',
+                            other: 'Starzec dziękuje skinieniem rogatego czepca.'
+                        },
+                        intro: 'Stukot jesionowego kostura zapowiada nadejście sędziwego żercy Welesa. Przy jego pasie dzwonią kościane amulety.',
+                        dialogue: '„Weles patrzy na Rozdroże z dołu, a Perun z chmur, gospodarzu. Wojowie Kneźa chcą wyciąć Trzy Święte Dęby na wzgórzu, by postawić tam strażnicę. Jeśli to zrobią, nasi łowcy spuszczą ze smyczy gniew puszczy. Mam list do dowódcy Wiślan – mogę w nim zaproponować rozejm albo rzucić klątwę na ich bydło i zbiory.”',
+                        choices: [
+                            {
+                                text: '„Napisz słowa pojednania i zaproponuj wspólny wiec w mojej karczmie. Przypieczętuję list swoim sygnetem.”',
+                                effects: { puszcza: 7, wislanie: 5, hearth: 10 },
+                                setFlag: 'proposed_moot',
+                                reaction: 'Radzimir uśmiecha się pod siwą brodą: „Karczma na Rozdrożu jako miejsce świętego wiecu? Dawno nikt nie miał takiej odwagi.”',
+                                chronicle: 'Wieczór III: Namówiłeś Żercę Radzimira do zaproponowania wielkiego wiecu pokojowego pod dachem twojej karczmy.',
+                                rumor: 'Starsi z Puszczy i kupcy byliby skłonni usiąść do jednego stołu, jeśli znajdzie się neutralny rozjemca.'
+                            },
+                            {
+                                text: '„Zaproponuj Wiślanom i Sojuszowi podział myta z mostu w zamian za nietykalność Świętych Dębów.” [Wymaga: Napar lub Miód]',
+                                reqDrink: true,
+                                effects: { puszcza: 10, wislanie: 7, sojusz: 8, hearth: 9, gold: 4 },
+                                setFlag: 'saved_sacred_oaks',
+                                reaction: 'Żerca uderza kosturem o podłogę: „Weles jest bogiem przysiąg i bogactwa! Złoto przemówi do Kneźa lepiej niż groźby!”',
+                                chronicle: 'Wieczór III: Podsunąłeś genialny układ handlowy, który ocalił Trzy Święte Dęby przed toporami Wiślan.'
+                            },
+                            {
+                                text: '„Rzuć klątwę na najeźdźców. Niech wiedzą, że Puszcza potrafi się bronić!”',
+                                effects: { puszcza: 12, wislanie: -12, hearth: -4 },
+                                reaction: 'Oczy starca ciemnieją: „Niech więc mleko w ich dzbanach skwaśnieje, a konie połamią pęciny.”',
+                                chronicle: 'Wieczór III: Poparłeś rzucenie klątwy Welesa na oddziały Wiślan.'
+                            }
+                        ]
+                    },
+                    {
+                        id: 'g3_gniewko',
+                        name: 'Setnik Gniewko z Grodu',
+                        title: 'Zwiadowca Kneźa Drogomira',
+                        faction: 'Księstwo Wiślan',
+                        factionKey: 'wislanie',
+                        need: 'Poszukiwanie Zbiegów i Informacji',
+                        portrait: 'warrior',
+                        image: 'img/o6.png',
+                        preferredDrinks: ['miod', 'okowita'],
+                        drinkReaction: {
+                            miod: 'Gniewko ociera wąsy z piany: „Uch, taki miód mógłbym pić do rana! Od razu mniej chce się człowiekowi uganiać po nocy za zbiegami.”',
+                            okowita: 'Setnik stuka kuflem o blat: „Twardy trunek dla twardych ludzi! Słuchaj więc, co planuje nasz Kneź.”',
+                            other: 'Setnik wypija trunek, rozglądając się podejrzliwie po kątach izby.'
+                        },
+                        intro: 'Do izby wkracza barczysty setnik w płaszczu z wilczym kołnierzem, strzepując krople deszczu na deski podłogi.',
+                        dialogue: '„Karczmarzu! Szukam dezerterów, przemytników i szpiegów Puszczy. Kneź Drogomir szykuje wielki pochód, ale skarbiec grodu świeci pustkami, a żołnierze szemrają o głodzie. Powiedz mi, kto ostatnio kręcił się przy twoim szynkwasie, a gród nie poskąpi ci ochrony!”',
+                        choices: [
+                            {
+                                text: '„Opowiem ci o ruchach karawan Sojuszu, ale przysięgnij, że twoi ludzie nie tkną okolicznych wiosek.”',
+                                effects: { wislanie: 10, sojusz: -6, gold: 5 },
+                                reaction: 'Setnik rzuca ci sakiewkę: „Cenna wiadomość. Nałożymy myto na bogaczy z Truso, a chłopom damy spokój.”',
+                                chronicle: 'Wieczór III: Przekazałeś setnikowi Gniewkowi informacje o karawanach w zamian za spokój dla okolicznych wiosek.'
+                            },
+                            {
+                                text: '„Twoi ludzie są głodni, setniku. Weź wóz solonego mięsa i kaszy z mojej spiżarni zamiast szukać wrogów po kątach.” [Wymaga: Miód lub Okowita]',
+                                reqDrink: true,
+                                effects: { wislanie: 12, puszcza: 4, hearth: 10, gold: -2 },
+                                reaction: 'Gniewko patrzy na ciebie ze szczerym wzruszeniem: „Nakarmiłeś moich chłopaków, gdy nawet gród o nas zapomniał. Dopóki żyję, żaden żołnierz nie podniesie ręki na twoją karczmę!”',
+                                chronicle: 'Wieczór III: Podarowałeś żywność głodnemu oddziałowi setnika Gniewka, zdobywając dozgonną wdzięczność wojów.',
+                                rumor: 'Wśród drużyny Wiślan rośnie niechęć do bratobójczej wojny – żołnierze pragną powrotu do domów przed zimą.'
+                            },
+                            {
+                                text: '„W mojej gospodzie gość jest święty. Nie donoszę na nikogo, kto usiadł przy tym ogniu.”',
+                                effects: { hearth: 8, puszcza: 5, sojusz: 5, wislanie: -5 },
+                                reaction: 'Setnik prycha gniewnie, lecz widząc spojrzenia innych gości przy ławach, cofa się ku drzwiom: „Honorowy z ciebie uparciuch, gospodarzu.”',
+                                chronicle: 'Wieczór III: Odmówiłeś donoszenia setnikowi Gniewkowi, broniąc świętego prawa gościnności.'
+                            }
+                        ]
+                    }
+                ]
+            },
+
+            // ==================== WIECZÓR IV ====================
+            {
+                nightNumber: 4,
+                roman: 'IV',
+                title: 'Cienie Przed Nocą Dziadów',
+                guests: [
+                    {
+                        id: 'g4_malina',
+                        name: 'Malina „Cicha Stopa”',
+                        title: 'Przemytniczka z Bursztynowego Szlaku',
+                        faction: 'Kupiecki Sojusz',
+                        factionKey: 'sojusz',
+                        need: 'Przechowanie Tajnej Skrzyni na Strychu',
+                        portrait: 'merchant',
+                        image: 'img/o7.png',
+                        preferredDrinks: ['okowita', 'miod'],
+                        drinkReaction: {
+                            okowita: 'Malina mruży oko po łyku piołunówki: „O tak, tego mi było trzeba po przeprawie przez bagna! Powiem ci, co naprawdę kryje moja skrzynia.”',
+                            miod: 'Przemytniczka oblizuje usta: „Miód jak złoto! Z takim gospodarzem aż miło robić tajne interesy.”',
+                            other: 'Malina upija łyk, nasłuchując, czy przed karczmą nie tętnią kopyta.'
+                        },
+                        intro: 'Przez tylne drzwi od strony drewutni wślizguje się zwinna dziewczyna w skórzanym kubraku, dźwigając okutą skrzynkę.',
+                        dialogue: '„Cicho, gospodarzu! Strażnicy grodu i leśni zwiadowcy depczą mi po piętach. W tej skrzyni mam zwoje z pieczęciami dawnych królów i worek bursztynu przeznaczone na okup za jeńców. Jeśli przechowasz mnie i skrzynię na strychu do jutra, zapłacę ci po królewsku!”',
+                        choices: [
+                            {
+                                text: '„Wejdź na strych i ukryj skrzynię pod belką. Nikt cię tu nie znajdzie.”',
+                                effects: { sojusz: 10, gold: 6, hearth: 4 },
+                                atticUsed: 'Przemytniczka Malina i Skrzynia',
+                                reaction: 'Malina wciska ci w dłoń garść bursztynowych grzywien: „Jesteś najlepszym wspólnikiem na całym Rozdrożu!”',
+                                chronicle: 'Wieczór IV: Ukryłeś na strychu przemytniczkę Malinę wraz z okupem za jeńców.'
+                            },
+                            {
+                                text: '„Otwórzmy skrzynię – użyjmy tych dawnych królewskich zwojów, by udowodnić obu stronom, że Rozdroże jest ziemią pokoju!” [Wymaga: Okowita lub Miód]',
+                                reqDrink: true,
+                                effects: { sojusz: 12, wislanie: 6, puszcza: 6, hearth: 12, gold: 4 },
+                                setFlag: 'royal_charter_found',
+                                reaction: 'Malina wyciąga pergamin z pieczęcią starego księcia: „Wielki Perunie! Ten dokument gwarantuje wolność Rozdroża i prawo do rozejmu! Zostawiam go tobie, karczmarzu!”',
+                                chronicle: 'Wieczór IV: Odkryłeś ze skrzyni Maliny starożytny przywilej gwarantujący neutralność Rozdroża.',
+                                rumor: 'Podarowany ci Stary Przywilej Rozdroża daje prawo do zwołania wielkiego sądu rozjemczego.'
+                            },
+                            {
+                                text: '„Skonfiskuję zawartość skrzyni i przekażę złoto na zbrojnych Kneźa oraz leśnych strażników.”',
+                                effects: { wislanie: 6, puszcza: 6, sojusz: -10, gold: 8, hearth: -6 },
+                                reaction: 'Malina ucieka w noc, rzucając przekleństwo przez ramię.',
+                                chronicle: 'Wieczór IV: Przejąłeś skrzynię przemytniczki, zrażając do siebie Kupiecki Sojusz.'
+                            }
+                        ]
+                    },
+                    {
+                        id: 'g4_guzlarz',
+                        name: 'Stary Guślarz Chwalibóg',
+                        title: 'Opiekun Kurhanów • Znawca Dziadów',
+                        faction: 'Plemiona Puszczy',
+                        factionKey: 'puszcza',
+                        need: 'Jadło i Miód na Obrzęd Dziadów',
+                        portrait: 'velesPriest',
+                        image: 'img/o8.png',
+                        preferredDrinks: ['napar', 'polewka'],
+                        drinkReaction: {
+                            napar: 'Guślarz zamyka oczy z błogością: „Szałwia i paproć oczyszczają wzrok. Widzę, że nad twoją karczmą czuwają dobre duchy przodków.”',
+                            polewka: 'Starzec spożywa polewkę drewnianą łyżką: „Takiej właśnie strawy potrzebują zbłąkane dusze przy kurhanach.”',
+                            other: 'Chwalibóg skłania nisko siwą głowę.'
+                        },
+                        intro: 'Płomień w kominku nagle przygasa i zmienia barwę na błękitną, gdy do izby wchodzi ślepy na jedno oko guślarz z glinianą kadzielnicą.',
+                        dialogue: '„Zbliża się Noc Dziadów, gospodarzu. Przez gniew i krew przelaną na granicach duchy poległych nie mogą zaznać spokoju. Wstają z mogił jako wąpierze i morowe cienie. Daj mi miodu, kaszy i chleba, bym odprawił obrzęd na Rozdrożu, inaczej mgła pochłonie zarówno wojska, jak i kupców!”',
+                        choices: [
+                            {
+                                text: '„Dam ci najlepszy miód, chleb i 3 Grzywny na świece woskowe. Niech przodkowie zaznają spokoju!”',
+                                costGold: 3,
+                                effects: { puszcza: 10, wislanie: 4, sojusz: 4, hearth: 14 },
+                                setFlag: 'dziady_blessed',
+                                reaction: 'Chwalibóg kreśli w powietrzu znak błogosławieństwa: „Duchy przodków staną murem wokół twojej gospody, gdy nadejdzie najciemniejsza noc.”',
+                                chronicle: 'Wieczór IV: Wyposażyłeś Guślarza Chwaliboga na obrzęd Dziadów. Duchy przodków sprzyjają karczmie.',
+                                rumor: 'Uspokojone duchy przodków ostrzegają przed siódmym wieczorem, gdy sam Weles zejdzie na Rozdroże.'
+                            },
+                            {
+                                text: '„Odprawmy obrzęd Dziadów tutaj, przed progiem karczmy, zapraszając podróżnych ze wszystkich trzech stronnictw!” [Wymaga: Napar lub Polewka]',
+                                reqDrink: true,
+                                effects: { puszcza: 12, wislanie: 8, sojusz: 8, hearth: 16 },
+                                setFlag: 'dziady_blessed',
+                                reaction: 'W oczach Guślarza pojawiają się łzy: „Wojowie, kupcy i leśni dzielący się chlebem nad pamięcią zmarłych! To cud na Rozdrożu!”',
+                                chronicle: 'Wieczór IV: Zorganizowałeś wspólne Dziady przed karczmą, jednocząc podróżnych we wspólnej zadumie.'
+                            },
+                            {
+                                text: '„Nie mam zapasów na karmienie duchów, gdy żywi płacą złotem. Idź do wiosek.”',
+                                effects: { puszcza: -10, hearth: -12, gold: 2 },
+                                reaction: 'Wiatr wyje złowieszczo w kominie, a Chwalibóg odchodzi w milczeniu: „Kto odmawia przodkom okrucha chleba, ten sam zazna głodu.”',
+                                chronicle: 'Wieczór IV: Odmówiłeś wsparcia obrzędu Dziadów. Chłód zagościł w murach karczmy.'
+                            }
+                        ]
+                    }
+                ]
+            },
+
+            // ==================== WIECZÓR V ====================
+            {
+                nightNumber: 5,
+                roman: 'V',
+                title: 'Zdrada w Mglistym Borze',
+                guests: [
+                    {
+                        id: 'g5_wszebor',
+                        name: 'Wojewoda Wszebor',
+                        title: 'Prawa Ręka Kneźa Wiślan • Dowódca Straży Przedniej',
+                        faction: 'Księstwo Wiślan',
+                        factionKey: 'wislanie',
+                        need: 'Decyzja o Szturmie na Puszczański Bród',
+                        portrait: 'warrior',
+                        image: 'img/o9.png',
+                        preferredDrinks: ['miod', 'polewka'],
+                        drinkReaction: {
+                            miod: 'Wojewoda Wszebor uderza pięścią w stół z aprobatą: „Miód godny książęcej biesiady! Mów więc śmiało, karczmarzu, bo cenię ludzi z charakterem.”',
+                            polewka: 'Stary wojewoda kiwa głową: „Proste, żołnierskie jadło. Przypomina mi młode lata na wyprawach.”',
+                            other: 'Wojewoda przyjmuje kubek i rozkłada na stole skórzaną mapę.'
+                        },
+                        intro: 'Karczmę otacza oddział ciężkozbrojnych tarczowników. Do środka wkracza sam Wojewoda Wszebor w pozłacanym hełmie.',
+                        dialogue: '„Nadszedł czas rozstrzygnięć, gospodarzu! Jutro o świcie moje hufce mają sforsować Puszczański Bród. Jeśli uderzymy znienacka, zmiażdżymy opór leśnych plemion, ale spłonie też faktoria kupiecka. Chyba że masz dowód, iż możemy zawrzeć honorowy układ bez hańby dla oręża Wiślan?”',
+                        choices: [
+                            {
+                                text: '„Wspomogę twój pochód zapasami i wskażę suche przejście przez bród. Niech Księstwo Wiślan zaprowadzi swój ład!”',
+                                effects: { wislanie: 16, puszcza: -14, sojusz: -6, gold: 6 },
+                                setFlag: 'backed_wislanie_assault',
+                                reaction: 'Wojewoda Wszebor ściska twoją dłoń: „Kiedy zatkniemy sztandar Peruna nad Puszczą, będziesz pierwszym gospodarzem całego księstwa!”',
+                                chronicle: 'Wieczór V: Poparłeś zbrojną wyprawę Wojewody Wszebora na Puszczański Bród.'
+                            },
+                            {
+                                text: '„Wstrzymaj szturm, Wojewodo! Pokażę ci królewski przywilej i dowody, że wojna wykrwawi gród przed nadejściem zimy.” [Wymaga: Miód lub Polewka]',
+                                reqDrink: true,
+                                effects: { wislanie: 10, puszcza: 10, sojusz: 8, hearth: 14 },
+                                setFlag: 'halted_wislanie_assault',
+                                reaction: 'Wszebor długo wpatruje się w płomień kominka, po czym zwija mapę: „Masz rację. Zima i potwory z kurhanów wybiją nas szybciej niż strzały leśnych. Zgodzę się na rozejm, jeśli druga strona przybędzie do twojej karczmy!”',
+                                chronicle: 'Wieczór V: Przekonałeś Wojewodę Wszebora do wstrzymania szturmu i przyjęcia zaproszenia na rozejm!',
+                                rumor: 'Wojewoda Wszebor zgodził się zawiesić broń, jeśli Plemiona Puszczy i Sojusz również przybędą na wiec.'
+                            },
+                            {
+                                text: '„Powiem ci, że bród jest bezpieczny, a po cichu wyślę chłopca, by ostrzegł szeptuchy i kupców.”',
+                                effects: { puszcza: 10, sojusz: 8, wislanie: -14, hearth: -4 },
+                                reaction: 'Wojewoda wychodzi pewny zwycięstwa, nie wiedząc, że jego przednia straż wpadnie w zastawioną sieć.',
+                                chronicle: 'Wieczór V: Zmystyfikowałeś plany Wojewody Wszebora, ostrzegając potajemnie Puszczę i Sojusz.'
+                            }
+                        ]
+                    },
+                    {
+                        id: 'g5_lutomir',
+                        name: 'Skarbnik Lutomir z Bursztynowego Szlaku',
+                        title: 'Wielki Faktor Sojuszu Kupieckiego',
+                        faction: 'Kupiecki Sojusz',
+                        factionKey: 'sojusz',
+                        need: 'Wykupienie Długów Krainy',
+                        portrait: 'merchant',
+                        image: 'img/o10.png',
+                        preferredDrinks: ['miod', 'okowita'],
+                        drinkReaction: {
+                            miod: 'Lutomir smakuje miód z przymrużonymi oczami: „Bukiet lipowy z nutą wrzosu! Człowiek o takim podniebieniu musi rozumieć wielką politykę.”',
+                            okowita: 'Skarbnik chrząka z uznaniem: „Ostra jak procenty u lichwiarza w Gnieźnie! Pogadajmy więc o złocie.”',
+                            other: 'Lutomir wyciera dłonie haftowaną chustą.'
+                        },
+                        intro: 'W asyście czterech najemników z kuszami wchodzi wytworny skarbnik w aksamitnym żupanie obszytym bursztynem.',
+                        dialogue: '„Gospodarzu, wojna to marny interes, chyba że ma się monopol na odbudowę! Sojusz Kupiecki zebrał ogromny skarbiec. Możemy wykupić długi Kneźa i przekupić starszyznę Puszczy, przejmując całkowitą władzę nad Rozdrożem jako republika kupiecka. Albo przeznaczyć złoto na odbudowę spalonych mostów i wspólny pokój. Co doradzasz?”',
+                        choices: [
+                            {
+                                text: '„Użyjcie złota, by wykupić ziemię i ogłosić panowanie Kupieckiego Sojuszu nad całym szlakiem!”',
+                                effects: { sojusz: 18, wislanie: -8, puszcza: -8, gold: 8 },
+                                setFlag: 'merchant_dominance',
+                                reaction: 'Lutomir kładzie na szynkwasie sakiewkę pełną złota: „Od jutra na Rozdrożu rządzi pieniądz, a nie miecz czy zabobon!”',
+                                chronicle: 'Wieczór V: Poparłeś plan Skarbnika Lutomira, by Kupiecki Sojusz przejął dominację ekonomiczną nad krainą.'
+                            },
+                            {
+                                text: '„Utwórzcie Wspólną Skrzynię Rozdroża – sfinansujcie odbudowę wiosek Wiślan i ochronę gajów Puszczy w zamian za wolny handel!” [Wymaga: Miód lub Okowita]',
+                                reqDrink: true,
+                                effects: { sojusz: 12, wislanie: 8, puszcza: 8, hearth: 14, gold: 5 },
+                                setFlag: 'merchant_peace_fund',
+                                reaction: 'Lutomir gładzi podbródek z błyskiem w oku: „Wieczny pokój gwarantujący wieczny zysk z ceł? To najgenialniejsza umowa, jaką słyszałem!”',
+                                chronicle: 'Wieczór V: Namówiłeś Skarbnika Lutomira do ufundowania Wspólnej Skrzyni Pokoju dla wszystkich trzech stron.'
+                            },
+                            {
+                                text: '„Dorzucę 5 własnych Złotych Grzywien do funduszu odbudowy mostów, by pokazać dobrą wolę karczmy.”',
+                                costGold: 5,
+                                effects: { sojusz: 10, wislanie: 6, puszcza: 6, hearth: 15 },
+                                setFlag: 'merchant_peace_fund',
+                                reaction: 'Skarbnik kłania się nisko: „Skoro zwykły karczmarz daje własne złoto dla ratowania krainy, Sojusz wyłoży dziesięciokrotnie więcej!”',
+                                chronicle: 'Wieczór V: Wsparłeś własnym złotem fundusz odbudowy krainy, zawstydzając chciwych kupców.'
+                            }
+                        ]
+                    }
+                ]
+            },
+
+            // ==================== WIECZÓR VI ====================
+            {
+                nightNumber: 6,
+                roman: 'VI',
+                title: 'Wiec przy Wspólnym Palenisku',
+                guests: [
+                    {
+                        id: 'g6_jaruga_return',
+                        name: 'Arcyszeptucha Jaruga i Łowca Sulisław',
+                        title: 'Wysłannicy Puszczy i Strażników Granicy',
+                        faction: 'Plemiona Puszczy',
+                        factionKey: 'puszcza',
+                        need: 'Ochrona przed Przebudzeniem Leszego',
+                        portrait: 'whisperer',
+                        image: 'img/o11.png',
+                        preferredDrinks: ['napar', 'okowita'],
+                        drinkReaction: {
+                            napar: 'Jaruga i Sulisław dzielą się naparem: „Zioła dają jasność umysłu przed najtrudniejszą próbą.”',
+                            okowita: 'Sulisław kiwa głową: „Piołun odpędza urok. Teraz posłuchaj, co dzieje się na skraju puszczy.”',
+                            other: 'Goście przysiadają blisko ognia.'
+                        },
+                        intro: 'Do karczmy wchodzą razem Szeptucha Jaruga oraz Łowca Sulisław. Na ich płaszczach leży pierwszy śnieg.',
+                        dialogue: '„Gospodarzu, gniew Pradawnego Leszego sięgnął zenitu. Przez dym pożarów i krew na granicach strażnik boru chce zniszczyć zarówno obóz Wiślan, jak i kupieckie składy. Możemy skierować jego gniew na jedną z frakcji, albo odprawić pradawny rytuał przebłagania przy twoim ognisku.”',
+                        choices: [
+                            {
+                                text: '„Odprawmy rytuał przebłagania Leszego w mojej karczmie – dam wam zioła, miód i ogień z mojego paleniska!” [Wymaga: Napar lub Okowita]',
+                                reqDrink: true,
+                                effects: { puszcza: 12, wislanie: 8, sojusz: 8, hearth: 16 },
+                                setFlag: 'leszy_appeased',
+                                reaction: 'Płomień w palenisku bucha zielonkawym światłem, a z lasu dobiega głęboki, uspokojony szum koron drzew: „Leszy przyjął dar! Bór nie uderzy na ludzi!”',
+                                chronicle: 'Wieczór VI: Odprawiłeś przy palenisku rytuał przebłagania Leszego, ratując obozy przed gniewem pradawnej puszczy.',
+                                rumor: 'Sam Pradawny Leszy uznał Karczmę Pod Złotym Żmijem za święte miejsce nietykalności.'
+                            },
+                            {
+                                text: '„Niech Leszy uderzy na tabor zbrojny Wiślan i zmusi ich do odwrotu za rzekę!”',
+                                effects: { puszcza: 16, wislanie: -16, hearth: -6 },
+                                reaction: 'Jaruga kiwa surowo głową: „Korzenie i wilki odbiorą to, co należy do lasu.”',
+                                chronicle: 'Wieczór VI: Pozwoliłeś, by gniew Leszego spadł na obozowisko Księstwa Wiślan.'
+                            },
+                            {
+                                text: '„Zapłacę Sulisławowi 4 Grzywny na srebrne dzwony i ognie, by odgrodzić trakt od Leszego.”',
+                                costGold: 4,
+                                effects: { sojusz: 10, wislanie: 6, puszcza: 4, hearth: 10 },
+                                setFlag: 'leszy_appeased',
+                                reaction: 'Sulisław zarzuca pas z dzwonami na ramię: „Ustawię krąg ognia i srebra wokół rozdroża. Żadna zmora nie przejdzie!”',
+                                chronicle: 'Wieczór VI: Sfinansowałeś ochronny krąg wokół Rozdroża, powstrzymując przebudzone bestie.'
+                            }
+                        ]
+                    },
+                    {
+                        id: 'g6_poslaniec_pokoju',
+                        name: 'Trzej Wysłannicy Rozdroża',
+                        title: 'Wojewoda Wszebor, Żerca Radzimir i Kupcowa Bożena',
+                        faction: 'Wszystkie Stronnictwa',
+                        factionKey: 'sojusz',
+                        need: 'Wielka Narada Przed Ostatnią Nocą',
+                        portrait: 'warrior',
+                        image: 'img/o12.jfif',
+                        preferredDrinks: ['miod', 'napar', 'okowita', 'polewka'],
+                        drinkReaction: {
+                            miod: 'Trzej wysłannicy stukają się czarkami złocistego miodu: „Za gospodarza, który potrafił posadzić wilka, żubra i lisa przy jednej ławie!”',
+                            napar: 'Aromat ziół łagodzi gniewne spojrzenia delegatów.',
+                            okowita: 'Mocny trunek przełamuje pierwsze lody między dowódcami.',
+                            polewka: 'Wspólny posiłek przy jednym stole przypomina wszystkim o dawnym braterstwie.'
+                        },
+                        intro: 'Po raz pierwszy w dziejach Rozdroża przy długim dębowym stole zasiadają jednocześnie przedstawiciele Wiślan, Puszczy i Sojuszu.',
+                        dialogue: '„Karczmarzu! Jutro rozstrzygnie się los tej ziemi. Każdy z nas ma dłoń na broni, ale wszyscy szanujemy twój dach. Powiedz nam prosto w oczy – jaki ład ma zapanować na Rozdrożu, gdy opadną jesienne mgły?”',
+                        choices: [
+                            {
+                                text: '„Podpiszcie Przymierze Trzech Znaków! Niech Wiślanie strzegą granic, Puszcza pilnuje starych praw, a Sojusz prowadzi wolny handel!” [Wymaga: Podania dowolnego trunku]',
+                                reqDrink: true,
+                                effects: { wislanie: 10, puszcza: 10, sojusz: 10, hearth: 20 },
+                                setFlag: 'treaty_signed',
+                                reaction: 'Wszebor, Radzimir i Bożena składają swoje znaki na pergaminie przy blasku ognia: „Niech Przymierze Pod Złotym Żmijem trwa póki stoi ten komin!”',
+                                chronicle: 'Wieczór VI: Doprowadziłeś do zawarcia historycznego Przymierza Trzech Znaków przy stole twojej karczmy!'
+                            },
+                            {
+                                text: '„Tylko silna ręka Księstwa Wiślan uchroni nas przed chaosem. Uznajcie zwierzchnictwo grodu!”',
+                                effects: { wislanie: 18, puszcza: -10, sojusz: -5 },
+                                reaction: 'Wojewoda Wszebor triumfuje, podczas gdy przedstawiciele Puszczy i Sojuszu opuszczają izbę w ponurym milczeniu.',
+                                chronicle: 'Wieczór VI: Na wielkiej naradzie opowiedziałeś się za pełnym panowaniem Księstwa Wiślan.'
+                            },
+                            {
+                                text: '„Ziemia należy do starych bogów i Plemion Puszczy. Rozbierzcie warownie i oddajcie hołd świętym gajom!”',
+                                effects: { puszcza: 18, wislanie: -12, sojusz: -5 },
+                                reaction: 'Żerca Radzimir błogosławi twój wybór, lecz wojowie Wiślan chwytają za rękojeści mieczy.',
+                                chronicle: 'Wieczór VI: Na wielkiej naradzie poparłeś bezwzględne prawo Plemion Puszczy do całej krainy.'
+                            }
+                        ]
+                    }
+                ]
+            },
+
+            // ==================== WIECZÓR VII (FINAŁOWY) ====================
+            {
+                nightNumber: 7,
+                roman: 'VII',
+                title: 'Sąd Żmija i Noc Przeznaczenia',
+                guests: [
+                    {
+                        id: 'g7_weles_wanderer',
+                        name: 'Tajemniczy Starzec w Płaszczu z Popiołu',
+                        title: 'Wędrowiec z Zaświatów • Pan Rozdroży (Weles)',
+                        faction: 'Stare Wierzenia',
+                        factionKey: 'puszcza',
+                        need: 'Ostatnia Wieczerza i Osąd Karczmarza',
+                        portrait: 'mysteriousWanderer',
+                        image: 'img/o13.jfif',
+                        preferredDrinks: ['miod', 'napar', 'polewka', 'okowita'],
+                        drinkReaction: {
+                            miod: 'Starzec upija łyk miodu, a jego oczy rozbłyskują złotym blaskiem: „Słodycz lata zamknięta w glinianym dzbanie. Dawno śmiertelnik nie ugościł mnie z taką czcią.”',
+                            napar: 'Wędrowiec uśmiecha się pod kapturem: „Paproć kwitnąca w noc przesilenia... Znasz sekrety Nawii, gospodarzu.”',
+                            polewka: 'Starzec łamie chleb i kosztuje polewki: „Największą ofiarą dla bogów jest miska ciepłej strawy podana z czystym sercem.”',
+                            okowita: 'Wędrowiec śmieje się cicho jak szum wiatru w trzcinach: „Piołun i ogień! Prawdziwy smak śmiertelnego losu.”'
+                        },
+                        intro: 'Zegar nie wybija godziny, a psy w całej okolicy milkną. Drzwi otwierają się same. Do szynkwasu podchodzi Starzec o oczach jak dwa bursztyny płonące w popiele.',
+                        dialogue: '„Dobry wieczór, strażniku Złotego Żmija. Przez sześć wieczorów patrzyłem, jak nalewasz miód wojom, ukrywasz zbiegów na strychu i ważysz losy trzech ludów. Jam jest Ten, Który Strzeże Korzeni i Przysiąg. Nadszedł siódmy zmierzch. Powiedz mi na koniec – czym była twoja karczma w czasach burzy?”',
+                        choices: [
+                            {
+                                text: '„Była domem pokoju i ciepłym ogniskiem dla każdego wędrowca – bez względu na to, czy nosi miecz, kostur czy sakiewkę.” [Wymaga: Podania poczęstunku Starcowi]',
+                                reqDrink: true,
+                                effects: { hearth: 25, wislanie: 6, puszcza: 6, sojusz: 6 },
+                                setFlag: 'veles_blessing_supreme',
+                                reaction: 'Starzec wstaje, a jego cień na ścianie przybiera kształt potężnego, skrzydlatego Złotego Żmija: „Zaprawdę, dopełniłeś świętego prawa gościnności. Niech twoja kronika stanie się legendą Słowiańszczyzny!”',
+                                chronicle: 'Wieczór VII: Ugościłeś samego Welesa pod postacią Wędrowca i otrzymałeś najwyższe błogosławieństwo Złotego Żmija.'
+                            },
+                            {
+                                text: '„Była kuźnią nowego porządku – miejscem, w którym pomogłem najsilniejszym przetrwać wojnę i objąć rządy.”',
+                                effects: { hearth: 5, gold: 10 },
+                                reaction: 'Starzec kiwa głową z powagą: „Historia lubi żelazo i zwycięzców, choć zawsze płaci się za to słoną cenę. Zobaczmy więc owoc twoich wyborów.”',
+                                chronicle: 'Wieczór VII: Stanąłeś przed sądem Wędrowca z Nawii jako architekt nowej potęgi na Rozdrożu.'
+                            },
+                            {
+                                text: '„Oddam ci ostatnie Złote Grzywny z szynkwasu jako ofiarę za dusze wszystkich, którzy polegli na tym szlaku.”',
+                                costGold: 3,
+                                effects: { hearth: 20, puszcza: 8 },
+                                setFlag: 'veles_blessing_supreme',
+                                reaction: 'Monety w dłoni Starca zamieniają się w złote liście dębu: „Twoja szczodrość odkupiła winy zwaśnionych wodzów. Rozdroże zazna spokoju.”',
+                                chronicle: 'Wieczór VII: Złożyłeś ofiarę Welesowi za dusze poległych, pieczętując los krainy.'
+                            }
+                        ]
+                    }
+                ]
+            }
+        ];
+
+        /**************************************************************************
+         * 6. STAN GRY I LOGIKA ROZGRYWKI
+         **************************************************************************/
+        const gameState = {
+            currentNightIdx: 0,
+            currentGuestIdx: 0,
+            gold: 16,
+            hearth: 60,
+            factions: {
+                wislanie: 50,
+                puszcza: 50,
+                sojusz: 50
+            },
+            drinksInventory: {
+                miod: 2,
+                napar: 2,
+                okowita: 2,
+                polewka: 3
+            },
+            servedDrinkToCurrentGuest: null,
+            guestMood: 55,
+            flags: {},
+            atticOccupant: 'Wolny na nocleg',
+            cellarOccupant: 'Spokojna',
+            chronicleEntries: [
+                {
+                    night: 'Prolog',
+                    text: 'Rozpaliłeś dębowe szczapy w palenisku karczmy „Pod Złotym Żmijem”. Na granicach Księstwa Wiślan, Plemion Puszczy i Kupieckiego Sojuszu zbiera się burza.'
+                }
+            ],
+            rumors: [
+                'Stary trakt handlowy przecina granicę trzech zwaśnionych ziem. Kto kontroluje Karczmę na Rozdrożu, ten zna plany wszystkich wodzów.'
+            ],
+            nightSummaryLog: []
+        };
+
+        let hearthRenderer = null;
+
+        function clamp(val, min, max) {
+            return Math.max(min, Math.min(max, val));
+        }
+
+        function showToast(message, imgSrc = 'img/p10.png') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'wood-panel px-4 py-2.5 rounded-lg border border-[#d4a359] text-xs md:text-sm text-[#f3e5c8] shadow-2xl flex items-center gap-2.5 animate-fade-in';
+            toast.innerHTML = `<img src="${imgSrc}" alt="" class="w-6 h-6 rounded object-cover border border-[#d4a359] shrink-0"><span>${message}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.4s ease';
+                setTimeout(() => toast.remove(), 400);
+            }, 3400);
+        }
+
+        function updateUI() {
+            document.getElementById('stat-gold').textContent = gameState.gold;
+            document.getElementById('stat-hearth').textContent = gameState.hearth;
+            document.getElementById('brew-modal-gold').textContent = `${gameState.gold} Złotych Grzywien`;
+
+            const hearthBadge = document.getElementById('hearth-mood-badge');
+            if (gameState.hearth >= 80) {
+                hearthBadge.textContent = 'Święty Płomień Gościnności';
+            } else if (gameState.hearth >= 50) {
+                hearthBadge.textContent = 'Ciepły Blask';
+            } else {
+                hearthBadge.textContent = 'Chłodny Żar';
+            }
+
+            document.getElementById('attic-status').textContent = `Strych: ${gameState.atticOccupant}`;
+            document.getElementById('cellar-status').textContent = `Piwnica: ${gameState.cellarOccupant}`;
+
+            ['wislanie', 'puszcza', 'sojusz'].forEach(key => {
+                const val = clamp(gameState.factions[key], 0, 100);
+                gameState.factions[key] = val;
+                document.getElementById(`val-${key}`).textContent = `${val}%`;
+                document.getElementById(`bar-${key}`).style.width = `${val}%`;
+                document.getElementById(`m-val-${key}`).textContent = `${val}%`;
+                document.getElementById(`m-bar-${key}`).style.width = `${val}%`;
+            });
+
+            renderDrinksRack();
+            renderChronicleTabs();
+        }
+
+        // Renderowanie szynkwasu z grafikami img/p14.png - img/p17.png
+        function renderDrinksRack() {
+            const container = document.getElementById('drinks-container');
+            container.innerHTML = '';
+
+            Object.values(DRINKS_DATA).forEach(drink => {
+                const count = gameState.drinksInventory[drink.id] || 0;
+                const alreadyServed = gameState.servedDrinkToCurrentGuest !== null;
+                const isThisServed = gameState.servedDrinkToCurrentGuest === drink.id;
+
+                const btn = document.createElement('button');
+                btn.className = `drink-card w-full p-2.5 rounded-lg text-left flex items-center justify-between gap-2 cursor-pointer ${isThisServed ? 'ring-2 ring-[#f5b841]' : ''}`;
+                btn.disabled = count <= 0 || alreadyServed;
+
+                btn.innerHTML = `
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <img src="${drink.image}" alt="${drink.name}" class="w-10 h-10 rounded-lg object-cover shrink-0 border border-[#8a6236] shadow">
+                        <div class="min-w-0">
+                            <div class="font-cinzel text-xs font-bold text-[#f3e5c8] truncate">${drink.name}</div>
+                            <div class="text-[11px] text-[#c8ab7c] leading-tight line-clamp-1">${drink.shortDesc}</div>
+                        </div>
+                    </div>
+                    <div class="shrink-0 text-right">
+                        <span class="px-2 py-0.5 rounded text-xs font-cinzel font-bold ${count > 0 ? 'bg-[#3d2415] text-[#f5b841] border border-[#8a6236]' : 'bg-[#2b1512] text-[#a65c52]'}">
+                            ${count} szt.
+                        </span>
+                        <span class="block text-[10px] font-cinzel mt-0.5 text-[#d4a359]">
+                            ${isThisServed ? 'Podano ✓' : (alreadyServed ? 'Gość pije' : 'Polej')}
+                        </span>
+                    </div>
+                `;
+
+                btn.addEventListener('click', () => serveDrinkToGuest(drink.id));
+                container.appendChild(btn);
+            });
+        }
+
+        function serveDrinkToGuest(drinkId) {
+            if (gameState.servedDrinkToCurrentGuest !== null) return;
+            if ((gameState.drinksInventory[drinkId] || 0) <= 0) return;
+
+            const night = NIGHTS_SCENARIO[gameState.currentNightIdx];
+            const guest = night.guests[gameState.currentGuestIdx];
+            const drink = DRINKS_DATA[drinkId];
+
+            gameState.drinksInventory[drinkId]--;
+            gameState.servedDrinkToCurrentGuest = drinkId;
+
+            audioEngine.playPourDrink();
+
+            const isPreferred = guest.preferredDrinks.includes(drinkId);
+            const reactionBox = document.getElementById('reaction-banner');
+            reactionBox.classList.remove('hidden');
+
+            if (isPreferred) {
+                gameState.guestMood = clamp(gameState.guestMood + 30, 0, 100);
+                gameState.hearth = clamp(gameState.hearth + 3, 0, 100);
+                const customText = guest.drinkReaction[drinkId] || guest.drinkReaction.other;
+                reactionBox.innerHTML = `
+                    <div class="flex items-start gap-2.5">
+                        <img src="${drink.image}" alt="" class="w-9 h-9 rounded object-cover border border-[#2c4c34] shrink-0 mt-0.5">
+                        <div>
+                            <strong class="font-cinzel text-[#2c4c34] block mb-0.5">Trafiony w sedno poczęstunek! (+Zaufanie, Odblokowano Sekretny Wybór)</strong>
+                            ${customText}
+                        </div>
+                    </div>`;
+                showToast(`Podano: ${drink.name}. Gość otwiera przed Tobą serce!`, drink.image);
+            } else {
+                gameState.guestMood = clamp(gameState.guestMood + 12, 0, 100);
+                const customText = guest.drinkReaction[drinkId] || guest.drinkReaction.other;
+                reactionBox.innerHTML = `
+                    <div class="flex items-start gap-2.5">
+                        <img src="${drink.image}" alt="" class="w-9 h-9 rounded object-cover border border-[#7c1f17] shrink-0 mt-0.5">
+                        <div>
+                            <strong class="font-cinzel text-[#7c1f17] block mb-0.5">Gość przyjmuje poczęstunek:</strong>
+                            ${customText}
+                        </div>
+                    </div>`;
+                showToast(`Podano: ${drink.name}.`, drink.image);
+            }
+
+            document.getElementById('drink-served-icon').src = drink.image;
+            document.getElementById('drink-served-indicator').classList.remove('hidden');
+            updateGuestMoodDisplay();
+            updateUI();
+            renderGuestChoices(guest);
+        }
+
+        function updateGuestMoodDisplay() {
+            const moodEl = document.getElementById('guest-mood-text');
+            const m = gameState.guestMood;
+            if (m >= 80) {
+                moodEl.textContent = `Serdeczny (${m}%)`;
+                moodEl.className = 'text-[#2c4c34] font-bold';
+            } else if (m >= 50) {
+                moodEl.textContent = `Ostrożny (${m}%)`;
+                moodEl.className = 'text-[#8a5a19] font-bold';
+            } else {
+                moodEl.textContent = `Podejrzliwy (${m}%)`;
+                moodEl.className = 'text-[#7c1f17] font-bold';
+            }
+        }
+
+        // Załadowanie aktualnego gościa na ekran (zdjęcia img/o1-o13 oraz herby img/p11-p13)
+        function loadCurrentGuest() {
+            const night = NIGHTS_SCENARIO[gameState.currentNightIdx];
+            const guest = night.guests[gameState.currentGuestIdx];
+
+            gameState.servedDrinkToCurrentGuest = null;
+            gameState.guestMood = 55;
+
+            document.getElementById('night-badge').textContent = `Wieczór ${night.roman} / VII`;
+            document.getElementById('night-name-subtitle').textContent = `${night.title} • Gość ${gameState.currentGuestIdx + 1} z ${night.guests.length}`;
+
+            const facBadge = document.getElementById('guest-faction-badge');
+            const facName = document.getElementById('guest-faction-name');
+            const facIcon = document.getElementById('guest-faction-icon');
+
+            facName.textContent = guest.faction;
+            facIcon.src = FACTION_ICONS[guest.factionKey] || 'img/p11.png';
+
+            if (guest.factionKey === 'wislanie') {
+                facBadge.className = 'px-2.5 py-1 rounded text-xs font-cinzel font-bold bg-[#7c1f17] text-[#f3e5c8] flex items-center gap-1.5';
+            } else if (guest.factionKey === 'puszcza') {
+                facBadge.className = 'px-2.5 py-1 rounded text-xs font-cinzel font-bold bg-[#2c4c34] text-[#f3e5c8] flex items-center gap-1.5';
+            } else {
+                facBadge.className = 'px-2.5 py-1 rounded text-xs font-cinzel font-bold bg-[#9c5a14] text-[#f3e5c8] flex items-center gap-1.5';
+            }
+
+            document.getElementById('guest-need-badge').textContent = `Szuka: ${guest.need}`;
+            document.getElementById('guest-name').textContent = guest.name;
+            document.getElementById('guest-title').textContent = guest.title;
+            document.getElementById('guest-intro-desc').textContent = guest.intro;
+            document.getElementById('guest-dialogue').textContent = guest.dialogue;
+
+            // Wyświetlanie zdjęcia bohatera (img/o1.png - img/o13.jfif) lub awaryjnie ryciny SVG
+            const portraitContainer = document.getElementById('guest-portrait-svg');
+            portraitContainer.innerHTML = '';
+
+            if (guest.image) {
+                const img = document.createElement('img');
+                img.src = guest.image;
+                img.alt = guest.name;
+                img.className = 'w-full h-full object-cover rounded';
+                img.onerror = () => {
+                    portraitContainer.innerHTML = PortraitsSVG[guest.portrait] || PortraitsSVG.warrior;
+                };
+                portraitContainer.appendChild(img);
+            } else {
+                portraitContainer.innerHTML = PortraitsSVG[guest.portrait] || PortraitsSVG.warrior;
+            }
+
+            document.getElementById('drink-served-indicator').classList.add('hidden');
+            document.getElementById('reaction-banner').classList.add('hidden');
+
+            const prefNames = guest.preferredDrinks.map(id => DRINKS_DATA[id].name).join(' lub ');
+            document.getElementById('drink-hint-text').textContent = `Upodobanie gościa: ${prefNames}`;
+
+            updateGuestMoodDisplay();
+            renderGuestChoices(guest);
+            updateUI();
+        }
+
+        function renderGuestChoices(guest) {
+            const container = document.getElementById('choices-container');
+            container.innerHTML = '';
+
+            const servedId = gameState.servedDrinkToCurrentGuest;
+            const hasPreferredDrink = servedId && guest.preferredDrinks.includes(servedId);
+            const firstPrefDrinkImg = DRINKS_DATA[guest.preferredDrinks[0]]?.image || 'img/p14.png';
+
+            guest.choices.forEach((choice, idx) => {
+                const btn = document.createElement('button');
+                const needsDrink = choice.reqDrink === true;
+                const needsGold = choice.costGold && choice.costGold > 0;
+
+                const drinkUnlocked = !needsDrink || hasPreferredDrink;
+                const goldUnlocked = !needsGold || gameState.gold >= choice.costGold;
+                const isAvailable = drinkUnlocked && goldUnlocked;
+
+                btn.className = `choice-btn w-full p-3 rounded-lg text-xs md:text-sm font-medium flex flex-col gap-1 cursor-pointer ${needsDrink ? 'special-choice' : ''}`;
+                btn.disabled = !isAvailable;
+
+                if (!isAvailable) {
+                    btn.classList.add('opacity-60', 'cursor-not-allowed');
+                }
+
+                let badgesHtml = '';
+                if (needsDrink) {
+                    badgesHtml += `<span class="px-2 py-0.5 rounded text-[10px] font-cinzel font-bold inline-flex items-center gap-1 ${drinkUnlocked ? 'bg-[#2c4c34] text-[#f3e5c8]' : 'bg-[#7c1f17] text-[#f3e5c8]'}">
+                        <img src="${firstPrefDrinkImg}" alt="" class="w-3.5 h-3.5 rounded-sm object-cover">
+                        <span>${drinkUnlocked ? 'Język rozwiązany trunkiem' : 'Nalej najpierw ulubiony napitek gościa'}</span>
+                    </span>`;
+                }
+                if (needsGold) {
+                    badgesHtml += `<span class="px-2 py-0.5 rounded text-[10px] font-cinzel font-bold inline-flex items-center gap-1 ${goldUnlocked ? 'bg-[#8a5a19] text-[#f3e5c8]' : 'bg-[#7c1f17] text-[#f3e5c8]'}">
+                        <img src="img/p9.png" alt="" class="w-3.5 h-3.5 rounded-sm object-cover">
+                        <span>Koszt: ${choice.costGold} Grzywny</span>
+                    </span>`;
+                }
+
+                btn.innerHTML = `
+                    <div class="leading-snug text-[#1f130a] font-semibold">${idx + 1}. ${choice.text}</div>
+                    ${badgesHtml ? `<div class="flex flex-wrap gap-1.5 mt-1">${badgesHtml}</div>` : ''}
+                `;
+
+                btn.addEventListener('click', () => handleChoiceSelection(guest, choice));
+                container.appendChild(btn);
+            });
+        }
+
+        function handleChoiceSelection(guest, choice) {
+            audioEngine.playPageTurn();
+
+            if (choice.costGold) {
+                gameState.gold -= choice.costGold;
+                audioEngine.playCoinClink();
+            }
+
+            if (choice.effects) {
+                if (choice.effects.gold) {
+                    gameState.gold += choice.effects.gold;
+                    if (choice.effects.gold > 0) audioEngine.playCoinClink();
+                }
+                if (choice.effects.hearth) {
+                    gameState.hearth = clamp(gameState.hearth + choice.effects.hearth, 0, 100);
+                }
+                if (choice.effects.wislanie) {
+                    gameState.factions.wislanie = clamp(gameState.factions.wislanie + choice.effects.wislanie, 0, 100);
+                }
+                if (choice.effects.puszcza) {
+                    gameState.factions.puszcza = clamp(gameState.factions.puszcza + choice.effects.puszcza, 0, 100);
+                }
+                if (choice.effects.sojusz) {
+                    gameState.factions.sojusz = clamp(gameState.factions.sojusz + choice.effects.sojusz, 0, 100);
+                }
+            }
+
+            if (choice.setFlag) {
+                gameState.flags[choice.setFlag] = true;
+            }
+            if (choice.atticUsed) {
+                gameState.atticOccupant = choice.atticUsed;
+            }
+            if (choice.cellarUsed) {
+                gameState.cellarOccupant = choice.cellarUsed;
+            }
+
+            const night = NIGHTS_SCENARIO[gameState.currentNightIdx];
+
+            if (choice.chronicle) {
+                gameState.chronicleEntries.unshift({
+                    night: `Wieczór ${night.roman}`,
+                    text: choice.chronicle
+                });
+                gameState.nightSummaryLog.push(choice.chronicle);
+            }
+
+            if (choice.rumor && !gameState.rumors.includes(choice.rumor)) {
+                gameState.rumors.unshift(choice.rumor);
+                showToast('Zapisano nową plotkę w Księdze Kronikarza!', FACTION_ICONS[guest.factionKey] || 'img/p10.png');
+            }
+
+            updateUI();
+
+            const reactionBox = document.getElementById('reaction-banner');
+            reactionBox.classList.remove('hidden');
+            reactionBox.innerHTML = `<strong class="font-cinzel text-[#7c1f17] block mb-1">Odpowiedź Gościa:</strong>${choice.reaction}`;
+
+            const choicesContainer = document.getElementById('choices-container');
+            const isLastGuestOfNight = gameState.currentGuestIdx >= night.guests.length - 1;
+            const isFinalNight = gameState.currentNightIdx >= NIGHTS_SCENARIO.length - 1;
+
+            choicesContainer.innerHTML = '';
+            const nextBtn = document.createElement('button');
+            nextBtn.className = 'w-full py-3 px-4 rounded-lg font-cinzel font-bold text-sm md:text-base text-[#fff5e1] bg-gradient-to-r from-[#6e1b14] via-[#8c271e] to-[#6e1b14] border-2 border-[#d4a359] shadow-lg hover:brightness-110 transition cursor-pointer';
+
+            if (!isLastGuestOfNight) {
+                nextBtn.textContent = '🚪 Pożegnaj Gościa i Wpuść Kolejnego Wędrowca →';
+                nextBtn.addEventListener('click', () => {
+                    gameState.currentGuestIdx++;
+                    loadCurrentGuest();
+                });
+            } else if (!isFinalNight) {
+                nextBtn.textContent = `🌙 Zarygluj Drzwi i Podsumuj Wieczór ${night.roman} →`;
+                nextBtn.addEventListener('click', () => openNightSummaryModal());
+            } else {
+                nextBtn.textContent = '📜 Zamknij Księgę i Poznaj Przeznaczenie Krainy (Finał) →';
+                nextBtn.addEventListener('click', () => showGrandFinale());
+            }
+
+            choicesContainer.appendChild(nextBtn);
+        }
+
+        function openNightSummaryModal() {
+            const night = NIGHTS_SCENARIO[gameState.currentNightIdx];
+            const modal = document.getElementById('night-summary-modal');
+            document.getElementById('summary-title').textContent = `Koniec Wieczoru ${night.roman}: ${night.title}`;
+
+            const eventsContainer = document.getElementById('summary-events');
+            eventsContainer.innerHTML = '';
+
+            if (gameState.nightSummaryLog.length === 0) {
+                eventsContainer.innerHTML = `<p>Minął spokojny wieczór przy palenisku.</p>`;
+            } else {
+                gameState.nightSummaryLog.forEach(entry => {
+                    const p = document.createElement('div');
+                    p.className = 'p-2 rounded bg-[#f3e5c8]/90 border-l-4 border-[#7c1f17]';
+                    p.textContent = entry;
+                    eventsContainer.appendChild(p);
+                });
+            }
+
+            document.getElementById('sum-fac-wislanie').textContent = `${gameState.factions.wislanie}%`;
+            document.getElementById('sum-fac-puszcza').textContent = `${gameState.factions.puszcza}%`;
+            document.getElementById('sum-fac-sojusz').textContent = `${gameState.factions.sojusz}%`;
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function advanceToNextNight() {
+            const modal = document.getElementById('night-summary-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+
+            gameState.currentNightIdx++;
+            gameState.currentGuestIdx = 0;
+            gameState.nightSummaryLog = [];
+            gameState.atticOccupant = 'Wolny na nocleg';
+            gameState.cellarOccupant = 'Spokojna';
+
+            gameState.gold += 3;
+            gameState.drinksInventory.polewka = (gameState.drinksInventory.polewka || 0) + 1;
+            audioEngine.playCoinClink();
+
+            showToast('Nastał nowy zmierzch! +3 Złote Grzywny z noclegów oraz świeży gar polewki.', 'img/p9.png');
+            loadCurrentGuest();
+        }
+
+        function renderChronicleTabs() {
+            const chronContainer = document.getElementById('tab-content-chronicle');
+            chronContainer.innerHTML = '';
+
+            gameState.chronicleEntries.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'p-2.5 rounded bg-[#e6d0a7]/85 border border-[#a88252] text-xs leading-relaxed text-[#24160c]';
+                div.innerHTML = `<strong class="font-cinzel text-[#7c1f17] block mb-0.5">${item.night}</strong>${item.text}`;
+                chronContainer.appendChild(div);
+            });
+
+            const rumorsContainer = document.getElementById('tab-content-rumors');
+            rumorsContainer.innerHTML = '';
+            document.getElementById('rumor-count').textContent = gameState.rumors.length;
+
+            gameState.rumors.forEach(r => {
+                const div = document.createElement('div');
+                div.className = 'p-2.5 rounded bg-[#e6d0a7]/85 border-l-4 border-[#9c5a14] text-xs italic text-[#2b1a0e]';
+                div.textContent = `„${r}”`;
+                rumorsContainer.appendChild(div);
+            });
+        }
+
+        // Renderowanie Warzelni z grafikami trunków img/p14-p17 i monetą img/p9.png
+        function renderBrewModal() {
+            const list = document.getElementById('brew-list');
+            list.innerHTML = '';
+            document.getElementById('brew-modal-gold').textContent = `${gameState.gold} Złotych Grzywien`;
+
+            Object.values(DRINKS_DATA).forEach(drink => {
+                const currentCount = gameState.drinksInventory[drink.id] || 0;
+                const canAfford = gameState.gold >= drink.brewCost;
+
+                const row = document.createElement('div');
+                row.className = 'p-3 rounded-lg bg-[#e8d5b5]/95 border border-[#966d3e] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3';
+                row.innerHTML = `
+                    <div class="flex items-start gap-3">
+                        <img src="${drink.image}" alt="${drink.name}" class="w-12 h-12 rounded-lg object-cover border border-[#7c1f17] shrink-0 shadow">
+                        <div>
+                            <div class="font-cinzel font-bold text-sm text-[#23160c]">
+                                ${drink.name} <span class="text-xs font-normal text-[#7c1f17]">(W zapasie: ${currentCount} szt.)</span>
+                            </div>
+                            <div class="text-xs text-[#4a311e] mb-1">${drink.shortDesc}</div>
+                            <div class="text-[11px] font-cinzel text-[#2c4c34]">Ulubione przez: ${drink.bestFor}</div>
+                        </div>
+                    </div>
+                    <button class="shrink-0 w-full sm:w-auto px-3 py-2 rounded font-cinzel text-xs font-bold inline-flex items-center justify-center gap-1.5 ${canAfford ? 'bg-[#7c1f17] hover:bg-[#96251b] text-[#f3e5c8] cursor-pointer' : 'bg-[#9e8c72] text-[#4a3d2c] cursor-not-allowed'} border border-[#d4a359] transition">
+                        <span>Uwarz +${drink.brewAmount} szt. (${drink.brewCost}</span>
+                        <img src="img/p9.png" alt="Grzywny" class="w-4 h-4 rounded-sm object-cover">
+                        <span>)</span>
+                    </button>
+                `;
+
+                const btn = row.querySelector('button');
+                btn.disabled = !canAfford;
+                btn.addEventListener('click', () => {
+                    if (gameState.gold < drink.brewCost) return;
+                    gameState.gold -= drink.brewCost;
+                    gameState.drinksInventory[drink.id] += drink.brewAmount;
+                    audioEngine.playPourDrink();
+                    showToast(`Uwarzono: ${drink.name} (+${drink.brewAmount} szt.)`, drink.image);
+                    renderBrewModal();
+                    updateUI();
+                });
+
+                list.appendChild(row);
+            });
+        }
+
+        // Wyliczanie i prezentacja Wielkiego Finału (z przypisanymi tłami img/p4.png - img/p8.png)
+        function showGrandFinale() {
+            const modal = document.getElementById('ending-modal');
+            const titleEl = document.getElementById('ending-title');
+            const subEl = document.getElementById('ending-subtitle');
+            const descEl = document.getElementById('ending-description');
+            const imgEl = document.getElementById('ending-image');
+
+            const w = gameState.factions.wislanie;
+            const p = gameState.factions.puszcza;
+            const s = gameState.factions.sojusz;
+            const h = gameState.hearth;
+
+            document.getElementById('end-stat-wislanie').textContent = `${w}%`;
+            document.getElementById('end-stat-puszcza').textContent = `${p}%`;
+            document.getElementById('end-stat-sojusz').textContent = `${s}%`;
+            document.getElementById('end-stat-renoma').textContent = `${h}/100`;
+
+            const allSurvived = w >= 45 && p >= 45 && s >= 45;
+            const peaceFlagsCount = [
+                gameState.flags.treaty_signed,
+                gameState.flags.halted_wislanie_assault,
+                gameState.flags.leszy_appeased,
+                gameState.flags.dziady_blessed,
+                gameState.flags.veles_blessing_supreme
+            ].filter(Boolean).length;
+
+            if (allSurvived && h >= 75 && peaceFlagsCount >= 2) {
+                imgEl.src = 'img/p4.png'; // Zakończenie I: Przymierze Pod Złotym Żmijem
+                titleEl.textContent = 'Zakończenie I: Przymierze Pod Złotym Żmijem';
+                subEl.textContent = 'Złote Zakończenie • Pokój Trzech Ludów i Błogosławieństwo Przodków';
+                descEl.innerHTML = `
+                    <p class="drop-cap">Dokonałeś rzeczy, o której pieśniarze będą śpiewać przez pokolenia! Gdy pierwsze śniegi otuliły Rozdroże, żadna armia nie spaliła granicznych wiosek, a żaden święty dąb nie padł pod toporem.</p>
+                    <p>Dzięki Twojej mądrości, szczodremu sercu i kuflom przedniego trunku <strong>Księstwo Wiślan, Plemiona Puszczy oraz Kupiecki Sojusz</strong> podpisały wieczny rozejm przy dębowym stole Twojej gospody. Drużynnicy Kneźa chronią kupieckie karawany, szeptuchy leczą rannych, a duchy przodków i Pradawny Leszy strzegą granic przed mrokiem.</p>
+                    <p>Karczma „Pod Złotym Żmijem” stała się sercem wolnego miasta na Rozdrożu, a jej palenisko nigdy nie gaśnie.</p>
+                `;
+            } else if (w >= p && w >= s && w >= 60) {
+                imgEl.src = 'img/p5.png'; // Zakończenie II: Żelazny Ład Księstwa Wiślan
+                titleEl.textContent = 'Zakończenie II: Żelazny Ład Gromowładnego Peruna';
+                subEl.textContent = 'Dominacja Księstwa Wiślan';
+                descEl.innerHTML = `
+                    <p class="drop-cap">Wiosenne słońce wzeszło nad sztandarami Księstwa Wiślan powiewającymi na całym Rozdrożu. Dzięki Twojemu wsparciu hufce Wojewody Wszebora i Kneźa Drogomira sforsowały rzekę i narzuciły krainie twardy, żelazny porządek.</p>
+                    <p>Na głównym gościńcu zapanowało bezpieczeństwo, a zbójcy zniknęli z traktów. Plemiona Puszczy musiały jednak cofnąć się w najgłębsze ostępy boru, a kupcy z Sojuszu płacą wysokie myto książęcym poborcom.</p>
+                    <p>Twoja gospoda otrzymała książęcy przywilej i nigdy nie brakuje w niej złota ani wojów, choć czasem w zimowe noce słychać z lasu tęskny śpiew szeptuch.</p>
+                `;
+            } else if (p >= w && p >= s && p >= 60) {
+                imgEl.src = 'img/p6.png'; // Zakończenie III: Powrót Pradawnej Puszczy
+                titleEl.textContent = 'Zakończenie III: Powrót Pradawnej Puszczy';
+                subEl.textContent = 'Triumf Plemion Puszczy i Żerców Welesa';
+                descEl.innerHTML = `
+                    <p class="drop-cap">Korzenie wiekowych dębów i gęste mgły objęły we władanie całe Rozdroże. Z Twoją pomocą Szeptucha Jaruga, Żerca Radzimir oraz przebudzone siły Leszego odepchnęły żelazne hufce Wiślan z powrotem za rzekę.</p>
+                    <p>Święte gaje ocalały, a stare obrzędy Dziadów przywróciły równowagę między światem ludzi a duchami natury. Choć wielkie karawany kupieckie rzadziej zapuszczają się w te strony, Twoja karczma „Pod Złotym Żmijem” stała się czczonym sanktuarium na skraju puszczy, gdzie wędrowcy zawsze znajdują ziołowy napar i bezpieczny kąt przy ogniu.</p>
+                `;
+            } else if (s >= w && s >= p && s >= 60) {
+                imgEl.src = 'img/p7.png'; // Zakończenie IV: Wolna Republika Bursztynowego Szlaku
+                titleEl.textContent = 'Zakończenie IV: Wolna Republika Bursztynowego Szlaku';
+                subEl.textContent = 'Zwycięstwo Kupieckiego Sojuszu';
+                descEl.innerHTML = `
+                    <p class="drop-cap">Nie miecz i nie zaklęcia, lecz złota grzywna i kupiecki spryt okazały się najpotężniejszą siłą na Rozdrożu! Dzięki Twoim radom Kupiecki Sojusz wykupił długi zwaśnionych wodzów i przekształcił pogranicze w tętniącą życiem republikę handlową.</p>
+                    <p>Wokół Twojej karczmy wyrosły składy bursztynu, kuźnie i targowiska, na których wojowie Wiślan i łowcy z Puszczy handlują zamiast toczyć bitwy. Jako najbogatszy gospodarz na całym szlaku zasiadasz w Radzie Starszych, dbając o to, by kufle gości były zawsze pełne.</p>
+                `;
+            } else {
+                imgEl.src = 'img/p8.png'; // Zakończenie V: Samotna Latarnia we Mgle
+                titleEl.textContent = 'Zakończenie V: Samotna Latarnia we Mgle';
+                subEl.textContent = 'Przetrwanie Wśród Popiołów Wojny';
+                descEl.innerHTML = `
+                    <p class="drop-cap">Wojna przetoczyła się przez Rozdroże niczym jesienna zawierucha, wyczerpując siły wszystkich trzech stronnictw. Żadna potęga nie zdołała odnieść pełnego zwycięstwa, a graniczne kurhany spowiła gęsta mgła.</p>
+                    <p>Jednak pośród zgliszcz i nieufności ocalało jedno miejsce – Karczma „Pod Złotym Żmijem”. Gdy nastaje zmierzch, zmarznięci wędrowcy wciąż kierują się ku ciepłemu blaskowi Twoich okien, wiedząc, że dopóki w kominku trzaska dębina, nadzieja na odrodzenie krainy nie zginęła.</p>
+                `;
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function resetGame() {
+            gameState.currentNightIdx = 0;
+            gameState.currentGuestIdx = 0;
+            gameState.gold = 16;
+            gameState.hearth = 60;
+            gameState.factions = { wislanie: 50, puszcza: 50, sojusz: 50 };
+            gameState.drinksInventory = { miod: 2, napar: 2, okowita: 2, polewka: 3 };
+            gameState.servedDrinkToCurrentGuest = null;
+            gameState.flags = {};
+            gameState.atticOccupant = 'Wolny na nocleg';
+            gameState.cellarOccupant = 'Spokojna';
+            gameState.nightSummaryLog = [];
+            gameState.chronicleEntries = [
+                {
+                    night: 'Prolog',
+                    text: 'Rozpaliłeś na nowo ogień w palenisku karczmy „Pod Złotym Żmijem”. Nowa karta kroniki czeka na zapisanie.'
+                }
+            ];
+            gameState.rumors = [
+                'Stary trakt handlowy przecina granicę trzech zwaśnionych ziem. Kto kontroluje Karczmę na Rozdrożu, ten zna plany wszystkich wodzów.'
+            ];
+
+            document.getElementById('ending-modal').classList.add('hidden');
+            document.getElementById('ending-modal').classList.remove('flex');
+
+            loadCurrentGuest();
+        }
+
+        /**************************************************************************
+         * 7. INICJALIZACJA I NASŁUCHIWANIE ZDARZEŃ
+         **************************************************************************/
+        window.onload = function () {
+            hearthRenderer = new HearthRenderer('hearth-canvas');
+            hearthRenderer.render();
+
+            loadCurrentGuest();
+
+            document.getElementById('start-game-btn').addEventListener('click', () => {
+                audioEngine.init();
+                document.getElementById('intro-modal').classList.add('hidden');
+                showToast('Ogień trzaska w palenisku. Pierwszy gość zbliża się do progu...', 'img/p10.png');
+            });
+
+            document.getElementById('stoke-fire-btn').addEventListener('click', () => {
+                hearthRenderer.stokeFire();
+                audioEngine.triggerCrackle(1.8);
+                showToast('Dorzuciłeś suchą szczapę dębiny. Snop iskier wzbił się w komin!', 'img/p10.png');
+            });
+
+            document.getElementById('audio-toggle-btn').addEventListener('click', () => {
+                const playing = audioEngine.toggleMute();
+                document.getElementById('audio-icon').textContent = playing ? '🔊' : '🔇';
+            });
+
+            document.getElementById('volume-slider').addEventListener('input', (e) => {
+                const v = parseInt(e.target.value, 10) / 100;
+                audioEngine.setVolume(v);
+            });
+
+            document.getElementById('open-brew-btn').addEventListener('click', () => {
+                renderBrewModal();
+                const m = document.getElementById('brew-modal');
+                m.classList.remove('hidden');
+                m.classList.add('flex');
+            });
+
+            document.getElementById('close-brew-btn').addEventListener('click', () => {
+                const m = document.getElementById('brew-modal');
+                m.classList.add('hidden');
+                m.classList.remove('flex');
+            });
+
+            document.getElementById('next-night-btn').addEventListener('click', () => {
+                advanceToNextNight();
+            });
+
+            document.getElementById('restart-game-btn').addEventListener('click', () => {
+                resetGame();
+            });
+
+            const tabs = [
+                { btn: 'tab-btn-chronicle', content: 'tab-content-chronicle' },
+                { btn: 'tab-btn-rumors', content: 'tab-content-rumors' },
+                { btn: 'tab-btn-lore', content: 'tab-content-lore' }
+            ];
+
+            tabs.forEach(activeTab => {
+                document.getElementById(activeTab.btn).addEventListener('click', () => {
+                    audioEngine.playPageTurn();
+                    tabs.forEach(t => {
+                        const b = document.getElementById(t.btn);
+                        const c = document.getElementById(t.content);
+                        if (t.btn === activeTab.btn) {
+                            b.className = 'py-1.5 px-1 rounded bg-[#7c1f17] text-[#f3e5c8] transition cursor-pointer';
+                            c.classList.remove('hidden');
+                        } else {
+                            b.className = 'py-1.5 px-1 rounded text-[#3b2313] hover:bg-[#cbb082] transition cursor-pointer';
+                            c.classList.add('hidden');
+                        }
+                    });
+                });
+            });
+        };
+    </script>
+</body>
+</html>

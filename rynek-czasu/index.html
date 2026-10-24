@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Czarny Rynek Czasu – Test Strategii Życiowej</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0b0e;
+            --card-bg: #13151c;
+            --card-border: #242836;
+            --accent-gold: #f59e0b;
+            --accent-cyan: #06b6d4;
+            --accent-red: #ef4444;
+            --accent-green: #10b981;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(circle at 15% 20%, rgba(245, 158, 11, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 85% 80%, rgba(6, 182, 212, 0.05) 0%, transparent 40%);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        /* HUD - Pasek Zasobów */
+        .hud {
+            background: rgba(19, 21, 28, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            display: none;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 20px;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            position: sticky;
+            top: 15px;
+            z-index: 100;
+        }
+
+        .resource-box {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .resource-header {
+            display: flex;
+            justify-content: space-between;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .bar-bg {
+            width: 100%;
+            height: 8px;
+            background: #1f2430;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s;
+        }
+
+        #energy-bar { background: var(--accent-gold); width: 100%; }
+        #time-bar { background: var(--accent-cyan); width: 100%; }
+
+        .card-counter {
+            font-family: 'JetBrains Mono', monospace;
+            background: #1e222d;
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--card-border);
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .card-counter span {
+            color: var(--text-main);
+            font-weight: 700;
+        }
+
+        /* Karta Główna */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+            position: relative;
+            overflow: hidden;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        /* Baner na karcie */
+        .card-banner {
+            width: calc(100% + 80px);
+            margin: -40px -40px 28px -40px;
+            height: 220px;
+            object-fit: cover;
+            display: block;
+            border-bottom: 1px solid var(--card-border);
+            background-color: #0d0f14;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .badge {
+            display: inline-block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 4px 12px;
+            border-radius: 99px;
+            background: rgba(245, 158, 11, 0.12);
+            color: var(--accent-gold);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            line-height: 1.35;
+        }
+
+        p.desc {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+            margin-bottom: 28px;
+        }
+
+        /* Opcje wyboru */
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .option-btn {
+            background: #191c26;
+            border: 1px solid #2a2f40;
+            border-radius: 12px;
+            padding: 18px 20px;
+            color: var(--text-main);
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: relative;
+        }
+
+        .option-btn:hover {
+            background: #202431;
+            border-color: var(--accent-gold);
+            transform: translateX(4px);
+        }
+
+        .option-text {
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .option-costs {
+            display: flex;
+            gap: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+        }
+
+        .cost-tag {
+            padding: 3px 8px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .cost-energy { color: var(--accent-gold); }
+        .cost-energy.gain { color: var(--accent-green); }
+        .cost-time { color: var(--accent-cyan); }
+
+        /* Przyciski akcji */
+        .btn-primary {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: #000;
+            font-weight: 700;
+            font-size: 1.05rem;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-family: 'Inter', sans-serif;
+            margin-top: 10px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.35);
+        }
+
+        .rules-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 24px 0 32px;
+        }
+
+        .rule-item {
+            background: #181b24;
+            border: 1px solid var(--card-border);
+            padding: 16px;
+            border-radius: 12px;
+        }
+
+        .rule-item strong {
+            display: block;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent-gold);
+            margin-bottom: 4px;
+            font-size: 1.1rem;
+        }
+
+        .rule-item.cyan strong { color: var(--accent-cyan); }
+
+        /* Podsumowanie */
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin: 24px 0;
+        }
+
+        .stat-card {
+            background: #181b24;
+            border: 1px solid var(--card-border);
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-val {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-top: 4px;
+        }
+
+        .story-box {
+            background: rgba(245, 158, 11, 0.06);
+            border-left: 4px solid var(--accent-gold);
+            padding: 20px;
+            border-radius: 0 12px 12px 0;
+            margin: 24px 0;
+        }
+
+        .trait-bars {
+            margin: 24px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .trait-row {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .trait-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .warning-toast {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid var(--accent-red);
+            color: #fca5a5;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        @media (max-width: 600px) {
+            .hud {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            .card { padding: 24px; }
+            .card-banner {
+                width: calc(100% + 48px);
+                margin: -24px -24px 20px -24px;
+                height: 160px;
+            }
+            .rules-grid, .summary-stats { grid-template-columns: 1fr; }
+            h1 { font-size: 1.75rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- HUD Zasobów -->
+    <div id="hud" class="hud">
+        <div class="resource-box">
+            <div class="resource-header">
+                <span>⚡ ENERGIA</span>
+                <span id="energy-val">100 / 100 j.</span>
+            </div>
+            <div class="bar-bg">
+                <div id="energy-bar" class="bar-fill"></div>
+            </div>
+        </div>
+        <div class="resource-box">
+            <div class="resource-header">
+                <span>⏳ CZAS DOBOWY</span>
+                <span id="time-val">24.0 / 24.0 h</span>
+            </div>
+            <div class="bar-bg">
+                <div id="time-bar" class="bar-fill"></div>
+            </div>
+        </div>
+        <div class="card-counter">
+            KARTA <span id="card-num">1</span>/20
+        </div>
+    </div>
+
+    <!-- Ekran Startowy -->
+    <div id="screen-intro" class="card">
+        <img id="intro-banner" src="img/k1.png" alt="Czarny Rynek Czasu" class="card-banner" onerror="this.style.display='none'">
+        <span class="badge">Symulator Strategii Życiowej</span>
+        <h1>Czarny Rynek Czasu</h1>
+        <p class="desc">
+            Każdego ranka budzisz się przy tym samym stole negocjacyjnym. Walutą nie są tu pieniądze – walutą jest Twoja uwaga, biologia i nieodnawialne godziny. Codzienność podsuwa Ci okazje, kryzysy i złodziei energii. Zobaczmy, jak handlujesz swoim życiem.
+        </p>
+
+        <div class="rules-grid">
+            <div class="rule-item">
+                <strong>⚡ 100 Jednostek Energii</strong>
+                Spada podczas stresu, konfliktów i ciężkiej pracy. Jeśli spadnie poniżej zera – jedziesz na kredycie adrenalinowym (wypalenie).
+            </div>
+            <div class="rule-item cyan">
+                <strong>⏳ 24.0 Godziny</strong>
+                Każda decyzja, naprawa błędu czy przysługa ma swoją cenę na zegarze. Pamiętaj, że kiedyś trzeba jeszcze spać.
+            </div>
+        </div>
+
+        <p class="desc" style="font-size: 0.95rem; margin-bottom: 20px;">
+            Przed Tobą <strong>20 kart dnia codziennego</strong>. Wybieraj tak, jak postępujesz w rzeczywistości – nie tak, jak mówią podręczniki produktywności.
+        </p>
+
+        <button class="btn-primary" onclick="startGame()">Wejdź na Rynek (Rozpocznij)</button>
+    </div>
+
+    <!-- Ekran Pytania (Karty) -->
+    <div id="screen-quiz" class="card" style="display: none;">
+        <img id="q-banner" src="img/k1.png" alt="Baner karty" class="card-banner" onerror="this.style.display='none'">
+        <div id="burnout-warning" class="warning-toast">
+            ⚠️ <strong>Kredyt energetyczny!</strong> Twoja energia spadła poniżej 0. Działasz na czystym kortyzolu i sile woli.
+        </div>
+        <span id="q-category" class="badge">Kategoria</span>
+        <h2 id="q-title">Tytuł karty</h2>
+        <p id="q-desc" class="desc">Opis sytuacji...</p>
+        <div id="options-container" class="options-list"></div>
+    </div>
+
+    <!-- Ekran Podsumowania -->
+    <div id="screen-result" class="card" style="display: none;">
+        <img id="res-banner" src="img/k22.png" alt="Raport Zamknięcia Doby" class="card-banner" onerror="this.src='k20.png'; this.onerror=function(){this.style.display='none'};">
+        <span class="badge">Raport Zamknięcia Doby</span>
+        <h1 id="res-archetype">Twój Archetyp</h1>
+        <p id="res-subtitle" style="color: var(--accent-gold); font-family: 'JetBrains Mono', monospace; margin-bottom: 16px; font-size: 0.95rem;"></p>
+
+        <div class="summary-stats">
+            <div class="stat-card">
+                <div style="font-size: 0.8rem; color: var(--text-muted);">POZOSTAŁA ENERGIA</div>
+                <div id="res-energy" class="stat-val" style="color: var(--accent-gold);">0 j.</div>
+            </div>
+            <div class="stat-card">
+                <div style="font-size: 0.8rem; color: var(--text-muted);">POZOSTAŁY CZAS (SEN)</div>
+                <div id="res-time" class="stat-val" style="color: var(--accent-cyan);">0 h</div>
+            </div>
+            <div class="stat-card">
+                <div style="font-size: 0.8rem; color: var(--text-muted);">INDEKS DŹWIGNI (ROI)</div>
+                <div id="res-roi" class="stat-val" style="color: var(--accent-green);">0%</div>
+            </div>
+        </div>
+
+        <div class="story-box">
+            <h3 style="margin-bottom: 8px; font-size: 1.1rem;">W jakiej historii żyjesz?</h3>
+            <p id="res-story" style="color: var(--text-main); font-size: 0.98rem;"></p>
+        </div>
+
+        <h3 style="font-size: 1rem; margin-top: 24px;">Rozkład Twojej strategii:</h3>
+        <div class="trait-bars" id="trait-bars"></div>
+
+        <p id="res-audit" class="desc" style="font-size: 0.95rem; margin-top: 20px; border-top: 1px solid var(--card-border); padding-top: 16px;"></p>
+
+        <button class="btn-primary" onclick="resetGame()">Zagraj ponownie (Inna strategia)</button>
+    </div>
+</div>
+
+<script>
+// Banery dla ekranu startowego i końcowego
+const mainBanners = {
+    intro: "img/k1.png",      // Baner na ekranie startowym
+    result: "img/k22.png"     // Baner na ekranie podsumowania
+};
+
+// Karty pytań - w polu "banner" podajesz dowolną własną nazwę pliku
+const cards = [
+    {
+        banner: "img/k2.png",
+        category: "Karta #01 • Poranny Rozruch",
+        title: "Budzik dzwoni o 6:00. Za oknem szarówka, a w głowie lista 15 niezamkniętych spraw.",
+        desc: "Pierwsza decyzja dnia ustawia chemię w mózgu na kolejne godziny. Jak otwierasz sesję?",
+        options: [
+            { text: "Zrywam się od razu, zimna woda na twarz, kawa i odhaczam najtrudniejszy temat przed 8:00.", energy: -15, time: -1.5, type: "strateg", leverage: 15 },
+            { text: "Drzemka 20 minut i spokojny przegląd wiadomości oraz powiadomień w łóżku.", energy: -5, time: -1.0, type: "spokoj", leverage: 0 },
+            { text: "Odpalam telefon jeszcze pod kołdrą i od razu gaszę pierwsze pożary od klientów.", energy: -20, time: -0.5, type: "chaos", leverage: 5 },
+            { text: "Śpię godzinę dłużej. Niewyspany mózg to słabe decyzje – wolę zacząć później, ale na świeżo.", energy: +10, time: -2.0, type: "spokoj", leverage: 8 }
+        ]
+    },
+    {
+        banner: "img/k3.png",
+        category: "Karta #02 • Nagła Okazja",
+        title: "Dzwoni hurtownik: ma paletę chodliwego towaru za 40% ceny, ale musisz być u niego za godzinę.",
+        desc: "Towar zejdzie na pniu, ale nie jest posortowany i wymaga natychmiastowej gotówki oraz transportu.",
+        options: [
+            { text: "Rzucam wszystko, jadę osobiście, ładuję po dach i sortuję do nocy. Czysty zysk!", energy: -25, time: -3.0, type: "ryzykant", leverage: 25 },
+            { text: "Wysyłam zaufanego człowieka lub zamawiam kuriera paletowego – płacę za transport, oszczędzam czas.", energy: -10, time: -0.5, type: "strateg", leverage: 20 },
+            { text: "Odmawiam. Nie ma tego w moim harmonogramie na dziś, nie lubię rozbijać planu dnia.", energy: 0, time: -0.1, type: "spokoj", leverage: -5 },
+            { text: "Kupuję w ciemno przez telefon i wystawiam oferty zanim towar w ogóle do mnie dojedzie.", energy: -15, time: -1.0, type: "ryzykant", leverage: 18 }
+        ]
+    },
+    {
+        banner: "img/k4.png",
+        category: "Karta #03 • Wampir Energetyczny",
+        title: "Wpada znajomy „tylko na 5 minut” po drobną przysługę, ale zaczyna narzekać na wszystko wokół.",
+        desc: "Mija kwadrans, a Ty czujesz, jak uchodzi z Ciebie powietrze, podczas gdy zamówienia czekają.",
+        options: [
+            { text: "Słucham cierpliwie i kiwam głową, parząc mu kawę – nie chcę wyjść na gbura.", energy: -20, time: -1.5, type: "chaos", leverage: -10 },
+            { text: "Przerywam wprost: „Wybacz, mam dziś bardzo napięty grafik, muszę wracać do pracy”.", energy: -5, time: -0.2, type: "strateg", leverage: 10 },
+            { text: "Wrzucam mu w ręce robotę: „Gadaj, ale pomóż mi przy okazji składać te kartony”.", energy: -5, time: -0.5, type: "ryzykant", leverage: 12 },
+            { text: "Wychodzę na chwilę z telefonem przy uchu, udając pilne połączenie z urzędem.", energy: -10, time: -0.5, type: "spokoj", leverage: 2 }
+        ]
+    },
+    {
+        banner: "img/k5.png",
+        category: "Karta #04 • Powtarzalny Proces",
+        title: "Codziennie tracisz godzinę na ręczne przeklejanie tych samych danych między tabelkami i systemem.",
+        desc: "To nudne, odmóżdżające zajęcie, ale musi być zrobione bezbłędnie każdego dnia.",
+        options: [
+            { text: "Zarywam popołudnie, żeby napisać skrypt lub narzędzie, które zrobi to jednym kliknięciem.", energy: -20, time: -2.5, type: "ryzykant", leverage: 30 },
+            { text: "Robię to ręcznie przy dobrej muzyce w tle – przynajmniej nie muszę przy tym myśleć.", energy: -5, time: -1.0, type: "spokoj", leverage: 0 },
+            { text: "Zlecam to komuś młodszemu za drobną stawkę, wliczając to w koszty operacyjne.", energy: -5, time: -0.3, type: "strateg", leverage: 18 },
+            { text: "Odkładam na wieczór, a potem robię na szybko z błędami, które trzeba poprawiać.", energy: -15, time: -1.5, type: "chaos", leverage: -10 }
+        ]
+    },
+    {
+        banner: "img/k6.png",
+        category: "Karta #05 • Trudny Klient",
+        title: "Klient pisze sążnistego maila z pretensjami o rzecz wartą 25 zł, grożąc negatywną opinią.",
+        desc: "Wiesz, że racja jest po Twojej stronie (klient nie przeczytał opisu), ale algorytmy nie lubią sporów.",
+        options: [
+            { text: "Zwracam pieniądze jednym kliknięciem bez dyskusji. Mój spokój i konto są warte więcej niż 25 zł.", energy: -2, time: -0.1, type: "strateg", leverage: 15 },
+            { text: "Piszę elaborat ze zrzutami ekranu i punktami regulaminu, udowadniając mu błąd.", energy: -25, time: -1.0, type: "chaos", leverage: -15 },
+            { text: "Dzwonię do niego, zagaduję na spokojnie i zamieniam spór w dodatkowe zamówienie.", energy: -15, time: -0.5, type: "ryzykant", leverage: 15 },
+            { text: "Zostawiam wiadomość na jutro, niech emocje opadną po obu stronach.", energy: -8, time: -0.2, type: "spokoj", leverage: 0 }
+        ]
+    },
+    {
+        banner: "img/k7.png",
+        category: "Karta #06 • Paliwo Biologiczne",
+        title: "Dochodzi 14:00. Żołądek przypomina o sobie, a lista zadań wciąż jest w połowie pełna.",
+        desc: "Jak rozwiązujesz kwestię posiłku w szczycie dnia roboczego?",
+        options: [
+            { text: "Odgrzewam wcześniej przygotowane, konkretne domowe jedzenie i jem w spokoju bez ekranów.", energy: +15, time: -0.8, type: "spokoj", leverage: 12 },
+            { text: "Jem cokolwiek na stojąco jedną ręką, drugą odpisując na wiadomości.", energy: -5, time: -0.2, type: "chaos", leverage: 2 },
+            { text: "Zamawiam gotowca z dowozem – płacę więcej, ale nie odrywam się od kluczowego projektu.", energy: +5, time: -0.3, type: "strateg", leverage: 10 },
+            { text: "Zapijam głód kolejną mocną kawą. Zjem porządnie wieczorem, jak zamknę temat.", energy: -15, time: -0.1, type: "ryzykant", leverage: -5 }
+        ]
+    },
+    {
+        banner: "img/k8.png",
+        category: "Karta #07 • Awaria Sprzętu",
+        title: "W środku pracy router zaczyna zrywać połączenie, a drukarka etykiet wyrzuca błąd.",
+        desc: "Zegar tyka, kurier podjedzie za dwie godziny.",
+        options: [
+            { text: "Przełączam się na hotspot z telefonu, a awarię diagnozuję na chłodno po godzinach szczytu.", energy: -5, time: -0.2, type: "strateg", leverage: 15 },
+            { text: "Rozkręcam sprzęt, wgrywam nowy firmware i przekopuję fora techniczne aż do skutku.", energy: -20, time: -2.0, type: "ryzykant", leverage: 5 },
+            { text: "Wściekam się, restartuję wszystko 10 razy z rzędu i tracę rytm całego dnia.", energy: -25, time: -1.5, type: "chaos", leverage: -15 },
+            { text: "Robię sobie pół godziny przerwy na przewietrzenie głowy, potem wołam serwisanta.", energy: 0, time: -1.0, type: "spokoj", leverage: 5 }
+        ]
+    },
+    {
+        banner: "img/k9.png",
+        category: "Karta #08 • Pułapka Perfekcjonizmu",
+        title: "Przygotowujesz nową ofertę lub projekt. Jest gotowy w 90% i wygląda naprawdę dobrze.",
+        desc: "Możesz go już wypuścić w świat albo dopieszczać detale, których prawdopodobnie nikt nie zauważy.",
+        options: [
+            { text: "Publikuję od razu. Lepsze zrobione i zarabiające dziś, niż idealne za tydzień.", energy: -5, time: -0.2, type: "ryzykant", leverage: 20 },
+            { text: "Spędzam kolejne 2 godziny na dopieszczaniu światła na zdjęciach i każdego przecinka.", energy: -15, time: -2.0, type: "strateg", leverage: 8 },
+            { text: "Zaczynam zmieniać całą koncepcję od nowa, bo nagle wpadł mi do głowy inny pomysł.", energy: -25, time: -2.5, type: "chaos", leverage: -10 },
+            { text: "Zamykam plik i wracam do niego jutro ze świeżym okiem na 15 minut.", energy: 0, time: -0.5, type: "spokoj", leverage: 10 }
+        ]
+    },
+    {
+        banner: "img/k10.png",
+        category: "Karta #09 • Cudzy Kryzys",
+        title: "Dzwoni dobry znajomy: „Stary, auto mi padło 30 km za miastem, pomożesz mi to ogarnąć?”",
+        desc: "To dobry człowiek, ale wyjazd teraz oznacza wycięcie środka Twojego dnia.",
+        options: [
+            { text: "Jadę bez wahania. Relacje są ważniejsze niż tabelki, najwyżej zarwę noc.", energy: -20, time: -2.5, type: "chaos", leverage: 0 },
+            { text: "Organizuję mu zdalnie pomoc drogową ze swojego pakietu i zamawiam mu taksówkę.", energy: -5, time: -0.3, type: "strateg", leverage: 15 },
+            { text: "Mówię szczerze, że mogę przyjechać dopiero po 17:00, jak zamknę swoje sprawy.", energy: -5, time: -1.0, type: "spokoj", leverage: 8 },
+            { text: "Jadę, ale po drodze załatwiam dwie swoje sprawy w tamtej okolicy, łącząc trasy.", energy: -15, time: -1.5, type: "ryzykant", leverage: 12 }
+        ]
+    },
+    {
+        banner: "img/k11.png",
+        category: "Karta #10 • Szum Informacyjny",
+        title: "W sieci wybucha gorący temat: nowe przepisy, zmiany stawek i setki sprzecznych komentarzy.",
+        desc: "Wszyscy na grupach branżowych panikują i przerzucają się linkami.",
+        options: [
+            { text: "Wyłączam powiadomienia. Poczekam tydzień na konkretne podsumowanie od księgowej lub prawnika.", energy: 0, time: -0.1, type: "spokoj", leverage: 15 },
+            { text: "Czytam 200 komentarzy i artykułów, kłócąc się z ludźmi w sekcji komentarzy.", energy: -25, time: -1.5, type: "chaos", leverage: -20 },
+            { text: "Szukam w tym zamieszaniu luki rynkowej, na której można szybko wyprzedzić konkurencję.", energy: -15, time: -1.0, type: "ryzykant", leverage: 22 },
+            { text: "Przepuszczam oficjalny dokument przez AI, wyciągam 3 wnioski i wracam do pracy.", energy: -5, time: -0.3, type: "strateg", leverage: 18 }
+        ]
+    },
+    {
+        banner: "img/k12.png",
+        category: "Karta #11 • Popołudniowy Zjazd",
+        title: "Godzina 16:00. Dopada Cię mgła mózgowa, oczy pieką od monitora, spada koncentracja.",
+        desc: "Przed Tobą jeszcze kilka godzin dnia. Jak zarządzasz spadkiem formy?",
+        options: [
+            { text: "Ucinam sobie 20-minutową drzemkę regeneracyjną (power nap) lub idę na szybki spacer.", energy: +20, time: -0.5, type: "spokoj", leverage: 15 },
+            { text: "Przełączam się na proste prace fizyczne (pakowanie, porządki), żeby odpoczęła głowa.", energy: -5, time: -1.0, type: "strateg", leverage: 12 },
+            { text: "Wlewam w siebie energetyka i cisnę dalej przed ekranem mimo spadku wydajności.", energy: -20, time: -1.5, type: "chaos", leverage: -5 },
+            { text: "Kończę pracę na dziś. Reszta może poczekać do jutra, zdrowie jest jedno.", energy: +10, time: -0.1, type: "spokoj", leverage: 5 }
+        ]
+    },
+    {
+        banner: "img/k13.png",
+        category: "Karta #12 • Zakup Narzędzia",
+        title: "Potrzebujesz sprzętu do pracy/domu. Możesz kupić nowy z gwarancją za 1500 zł lub używany za 700 zł.",
+        desc: "Używany wymaga jednak przekopania ogłoszeń, weryfikacji sprzedawców i ryzyka ukrytych wad.",
+        options: [
+            { text: "Kupuję nowy w 3 minuty na fakturę. Czas zaoszczędzony na szukaniu zarobi więcej niż 800 zł.", energy: -2, time: -0.1, type: "strateg", leverage: 18 },
+            { text: "Ustawiam automatyczny alert na okazje i kupuję używkę w idealnym stanie za ułamek ceny.", energy: -10, time: -0.8, type: "ryzykant", leverage: 20 },
+            { text: "Spędzam 3 godziny na czytaniu recenzji, porównywaniu modeli i oglądaniu testów na YouTube.", energy: -15, time: -2.5, type: "chaos", leverage: -8 },
+            { text: "Wstrzymuję się z zakupem – naprawiam stary sprzęt domowym sposobem.", energy: -10, time: -1.2, type: "spokoj", leverage: 5 }
+        ]
+    },
+    {
+        banner: "img/k14.png",
+        category: "Karta #13 • Toksyczna Negocjacja",
+        title: "Kontrahent w ostatniej chwili zmienia warunki umowy, wiedząc, że jesteś już zaangażowany.",
+        desc: "Próbuje ugrać dodatkowe 10% kosztem Twojej marży.",
+        options: [
+            { text: "Wstaję od stołu i zrywam rozmowy. Szantaż na starcie oznacza katastrofę w przyszłości.", energy: -10, time: -0.5, type: "strateg", leverage: 15 },
+            { text: "Zbijam jego stawkę o 5%, ale w zamian skracam mu termin płatności do gotówki od ręki.", energy: -15, time: -0.5, type: "ryzykant", leverage: 20 },
+            { text: "Ulegam dla świętego spokoju, ale potem przez cały wieczór gryzę się tym w środku.", energy: -25, time: -0.5, type: "chaos", leverage: -15 },
+            { text: "Proponuję chłodny kompromis pośrodku, bez podnoszenia głosu i zbędnych emocji.", energy: -5, time: -0.5, type: "spokoj", leverage: 8 }
+        ]
+    },
+    {
+        banner: "img/k15.png",
+        category: "Karta #14 • Domowa Logistyka",
+        title: "W domu pustki w lodówce, sterta prania i drobna usterka kranu w kuchni.",
+        desc: "Proza życia domaga się swojego podatku czasowego.",
+        options: [
+            { text: "Robię jedną skumulowaną akcję: zakupy z listą przy okazji powrotu i szybka naprawa od ręki.", energy: -12, time: -1.2, type: "strateg", leverage: 12 },
+            { text: "Gotuję coś dużego na 3 dni do przodu – pieczona karkówka albo gar zupy, niech pracuje na siebie.", energy: -10, time: -1.5, type: "spokoj", leverage: 18 },
+            { text: "Robię wszystko po trochu, chodząc z kąta w kąt i gubiąc wątek w połowie.", energy: -20, time: -2.0, type: "chaos", leverage: -10 },
+            { text: "Zamawiam zakupy z dostawą pod drzwi, a usterkę zostawiam na sobotę rano.", energy: -2, time: -0.3, type: "ryzykant", leverage: 10 }
+        ]
+    },
+    {
+        banner: "img/k16.png",
+        category: "Karta #15 • Wieczorny Pomysł",
+        title: "Godzina 20:00. Wpada Ci do głowy świetny pomysł na nową stronę, projekt lub ulepszenie.",
+        desc: "Czujesz nagły przypływ dopaminy i korci Cię, żeby od razu usiąść do komputera.",
+        options: [
+            { text: "Zapisuję dokładny plan w notatniku na jutro rano i idę odpocząć.", energy: +5, time: -0.2, type: "strateg", leverage: 15 },
+            { text: "Siadam do kodu/projektu na fali entuzjazmu i buduję prototyp do 1:00 w nocy.", energy: -25, time: -3.5, type: "ryzykant", leverage: 22 },
+            { text: "Zaczynam grzebać, otwieram 40 kart w przeglądarce i ostatecznie nic nie kończę.", energy: -20, time: -2.5, type: "chaos", leverage: -12 },
+            { text: "Ignoruję to – po 20:00 mój czas należy wyłącznie do domu i bliskich.", energy: +10, time: -0.1, type: "spokoj", leverage: 5 }
+        ]
+    },
+    {
+        banner: "img/k17.png",
+        category: "Karta #16 • Zdrowie i Ruch",
+        title: "Ciało jest spięte po całym dniu. Wiesz, że przydałoby się rozruszać kręgosłup.",
+        desc: "Jak traktujesz swoją maszynę biologiczną?",
+        options: [
+            { text: "Konkretny trening lub szybki marsz 45 minut – bez wymówek, to część higieny pracy.", energy: +15, time: -1.0, type: "strateg", leverage: 15 },
+            { text: "Spokojne rozciąganie i herbata przy dobrej muzyce.", energy: +10, time: -0.5, type: "spokoj", leverage: 8 },
+            { text: "Przesuwam trening na „od poniedziałku” i ląduję na kanapie ze smartfonem.", energy: -10, time: -1.5, type: "chaos", leverage: -10 },
+            { text: "Robię krótką, bardzo intensywną serię ćwiczeń w 15 minut i wracam do zadań.", energy: +5, time: -0.3, type: "ryzykant", leverage: 10 }
+        ]
+    },
+    {
+        banner: "img/k18.png",
+        category: "Karta #17 • Nauka i Rozwój",
+        title: "Chcesz opanować nową umiejętność, która może zwiększyć Twoje dochody w kolejnych miesiącach.",
+        desc: "Jak podchodzisz do przyswajania wiedzy?",
+        options: [
+            { text: "Uczę się w boju – od razu buduję realny projekt i szukam rozwiązań tylko wtedy, gdy utknę.", energy: -15, time: -1.2, type: "ryzykant", leverage: 25 },
+            { text: "Wydzielam stałe 45 minut dziennie na uporządkowany kurs lub dokumentację.", energy: -10, time: -0.8, type: "strateg", leverage: 18 },
+            { text: "Kupuję trzy kursy na promocji, których nigdy nie otwieram, ale czuję, że „coś robię”.", energy: -5, time: -0.5, type: "chaos", leverage: -5 },
+            { text: "Słucham podcastu branżowego podczas wykonywania domowych czynności.", energy: 0, time: -0.2, type: "spokoj", leverage: 12 }
+        ]
+    },
+    {
+        banner: "img/k19.png",
+        category: "Karta #18 • Rozrywka i Reset",
+        title: "Nadszedł czas na czysty relaks. Jak regenerujesz baterie psychiczne?",
+        desc: "Wybór rozrywki decyduje o tym, czy jutro obudzisz się wypoczęty, czy przebodźcowany.",
+        options: [
+            { text: "Wciągająca gra strategiczna/RPG lub dobry film z wyraźnym limitem czasu do 22:30.", energy: +15, time: -1.5, type: "strateg", leverage: 10 },
+            { text: "Bezcelowe scrollowanie krótkich rolek i wiadomości przez dwie godziny.", energy: -15, time: -2.0, type: "chaos", leverage: -15 },
+            { text: "Dobra książka, rozmowa z bliskimi lub cisza bez żadnych ekranów.", energy: +25, time: -1.5, type: "spokoj", leverage: 12 },
+            { text: "Gram lub oglądam do późna („jeszcze jedna tura / jeden odcinek”), kradnąc czas ze snu.", energy: -10, time: -2.5, type: "ryzykant", leverage: -5 }
+        ]
+    },
+    {
+        banner: "img/k20.png",
+        category: "Karta #19 • Bilans Przed Snem",
+        title: "Zbliża się koniec dnia. W głowie krążą jeszcze myśli o tym, co czeka Cię jutro.",
+        desc: "Jak zamykasz system operacyjny w swojej głowie?",
+        options: [
+            { text: "Zapisuję 3 najważniejsze priorytety na jutro na kartce – zrzucam je z pamięci RAM na papier.", energy: +5, time: -0.2, type: "strateg", leverage: 18 },
+            { text: "Sprawdzam jeszcze raz statystyki sprzedaży i pocztę tuż przed zamknięciem oczu.", energy: -15, time: -0.5, type: "chaos", leverage: -8 },
+            { text: "Wietrzę sypialnię, wyciszam telefon i kładę się o stałej porze.", energy: +15, time: -0.3, type: "spokoj", leverage: 12 },
+            { text: "Planuję w głowie wielkie posunięcia na kolejny kwartał, długo nie mogąc zasnąć z ekscytacji.", energy: -10, time: -1.0, type: "ryzykant", leverage: 5 }
+        ]
+    },
+    {
+        banner: "img/k21.png",
+        category: "Karta #20 • Czarny Łabędź o Północy",
+        title: "Właśnie masz zasypiać, gdy przychodzi powiadomienie: ważny system lub oferta przestała działać.",
+        desc: "Naprawa teraz zajmie godzinę, ale rano wszystko będzie działać. Zostawienie tego do rana to mała strata finansowa.",
+        options: [
+            { text: "Śpię. Żaden pojedynczy incydent nie jest wart zniszczenia całego jutrzejszego dnia przez niewyspanie.", energy: +10, time: 0, type: "spokoj", leverage: 15 },
+            { text: "Wstaję, stawiam szybki tymczasowy obejściowy fix w 15 minut i idę spać.", energy: -10, time: -0.3, type: "strateg", leverage: 20 },
+            { text: "Wstaję i przebudowuję cały system do 3:00 nad ranem, żeby to się nigdy nie powtórzyło.", energy: -30, time: -2.5, type: "ryzykant", leverage: 10 },
+            { text: "Nie wstaję, ale przez pół nocy budzę się co godzinę i stresuję tym, co zastanę rano.", energy: -25, time: -1.5, type: "chaos", leverage: -20 }
+        ]
+    }
+];
+
+let currentCard = 0;
+let energy = 100;
+let timeRemaining = 24.0;
+let totalLeverage = 0;
+let scores = { strateg: 0, ryzykant: 0, spokoj: 0, chaos: 0 };
+
+// Inicjalizacja banerów startowego i końcowego
+document.getElementById('intro-banner').src = mainBanners.intro;
+document.getElementById('res-banner').src = mainBanners.result;
+
+function startGame() {
+    document.getElementById('screen-intro').style.display = 'none';
+    document.getElementById('hud').style.display = 'grid';
+    document.getElementById('screen-quiz').style.display = 'block';
+    renderCard();
+}
+
+function updateHUD() {
+    const energyVal = document.getElementById('energy-val');
+    const timeVal = document.getElementById('time-val');
+    const energyBar = document.getElementById('energy-bar');
+    const timeBar = document.getElementById('time-bar');
+    const warning = document.getElementById('burnout-warning');
+
+    energyVal.textContent = `${energy} / 100 j.`;
+    timeVal.textContent = `${timeRemaining.toFixed(1)} / 24.0 h`;
+
+    const ePercent = Math.max(0, Math.min(100, energy));
+    const tPercent = Math.max(0, Math.min(100, (timeRemaining / 24) * 100));
+
+    energyBar.style.width = `${ePercent}%`;
+    timeBar.style.width = `${tPercent}%`;
+
+    if (energy < 0) {
+        energyBar.style.backgroundColor = 'var(--accent-red)';
+        energyVal.style.color = 'var(--accent-red)';
+        warning.style.display = 'block';
+    } else if (energy < 30) {
+        energyBar.style.backgroundColor = '#f97316';
+        energyVal.style.color = 'var(--text-main)';
+        warning.style.display = 'none';
+    } else {
+        energyBar.style.backgroundColor = 'var(--accent-gold)';
+        energyVal.style.color = 'var(--text-main)';
+        warning.style.display = 'none';
+    }
+
+    if (timeRemaining < 6) {
+        timeBar.style.backgroundColor = 'var(--accent-red)';
+    } else {
+        timeBar.style.backgroundColor = 'var(--accent-cyan)';
+    }
+
+    document.getElementById('card-num').textContent = currentCard + 1;
+}
+
+function renderCard() {
+    updateHUD();
+    const card = cards[currentCard];
+    
+    // Ustawienie dedykowanego banera z konfiguracji karty
+    const banner = document.getElementById('q-banner');
+    if (card.banner) {
+        banner.style.display = 'block';
+        banner.src = card.banner;
+        banner.alt = card.bannerAlt || card.category;
+    } else {
+        banner.style.display = 'none';
+    }
+
+    document.getElementById('q-category').textContent = card.category;
+    document.getElementById('q-title').textContent = card.title;
+    document.getElementById('q-desc').textContent = card.desc;
+
+    const container = document.getElementById('options-container');
+    container.innerHTML = '';
+
+    card.options.forEach((opt) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        
+        const eSign = opt.energy > 0 ? `+${opt.energy}` : opt.energy;
+        const eClass = opt.energy > 0 ? 'cost-energy gain' : 'cost-energy';
+        const tText = opt.time === 0 ? '0 h' : `${opt.time} h`;
+
+        btn.innerHTML = `
+            <div class="option-text">${opt.text}</div>
+            <div class="option-costs">
+                <span class="cost-tag ${eClass}">⚡ Energia: ${eSign} j.</span>
+                <span class="cost-tag cost-time">⏳ Czas: ${tText}</span>
+            </div>
+        `;
+        btn.onclick = () => selectOption(opt);
+        container.appendChild(btn);
+    });
+}
+
+function selectOption(opt) {
+    energy = Math.min(120, energy + opt.energy);
+    timeRemaining = Math.max(0, +(timeRemaining + opt.time).toFixed(1));
+    totalLeverage += opt.leverage;
+    scores[opt.type]++;
+
+    currentCard++;
+    if (currentCard < cards.length) {
+        const quizCard = document.getElementById('screen-quiz');
+        quizCard.style.animation = 'none';
+        quizCard.offsetHeight; /* trigger reflow */
+        quizCard.style.animation = 'fadeIn 0.35s ease-out';
+        renderCard();
+    } else {
+        showResults();
+    }
+}
+
+function showResults() {
+    document.getElementById('hud').style.display = 'none';
+    document.getElementById('screen-quiz').style.display = 'none';
+    const resScreen = document.getElementById('screen-result');
+    resScreen.style.display = 'block';
+
+    const profiles = {
+        strateg: {
+            title: "Zimny Strateg (Architekt Systemów)",
+            sub: "Klasyfikacja: Pragmatyk Wysokiej Dźwigni",
+            story: "Żyjesz w thrillerze strategicznym, w którym liczy się wynik końcowy i chłodna kalkulacja. Nie przepalasz emocji na wojenki o 25 złotych ani na cudzy chaos. Kupujesz czas za pieniądze, automatyzujesz nudę i stawiasz twarde granice. Twoja doba jest zaprojektowana jak dobrze naoliwiona maszyna – uważaj tylko, by czasem zostawić w niej miejsce na czystą spontaniczność."
+        },
+        ryzykant: {
+            title: "Ryzykant Dźwigni (Łowca Okazji)",
+            sub: "Klasyfikacja: Gracz Wysokich Obrotów",
+            story: "Żyjesz w dynamicznym filmie akcji o budowaniu imperium. Kiedy pojawia się okazja, wskakujesz w nią obiema nogami, nawet kosztem zarwanej nocy. Tworzysz skrypty, szukasz luk rynkowych i potrafisz wycisnąć z jednej godziny tyle, co inni z całego tygodnia. Twoim największym wrogiem nie jest konkurencja, lecz Twój własny układ nerwowy – pamiętaj, że nawet najlepszy silnik potrzebuje chłodzenia."
+        },
+        spokoj: {
+            title: "Strażnik Spokoju (Stoik Zasobów)",
+            sub: "Klasyfikacja: Mistrz Długiego Dystansu",
+            story: "Żyjesz w mądrej, harmonijnej opowieści, w której to praca służy człowiekowi, a nie człowiek pracy. Rozumiesz, że niewyspany mózg i pusty żołądek to najdroższy podatek, jaki można zapłacić. Odrzucasz toksyczny pośpiech, dbasz o dobre jedzenie, regenerację i relacje. Być może omija Cię kilka gorących okazji, ale wygrywasz ten wyścig na dystansie dekad, podczas gdy inni wypalają się po pierwszym sprincie."
+        },
+        chaos: {
+            title: "Inżynier Chaosu (Strażak Codzienności)",
+            sub: "Klasyfikacja: Bohater Reaktywny",
+            story: "Żyjesz w niekończącym się serialu kryzysowym, gdzie co chwilę wybucha nowy pożar. Masz dobre serce i ogromną wolę walki, ale pozwalasz, by to powiadomienia, trudni klienci i cudze problemy pisały Twój plan dnia. Płacisz najwyższą stawkę na Czarnym Rynku Czasu – własnym kortyzolem. Jeśli zaczniesz mówić „nie” i zamkniesz 30 otwartych zakładek w głowie, odzyskasz połowę swojego życia."
+        }
+    };
+
+    let dominant = Object.keys(scores).reduce((a, b) => scores[a] >= scores[b] ? a : b);
+    const prof = profiles[dominant];
+
+    document.getElementById('res-archetype').textContent = prof.title;
+    document.getElementById('res-subtitle').textContent = prof.sub;
+    document.getElementById('res-story').textContent = prof.story;
+
+    document.getElementById('res-energy').textContent = `${energy} j.`;
+    document.getElementById('res-energy').style.color = energy < 0 ? 'var(--accent-red)' : 'var(--accent-gold)';
+    document.getElementById('res-time').textContent = `${timeRemaining.toFixed(1)} h`;
+    document.getElementById('res-time').style.color = timeRemaining < 6 ? 'var(--accent-red)' : 'var(--accent-cyan)';
+    
+    const roiScore = Math.max(0, Math.min(100, Math.round(((totalLeverage + 100) / 400) * 100)));
+    document.getElementById('res-roi').textContent = `${roiScore}%`;
+
+    const traitNames = {
+        strateg: "Zimny Strateg (System i granice)",
+        ryzykant: "Ryzykant Dźwigni (Skala i okazje)",
+        spokoj: "Strażnik Spokoju (Biologia i balans)",
+        chaos: "Inżynier Chaosu (Reaktywność)"
+    };
+    const traitColors = {
+        strateg: "var(--accent-cyan)",
+        ryzykant: "var(--accent-gold)",
+        spokoj: "var(--accent-green)",
+        chaos: "var(--accent-red)"
+    };
+
+    const barsContainer = document.getElementById('trait-bars');
+    barsContainer.innerHTML = '';
+    for (let key in scores) {
+        const pct = Math.round((scores[key] / 20) * 100);
+        barsContainer.innerHTML += `
+            <div class="trait-row">
+                <div class="trait-label">
+                    <span>${traitNames[key]}</span>
+                    <strong>${pct}% (${scores[key]}/20)</strong>
+                </div>
+                <div class="bar-bg">
+                    <div class="bar-fill" style="width: ${pct}%; background: ${traitColors[key]};"></div>
+                </div>
+            </div>
+        `;
+    }
+
+    let auditText = "";
+    if (timeRemaining >= 7.0) {
+        auditText += `✅ <strong>Bilans Biologiczny:</strong> Zostało Ci <strong>${timeRemaining.toFixed(1)}h</strong> na sen. Twój mózg zregeneruje się w pełni i jutro znów wejdziesz do gry ze 100 jednostkami energii. `;
+    } else if (timeRemaining >= 5.0) {
+        auditText += `⚠️ <strong>Deficyt Snu:</strong> Zostało Ci tylko <strong>${timeRemaining.toFixed(1)}h</strong> na sen. Jutro zaczniesz dzień z długiem poznawczym. `;
+    } else {
+        auditText += `🚨 <strong>Krytyczny Brak Snu:</strong> Zostało Ci zaledwie <strong>${timeRemaining.toFixed(1)}h</strong> doby! Sprzedałeś swój sen na Czarnym Rynku – jutro zapłacisz za to podwójną cenę. `;
+    }
+
+    if (energy < 0) {
+        auditText += `<br><br>🔥 <strong>Przepalenie (Energia: ${energy} j.):</strong> Zakończyłeś dzień na głębokim minusie energetycznym. Dowiozłeś tematy siłą woli, ale Twój organizm wystawi za to rachunek w weekend.`;
+    } else if (energy > 50) {
+        auditText += `<br><br>⚡ <strong>Żelazna Rezerwa (Energia: ${energy} j.):</strong> Świetnie chronisz swój zasób mentalny. Nie dajesz się wciągać w bezsensowne potyczki.`;
+    }
+
+    document.getElementById('res-audit').innerHTML = auditText;
+}
+
+function resetGame() {
+    currentCard = 0;
+    energy = 100;
+    timeRemaining = 24.0;
+    totalLeverage = 0;
+    scores = { strateg: 0, ryzykant: 0, spokoj: 0, chaos: 0 };
+    document.getElementById('screen-result').style.display = 'none';
+    document.getElementById('screen-intro').style.display = 'block';
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>W jakiej historii żyjesz? | VHS Story Archetype Test 1985</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Press Start 2P, VT323, Righteous, Space Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Righteous&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=VT323&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --neon-pink: #ff2a85;
+            --neon-cyan: #00f0ff;
+            --neon-purple: #b829ff;
+            --neon-yellow: #ffe600;
+            --bg-dark: #090414;
+            --card-bg: rgba(18, 10, 38, 0.88);
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #f0e6ff;
+            font-family: 'Space Mono', monospace;
+            overflow-x: hidden;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Czcionki pomocnicze */
+        .font-arcade {
+            font-family: 'Press Start 2P', cursive;
+            line-height: 1.5;
+        }
+        .font-vhs {
+            font-family: 'VT323', monospace;
+        }
+        .font-title {
+            font-family: 'Righteous', cursive;
+        }
+
+        /* Tło Synthwave - Słońce i Siatka 3D */
+        .synthwave-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            background: linear-gradient(180deg, #05020a 0%, #17062e 45%, #3b0944 70%, #090414 100%);
+            overflow: hidden;
+        }
+
+        .synth-sun {
+            position: absolute;
+            bottom: 30%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 340px;
+            height: 340px;
+            border-radius: 50%;
+            background: linear-gradient(180deg, #ffee00 0%, #ff6a00 45%, #ff007b 100%);
+            box-shadow: 0 0 80px rgba(255, 42, 133, 0.6);
+            opacity: 0.45;
+            -webkit-mask-image: linear-gradient(
+                to bottom,
+                #000 0%, #000 50%,
+                transparent 50%, transparent 53%,
+                #000 53%, #000 62%,
+                transparent 62%, transparent 66%,
+                #000 66%, #000 73%,
+                transparent 73%, transparent 78%,
+                #000 78%, #000 84%,
+                transparent 84%, transparent 90%,
+                #000 90%, #000 95%,
+                transparent 95%, transparent 100%
+            );
+        }
+
+        .synth-grid {
+            position: absolute;
+            bottom: 0;
+            left: -50%;
+            width: 200%;
+            height: 38%;
+            background-image: 
+                linear-gradient(to right, rgba(0, 240, 255, 0.28) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 42, 133, 0.35) 1px, transparent 1px);
+            background-size: 50px 35px;
+            transform: perspective(300px) rotateX(68deg);
+            transform-origin: top center;
+            animation: gridMove 6s linear infinite;
+            box-shadow: 0 -20px 50px rgba(255, 42, 133, 0.35);
+        }
+
+        @keyframes gridMove {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 35px; }
+        }
+
+        /* Gwiazdy w tle */
+        .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 65%;
+            background-image: 
+                radial-gradient(1.5px 1.5px at 25px 35px, #fff, transparent),
+                radial-gradient(1px 1px at 90px 80px, #00f0ff, transparent),
+                radial-gradient(2px 2px at 180px 40px, #ff2a85, transparent),
+                radial-gradient(1.5px 1.5px at 260px 120px, #fff, transparent),
+                radial-gradient(1px 1px at 330px 70px, #ffe600, transparent);
+            background-size: 380px 200px;
+            opacity: 0.6;
+        }
+
+        /* Efekt CRT (linie skanowania i winieta) */
+        .crt-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            pointer-events: none;
+            background: 
+                linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.32) 50%),
+                radial-gradient(circle at center, transparent 65%, rgba(0, 0, 0, 0.65) 100%);
+            background-size: 100% 4px, 100% 100%;
+        }
+
+        .crt-off {
+            display: none !important;
+        }
+
+        /* Neonowe obramowania i poświaty */
+        .neon-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 2px solid var(--neon-cyan);
+            box-shadow: 
+                0 0 20px rgba(0, 240, 255, 0.25),
+                inset 0 0 20px rgba(255, 42, 133, 0.12);
+        }
+
+        .neon-card-pink {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 2px solid var(--neon-pink);
+            box-shadow: 
+                0 0 25px rgba(255, 42, 133, 0.35),
+                inset 0 0 20px rgba(0, 240, 255, 0.12);
+        }
+
+        .text-glow-pink {
+            text-shadow: 0 0 8px rgba(255, 42, 133, 0.9), 0 0 20px rgba(255, 42, 133, 0.5);
+        }
+
+        .text-glow-cyan {
+            text-shadow: 0 0 8px rgba(0, 240, 255, 0.9), 0 0 18px rgba(0, 240, 255, 0.4);
+        }
+
+        .text-glow-yellow {
+            text-shadow: 0 0 8px rgba(255, 230, 0, 0.8), 0 0 16px rgba(255, 136, 0, 0.5);
+        }
+
+        /* Styl dla panoramicznych banerów VHS (Strony 01 - 22) */
+        .vhs-banner-wrapper {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+            border-radius: 0.75rem;
+            border: 2px solid rgba(0, 240, 255, 0.65);
+            box-shadow: 0 0 25px rgba(0, 240, 255, 0.25), inset 0 0 20px rgba(255, 42, 133, 0.25);
+            background: radial-gradient(circle at center, #1f113d 0%, #090414 100%);
+            aspect-ratio: 21 / 9;
+            max-height: 260px;
+        }
+
+        .vhs-banner-wrapper.pink-border {
+            border-color: rgba(255, 42, 133, 0.8);
+            box-shadow: 0 0 25px rgba(255, 42, 133, 0.35), inset 0 0 20px rgba(0, 240, 255, 0.2);
+        }
+
+        .vhs-banner-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            display: block;
+            filter: contrast(1.06) saturate(1.12);
+            transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease;
+        }
+
+        .vhs-banner-wrapper:hover .vhs-banner-img {
+            transform: scale(1.02);
+        }
+
+        .vhs-banner-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(9,4,20,0.25) 0%, transparent 40%, rgba(9,4,20,0.8) 100%);
+            pointer-events: none;
+        }
+
+        .vhs-banner-badge {
+            position: absolute;
+            bottom: 0.5rem;
+            right: 0.65rem;
+            background: rgba(9, 4, 20, 0.82);
+            border: 1px solid rgba(0, 240, 255, 0.5);
+            padding: 0.15rem 0.55rem;
+            border-radius: 0.35rem;
+            font-family: 'VT323', monospace;
+            font-size: 1rem;
+            color: #00f0ff;
+            letter-spacing: 0.1em;
+            pointer-events: none;
+            backdrop-filter: blur(4px);
+        }
+
+        /* Przyciski odpowiedzi w stylu Arcade */
+        .option-btn {
+            background: rgba(29, 16, 59, 0.85);
+            border: 2px solid rgba(0, 240, 255, 0.45);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-btn:hover, .option-btn:focus-visible {
+            background: rgba(255, 42, 133, 0.22);
+            border-color: var(--neon-pink);
+            transform: translateX(6px);
+            box-shadow: -4px 0 0 var(--neon-yellow), 0 0 18px rgba(255, 42, 133, 0.45);
+            outline: none;
+        }
+
+        .option-btn:active {
+            transform: translateX(3px) scale(0.99);
+        }
+
+        .option-btn.selected {
+            background: linear-gradient(90deg, rgba(255, 42, 133, 0.4), rgba(184, 41, 255, 0.3));
+            border-color: var(--neon-yellow);
+            box-shadow: 0 0 22px rgba(255, 230, 0, 0.6);
+        }
+
+        /* Przycisk główny "WRZUĆ MONETĘ" */
+        .arcade-cta {
+            background: linear-gradient(135deg, #ff2a85 0%, #b829ff 100%);
+            border: 2px solid #fff;
+            box-shadow: 0 0 20px rgba(255, 42, 133, 0.7), 0 6px 0 #700b46;
+            transition: all 0.15s ease;
+        }
+
+        .arcade-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.9), 0 8px 0 #700b46;
+            background: linear-gradient(135deg, #ff4da0 0%, #c952ff 100%);
+        }
+
+        .arcade-cta:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 15px rgba(255, 42, 133, 0.7), 0 2px 0 #700b46;
+        }
+
+        /* Animacje przejścia kart */
+        @keyframes cardEnter {
+            0% {
+                opacity: 0;
+                transform: translateY(18px) scale(0.97);
+                filter: brightness(1.8) contrast(1.4);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: brightness(1) contrast(1);
+            }
+        }
+
+        .card-animate {
+            animation: cardEnter 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        /* Migający kursor / dioda REC */
+        @keyframes blink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0; }
+        }
+        .blink {
+            animation: blink 1.1s infinite;
+        }
+
+        /* Pasek Equalizera RPG */
+        .eq-bar-bg {
+            background: repeating-linear-gradient(
+                90deg,
+                rgba(255,255,255,0.07) 0px,
+                rgba(255,255,255,0.07) 8px,
+                transparent 8px,
+                transparent 11px
+            );
+        }
+
+        /* Niestandardowy pasek przewijania */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #090414;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #ff2a85;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="flex flex-col justify-between min-h-screen selection:bg-pink-500 selection:text-white">
+
+    <!-- Tło Synthwave -->
+    <div class="synthwave-bg">
+        <div class="stars"></div>
+        <div class="synth-sun"></div>
+        <div class="synth-grid"></div>
+    </div>
+
+    <!-- Nakładka monitora CRT -->
+    <div id="crtOverlay" class="crt-overlay"></div>
+
+    <!-- Ukryty input do opcjonalnego wczytania folderu ze zdjęciami -->
+    <input type="file" id="bannerFolderInput" webkitdirectory directory multiple accept="image/*" class="hidden" onchange="handleCustomBannerFiles(event)">
+
+    <!-- Górny pasek stanu VHS / Arcade HUD -->
+    <header class="w-full max-w-4xl mx-auto px-4 pt-4 pb-2 z-10">
+        <div class="flex flex-wrap items-center justify-between gap-2 bg-black/60 border border-cyan-500/40 rounded-lg px-4 py-2.5 backdrop-blur-md">
+            <!-- Lewa strona: Status VHS -->
+            <div class="flex items-center space-x-3">
+                <span class="inline-block w-3 h-3 rounded-full bg-red-500 blink shadow-[0_0_8px_#ef4444]"></span>
+                <span id="vhsStatusText" class="font-vhs text-xl sm:text-2xl tracking-widest text-cyan-300">
+                    PLAY ▶ STRONA 01/22
+                </span>
+            </div>
+
+            <!-- Prawa strona: Przełączniki Audio i CRT -->
+            <div class="flex items-center space-x-2 sm:space-x-2.5">
+                <button onclick="document.getElementById('bannerFolderInput').click()" class="flex items-center space-x-1.5 px-2.5 py-1.5 rounded border border-yellow-400/60 bg-yellow-950/40 hover:bg-yellow-800/50 text-xs font-arcade text-yellow-300 transition cursor-pointer" title="Wybierz ręcznie folder ze zdjęciami, jeśli nie ładują się automatycznie z folderu img/">
+                    <span>📂</span>
+                    <span id="folderBtnLabel" class="hidden md:inline">FOLDER: IMG/</span>
+                </button>
+                <button id="soundToggleBtn" onclick="toggleSound()" class="flex items-center space-x-1.5 px-3 py-1.5 rounded border border-pink-500/60 bg-pink-950/40 hover:bg-pink-800/50 text-xs font-arcade text-pink-300 transition cursor-pointer" title="Włącz/Wyłącz efekty dźwiękowe Synth">
+                    <span id="soundIcon">🔊</span>
+                    <span id="soundLabel" class="hidden sm:inline">SYNTH: ON</span>
+                </button>
+                <button id="crtToggleBtn" onclick="toggleCRT()" class="flex items-center space-x-1.5 px-3 py-1.5 rounded border border-cyan-500/60 bg-cyan-950/40 hover:bg-cyan-800/50 text-xs font-arcade text-cyan-300 transition cursor-pointer" title="Włącz/Wyłącz linie telewizora CRT">
+                    <span>📺</span>
+                    <span id="crtLabel" class="hidden sm:inline">CRT: ON</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Główny kontener gry -->
+    <main class="flex-grow flex items-center justify-center px-4 py-4 z-10 w-full max-w-4xl mx-auto">
+        
+        <!-- 1. EKRAN POWITALNY (STRONA 01 / BANER 01) -->
+        <section id="introScreen" class="w-full neon-card rounded-2xl p-6 sm:p-10 text-center card-animate">
+            
+            <!-- BANER STRONY 01 -->
+            <div class="vhs-banner-wrapper mb-6">
+                <img id="introBannerImg" alt="Baner strony 01" class="vhs-banner-img">
+                <div class="vhs-banner-overlay"></div>
+                <div class="vhs-banner-badge">KADR #01 / 22 • INTRO</div>
+            </div>
+
+            <div class="inline-block px-3 py-1 mb-4 rounded-full border border-yellow-400/60 bg-yellow-500/10 text-yellow-300 font-vhs text-xl tracking-widest uppercase">
+                ★ Klub Wideo „Stardust” &amp; Arcade Systems 1985 ★
+            </div>
+
+            <h1 class="font-title text-4xl sm:text-6xl md:text-7xl tracking-wider uppercase mb-2 text-transparent bg-clip-text bg-gradient-to-b from-white via-cyan-200 to-cyan-500 text-glow-cyan">
+                W JAKIEJ HISTORII
+            </h1>
+            <h2 class="font-title text-3xl sm:text-5xl md:text-6xl tracking-widest uppercase mb-6 text-pink-500 text-glow-pink">
+                ŻYJESZ NAPRAWDĘ?
+            </h2>
+
+            <!-- Retro grafika kasety VHS w SVG -->
+            <div class="max-w-md mx-auto my-6 p-4 bg-black/70 border-2 border-purple-500/50 rounded-xl shadow-inner">
+                <svg viewBox="0 0 320 120" class="w-full h-auto mx-auto" aria-label="Kaseta VHS">
+                    <rect x="10" y="10" width="300" height="100" rx="8" fill="#18122b" stroke="#00f0ff" stroke-width="2.5"/>
+                    <rect x="25" y="20" width="270" height="22" rx="3" fill="#ff2a85"/>
+                    <rect x="25" y="34" width="270" height="6" fill="#ffe600"/>
+                    <rect x="25" y="40" width="270" height="5" fill="#00f0ff"/>
+                    <text x="160" y="35" fill="#ffffff" font-family="VT323, monospace" font-size="18" text-anchor="middle" letter-spacing="3">ARCHETYPE-TAPE E-180</text>
+                    <rect x="45" y="54" width="230" height="44" rx="6" fill="#090414" stroke="#b829ff" stroke-width="1.5"/>
+                    <circle cx="95" cy="76" r="16" fill="none" stroke="#00f0ff" stroke-width="3" stroke-dasharray="6 4"/>
+                    <circle cx="95" cy="76" r="6" fill="#ff2a85"/>
+                    <circle cx="225" cy="76" r="16" fill="none" stroke="#00f0ff" stroke-width="3" stroke-dasharray="6 4"/>
+                    <circle cx="225" cy="76" r="6" fill="#ff2a85"/>
+                    <rect x="130" y="64" width="60" height="24" fill="#140c29" stroke="#ffffff33"/>
+                    <text x="160" y="80" fill="#ffe600" font-family="Press Start 2P, monospace" font-size="8" text-anchor="middle">HI-FI</text>
+                </svg>
+            </div>
+
+            <div class="max-w-2xl mx-auto text-left sm:text-center space-y-4 text-purple-100/90 text-sm sm:text-base leading-relaxed mb-8 bg-purple-950/30 p-5 rounded-xl border border-purple-500/30">
+                <p>
+                    Wyobraź sobie, że Twoje codzienne życie – poranna kawa, muzyka w słuchawkach, deszcz za oknem autobusu, rozmowy ze znajomymi po zmroku i sposób, w jaki rozwiązujesz problemy – to tak naprawdę <strong class="text-cyan-300">scenariusz filmu z lat 80.</strong>
+                </p>
+                <p>
+                    Czy jesteś detektywem w deszczu neonów? Buntownikiem na skąpanej w słońcu autostradzie? A może poszukiwaczem tajemnic z małego miasteczka, w którym właśnie zaczynają dziać się rzeczy niewytłumaczalne?
+                </p>
+                <p class="font-vhs text-xl text-yellow-300 tracking-wide text-center pt-1">
+                    Odpowiedz szczerze na 20 pytań o codzienne chwile i odkryj swój fabularny archetyp.
+                </p>
+            </div>
+
+            <div class="flex flex-col items-center space-y-4">
+                <button onclick="startQuiz()" class="arcade-cta font-arcade text-sm sm:text-base text-white px-8 py-4 rounded-xl tracking-wider uppercase cursor-pointer">
+                    🪙 WRZUĆ MONETĘ / ROZPOCZNIJ TEST
+                </button>
+                <span class="font-vhs text-lg text-cyan-400/80 tracking-widest">
+                    1 CREDIT • 20 SCEN DO PRZEJŚCIA • 6 ARCHETYPÓW
+                </span>
+            </div>
+        </section>
+
+        <!-- 2. EKRAN KARTY Z PYTANIEM (STRONY 02 DO 21 / BANERY 02 DO 21) -->
+        <section id="questionScreen" class="hidden w-full neon-card rounded-2xl p-5 sm:p-8">
+            <div class="mb-5">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center space-x-2">
+                        <span class="px-2.5 py-1 bg-pink-600 text-white font-arcade text-xs rounded">
+                            SCENA <span id="sceneNumber">01</span>/20
+                        </span>
+                        <span id="sceneTimecode" class="font-vhs text-xl text-cyan-300 hidden sm:inline">
+                            [TC 00:04:12]
+                        </span>
+                    </div>
+                    <span id="progressPercent" class="font-vhs text-xl text-yellow-300">
+                        TAŚMA: 5%
+                    </span>
+                </div>
+
+                <div class="w-full h-4 bg-black/80 rounded-full p-0.5 border border-cyan-500/50 overflow-hidden">
+                    <div id="progressBar" class="h-full bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 rounded-full transition-all duration-300" style="width: 5%"></div>
+                </div>
+            </div>
+
+            <div id="questionCardBody" class="card-animate">
+                <div class="vhs-banner-wrapper mb-5">
+                    <img id="questionBannerImg" alt="Baner sceny" class="vhs-banner-img">
+                    <div class="vhs-banner-overlay"></div>
+                    <div id="questionBannerBadge" class="vhs-banner-badge">KADR #02 / 22 • SCENA 01</div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-center gap-4 p-4 mb-6 rounded-xl bg-gradient-to-r from-purple-950/70 via-indigo-950/60 to-pink-950/50 border border-pink-500/40">
+                    <div id="sceneIconContainer" class="w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0 flex items-center justify-center rounded-xl bg-black/60 border border-cyan-400/50 shadow-[0_0_15px_rgba(0,240,255,0.2)]"></div>
+                    <div class="text-center sm:text-left">
+                        <div id="sceneLocation" class="font-vhs text-lg sm:text-xl text-pink-400 tracking-widest uppercase">
+                            LOKACJA: SYPIALNIA, GODZINA 07:00
+                        </div>
+                        <h2 id="questionText" class="text-base sm:text-xl md:text-2xl font-bold text-white leading-snug mt-1">
+                            Treść pytania ładuje się...
+                        </h2>
+                    </div>
+                </div>
+
+                <div id="optionsContainer" class="grid grid-cols-1 gap-3.5 mb-6"></div>
+            </div>
+
+            <div class="flex items-center justify-between pt-4 border-t border-purple-500/30">
+                <button id="prevBtn" onclick="prevQuestion()" class="flex items-center space-x-2 px-4 py-2 rounded-lg border border-cyan-400/50 bg-cyan-950/40 hover:bg-cyan-800/50 text-cyan-200 font-vhs text-xl tracking-wider transition disabled:opacity-30 disabled:pointer-events-none cursor-pointer">
+                    <span>⏪ COFNIJ TAŚMĘ</span>
+                </button>
+                <div class="font-vhs text-lg text-purple-300/70">
+                    KLIKNIJ ODPOWIEDŹ LUB NACIŚNIJ [A-D]
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. EKRAN KOŃCOWY - PODSUMOWANIE FABUŁY (STRONA 22 / BANER 22) -->
+        <section id="resultScreen" class="hidden w-full neon-card-pink rounded-2xl p-6 sm:p-10 card-animate">
+            <div class="vhs-banner-wrapper pink-border mb-6">
+                <img id="resultBannerImg" alt="Baner strony finałowej 22" class="vhs-banner-img">
+                <div class="vhs-banner-overlay"></div>
+                <div class="vhs-banner-badge">KADR #22 / 22 • WIELKI FINAŁ</div>
+            </div>
+
+            <div class="text-center border-b border-pink-500/40 pb-6 mb-8">
+                <div class="inline-block px-3 py-1 mb-3 rounded bg-cyan-500/20 border border-cyan-400 text-cyan-300 font-arcade text-xs uppercase">
+                    ANALIZA TAŚMY ZAKOŃCZONA • TWÓJ ARCHETYP FABULARNY
+                </div>
+                <p class="font-vhs text-2xl text-yellow-300 tracking-widest uppercase mb-1">
+                    ŻYJESZ W HISTORII JAKO:
+                </p>
+                <h2 id="resultTitle" class="font-title text-3xl sm:text-5xl text-white text-glow-pink uppercase tracking-wide mb-2">
+                    TYTUŁ ARCHETYPU
+                </h2>
+                <p id="resultSubtitle" class="font-vhs text-2xl sm:text-3xl text-cyan-300 tracking-widest">
+                    (Gatunek Filmowy)
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <div class="bg-black/60 border-2 border-cyan-400/60 rounded-xl p-5 flex flex-col items-center justify-center text-center shadow-[0_0_25px_rgba(0,240,255,0.15)]">
+                    <div id="resultBadgeSvg" class="w-28 h-28 mb-4 flex items-center justify-center rounded-full bg-gradient-to-br from-purple-900/80 to-pink-900/80 border-2 border-yellow-400 shadow-[0_0_20px_rgba(255,230,0,0.4)]"></div>
+                    <div class="font-arcade text-xs text-yellow-300 mb-1">GŁÓWNA ROLA</div>
+                    <div id="resultFilms" class="font-vhs text-xl text-purple-200 tracking-wide mb-4">
+                        Klimat: Stranger Things / Super 8
+                    </div>
+                    <div class="w-full border-t border-purple-500/30 pt-3 text-xs text-left space-y-2">
+                        <div>
+                            <span class="text-pink-400 font-bold block">🎬 KADR OTWIERAJĄCY:</span>
+                            <span id="resultOpeningShot" class="text-purple-100">Opis kadru...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-2 bg-purple-950/35 border border-purple-500/40 rounded-xl p-5 sm:p-6 flex flex-col justify-between space-y-4">
+                    <div>
+                        <h3 class="font-arcade text-xs sm:text-sm text-cyan-300 uppercase mb-3 flex items-center gap-2">
+                            <span>📼</span> STRESZCZENIE TWOJEJ FABUŁY:
+                        </h3>
+                        <p id="resultDescription" class="text-sm sm:text-base text-purple-100 leading-relaxed">
+                            Opis historii...
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                        <div class="bg-black/50 border border-cyan-500/40 rounded-lg p-3.5">
+                            <div class="font-arcade text-[11px] text-cyan-400 mb-1">⚡ SUPERMOC FABULARNA</div>
+                            <p id="resultSuperpower" class="text-xs sm:text-sm text-gray-200 leading-snug"></p>
+                        </div>
+                        <div class="bg-black/50 border border-pink-500/40 rounded-lg p-3.5">
+                            <div class="font-arcade text-[11px] text-pink-400 mb-1">🌑 UKRYTE WYZWANIE</div>
+                            <p id="resultChallenge" class="text-xs sm:text-sm text-gray-200 leading-snug"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                <div class="bg-gradient-to-r from-pink-950/50 to-purple-950/50 border border-pink-400/50 rounded-xl p-4 flex items-center space-x-4">
+                    <div class="text-3xl sm:text-4xl bg-black/50 p-3 rounded-lg border border-pink-400/40">🎧</div>
+                    <div>
+                        <div class="font-arcade text-[10px] sm:text-xs text-pink-300 uppercase">Ścieżka Dźwiękowa Twojego Życia</div>
+                        <div id="resultSoundtrack" class="font-vhs text-xl sm:text-2xl text-white tracking-wide mt-0.5">
+                            Synth-Pop &amp; Midnight Drive
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-r from-cyan-950/50 to-indigo-950/50 border border-cyan-400/50 rounded-xl p-4 flex items-center space-x-4">
+                    <div class="text-3xl sm:text-4xl bg-black/50 p-3 rounded-lg border border-cyan-400/40">🎒</div>
+                    <div>
+                        <div class="font-arcade text-[10px] sm:text-xs text-cyan-300 uppercase">Twój Kultowy Rekwizyt</div>
+                        <div id="resultProp" class="font-vhs text-xl sm:text-2xl text-white tracking-wide mt-0.5">
+                            Walkman z zapasowymi bateriami
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-black/60 border border-cyan-500/40 rounded-xl p-5 sm:p-6 mb-8">
+                <h3 class="font-arcade text-xs sm:text-sm text-yellow-300 uppercase mb-4 flex items-center justify-between">
+                    <span>📊 EQUALIZER DOPASOWANIA GATUNKOWEGO (STATYSTYKI POSTACI)</span>
+                    <span class="font-vhs text-lg text-cyan-400 hidden sm:inline">6 KANAŁÓW VHS</span>
+                </h3>
+                <div id="statsContainer" class="space-y-3.5"></div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <button onclick="copyResultToClipboard()" class="w-full sm:w-auto px-6 py-4 rounded-xl border-2 border-cyan-400 bg-cyan-950/60 hover:bg-cyan-800/70 text-cyan-200 font-arcade text-xs sm:text-sm tracking-wider uppercase transition flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_15px_rgba(0,240,255,0.3)]">
+                    <span>📋</span>
+                    <span id="copyBtnText">SKOPIUJ WYNIK DO SCHOWKA</span>
+                </button>
+
+                <button onclick="resetQuiz()" class="w-full sm:w-auto arcade-cta font-arcade text-xs sm:text-sm text-white px-6 py-4 rounded-xl tracking-wider uppercase cursor-pointer flex items-center justify-center gap-2">
+                    <span>⏪</span>
+                    <span>ZAGRAJ PONOWNIE (PRZEWIŃ KASETĘ)</span>
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Stopka -->
+    <footer class="w-full text-center py-3 px-4 z-10 font-vhs text-lg text-purple-300/60 tracking-widest">
+        SYSTEM VHS-ARCHETYPE VER 1.985 • WCIŚNIJ KLAWISZE [A] [B] [C] [D] ABY WYBRAĆ ODPOWIEDŹ
+    </footer>
+
+    <!-- Powiadomienie Toast -->
+    <div id="toastBox" class="fixed bottom-6 right-6 z-50 hidden bg-black/90 border-2 border-yellow-400 text-yellow-300 px-5 py-3 rounded-xl font-vhs text-2xl tracking-wider shadow-[0_0_20px_rgba(255,230,0,0.5)]">
+        ✓ SKOPIOWANO KARTĘ POSTACI DO SCHOWKA!
+    </div>
+
+    <script>
+        /* ==========================================================================
+           0. OBSŁUGA BANERÓW ZE ZDJĘCIAMI Z FOLDERU img/
+           ========================================================================== */
+        const customBannerBlobs = {};
+
+        const KNOWN_RAR_FILENAMES = {
+            1: '01_cinematic_wide_banner_as.png',
+            2: '02_cinematic_wide_banner_as.png',
+            3: '03_cinematic_wide_banner_as.png',
+            4: '04_cinematic_wide_banner_as.png',
+            5: '05_cinematic_wide_banner_as.png',
+            6: '06_cinematic_wide_banner_as.png',
+            7: '07_cinematic_wide_banner_as.png',
+            8: '08_cinematic_wide_banner_as.png',
+            9: '09_cinematic_wide_banner_as.png',
+            10: '10_cinematic_wide_banner_as.png',
+            11: '11_cinematic_wide_banner_as.png',
+            12: '12_cinematic_wide_banner_as.png',
+            13: '13_cinematic_wide_banner_as.png',
+            14: '14_cinematic_wide_banner_as.png',
+            15: '15_cinematic_wide_banner_as.png',
+            16: '16_cinematic_wide_banner_as.png',
+            17: '17_cinematic_wide_banner_as.png',
+            18: '18_cinematic_wide_banner_as.png',
+            19: '19_cinematic_wide_banner_as.png',
+            20: '20_cinematic_wide_banner_as.png',
+            21: '21_cinematic_wide_banner_as.png',
+            22: '22_cinematic_wide_banner_as.png'
+        };
+
+        function createSynthwaveFallbackBanner(pageNum) {
+            const numStr = String(pageNum).padStart(2, '0');
+            const label = pageNum === 1 ? 'START TAŚMY (INTRO)' : (pageNum === 22 ? 'FINAŁ HISTORII' : `SCENA FABULARNA #${String(pageNum - 1).padStart(2, '0')}`);
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 360" width="100%" height="100%">
+                <defs>
+                    <linearGradient id="bg${numStr}" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#070312"/>
+                        <stop offset="55%" stop-color="#24083d"/>
+                        <stop offset="100%" stop-color="#4f0b59"/>
+                    </linearGradient>
+                    <linearGradient id="sun${numStr}" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#ffe600"/>
+                        <stop offset="50%" stop-color="#ff5500"/>
+                        <stop offset="100%" stop-color="#ff007b"/>
+                    </linearGradient>
+                </defs>
+                <rect width="840" height="360" fill="url(#bg${numStr})"/>
+                <circle cx="420" cy="185" r="105" fill="url(#sun${numStr})" opacity="0.85"/>
+                <rect x="0" y="230" width="840" height="130" fill="#090414"/>
+                <g stroke="#00f0ff" stroke-opacity="0.35" stroke-width="1.5">
+                    <line x1="0" y1="230" x2="840" y2="230"/>
+                    <line x1="0" y1="255" x2="840" y2="255"/>
+                    <line x1="0" y1="285" x2="840" y2="285"/>
+                    <line x1="0" y1="320" x2="840" y2="320"/>
+                    <line x1="420" y1="230" x2="120" y2="360"/>
+                    <line x1="420" y1="230" x2="270" y2="360"/>
+                    <line x1="420" y1="230" x2="420" y2="360"/>
+                    <line x1="420" y1="230" x2="570" y2="360"/>
+                    <line x1="420" y1="230" x2="720" y2="360"/>
+                </g>
+                <rect x="210" y="115" width="420" height="95" rx="10" fill="#090414" fill-opacity="0.82" stroke="#00f0ff" stroke-width="2"/>
+                <text x="420" y="155" fill="#ffe600" font-family="monospace" font-size="22" font-weight="bold" text-anchor="middle" letter-spacing="3">BANER #${numStr} • ${label}</text>
+                <text x="420" y="188" fill="#00f0ff" font-family="monospace" font-size="13" text-anchor="middle">Brak pliku w img/${numStr}... Sprawdź folder img</text>
+            </svg>`;
+            return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+        }
+
+        // Ładowanie obrazu z folderu img/ (zabezpieczenie na różne rozszerzenia i nazwy z generatora)
+        function setPageBanner(imgElementId, pageNumber) {
+            const imgEl = document.getElementById(imgElementId);
+            if (!imgEl) return;
+
+            const numStr = String(pageNumber).padStart(2, '0');
+            const rarName = KNOWN_RAR_FILENAMES[pageNumber];
+
+            if (customBannerBlobs[numStr]) {
+                imgEl.onerror = null;
+                imgEl.src = customBannerBlobs[numStr];
+                return;
+            }
+
+            // Folder img/ jest teraz sprawdzany na pierwszym miejscu
+            const candidatePaths = [
+                `img/${numStr}.png`,
+                `img/${numStr}.jpg`,
+                `img/${numStr}.jpeg`,
+                `img/${numStr}.webp`,
+                `img/${rarName}`,
+                `img/${pageNumber}.png`,
+                `img/${pageNumber}.jpg`,
+                // Dodatkowe ścieżki awaryjne (np. katalog główny lub stary folder)
+                `${numStr}.png`,
+                `${numStr}.jpg`,
+                `${rarName}`,
+                `wygenerowane_zdjecia/${rarName}`,
+                `wygenerowane_zdjecia/${numStr}.png`
+            ];
+
+            let attemptIndex = 0;
+
+            function tryNextPath() {
+                if (attemptIndex < candidatePaths.length) {
+                    const nextSrc = candidatePaths[attemptIndex];
+                    attemptIndex++;
+                    imgEl.src = nextSrc;
+                } else {
+                    imgEl.onerror = null;
+                    imgEl.src = createSynthwaveFallbackBanner(pageNumber);
+                }
+            }
+
+            imgEl.onerror = tryNextPath;
+            tryNextPath();
+        }
+
+        function handleCustomBannerFiles(event) {
+            const files = Array.from(event.target.files || []);
+            let matchedCount = 0;
+
+            files.forEach(file => {
+                const match = file.name.match(/^0?([1-9]|1[0-9]|2[0-2])(?:[^0-9]|$)/);
+                if (match) {
+                    const numStr = String(parseInt(match[1], 10)).padStart(2, '0');
+                    customBannerBlobs[numStr] = URL.createObjectURL(file);
+                    matchedCount++;
+                }
+            });
+
+            if (matchedCount > 0) {
+                playSynthSound('coin');
+                document.getElementById('folderBtnLabel').textContent = `ZAŁADOWANO (${matchedCount}/22)`;
+                refreshAllActiveBanners();
+                showCustomToast(`✓ ZAŁADOWANO ${matchedCount} BANERÓW ZE ZDJĘCIAMI!`);
+            }
+        }
+
+        function refreshAllActiveBanners() {
+            setPageBanner('introBannerImg', 1);
+            setPageBanner('questionBannerImg', currentQuestionIndex + 2);
+            setPageBanner('resultBannerImg', 22);
+        }
+
+        function showCustomToast(message) {
+            const toast = document.getElementById('toastBox');
+            toast.textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        /* ==========================================================================
+           1. DEFINICJA 6 ARCHETYPÓW FABULARNYCH LAT 80.
+           ========================================================================== */
+        const ARCHETYPES = {
+            SEEKER: {
+                id: 'SEEKER',
+                name: 'Poszukiwacz Tajemnic z Małego Miasteczka',
+                subtitle: 'Sci-Fi / Mystery Adventure',
+                films: 'Klimat: Stranger Things • Goonies • E.T. • Archiwum X',
+                openingShot: 'Mglisty poranek na skraju lasu, rowery rzucone na trawę i migająca latarka, która właśnie oświetliła coś, czego nie ma na żadnej mapie.',
+                description: 'Twoje życie przypomina tajemniczą przygodę, w której pod powierzchnią zwykłej codzienności kryje się drugie dno. Nie zadowalasz się prostymi odpowiedziami. Zwracasz uwagę na detale, dziwne zbiegi okoliczności, niedopowiedzenia i ukryte wzorce. Dla swoich bliskich jesteś osobą, która w kryzysowej chwili potrafi połączyć kropki i wymyślić plan tak szalony, że aż skuteczny.',
+                superpower: 'Niezawodna intuicja badacza, umiejętność łączenia faktów oraz lojalność wobec swojej wąskiej „drużyny”.',
+                challenge: 'Czasem tak głęboko szukasz ukrytego sensu i kolejnej zagadki, że trudno Ci po prostu odpocząć w tu i teraz.',
+                soundtrack: 'Syntezatorowy puls w stylu Kyle Dixon & Michael Stein, Kate Bush – „Running Up That Hill” oraz nocne fale radiowe AM.',
+                prop: 'Stary kompas, latarka o dalekim zasięgu i notes pełen map oraz poszlak.',
+                color: '#00f0ff',
+                svg: `<svg viewBox="0 0 64 64" class="w-16 h-16"><circle cx="32" cy="32" r="26" fill="none" stroke="#00f0ff" stroke-width="2.5" stroke-dasharray="4 3"/><polygon points="32,12 38,28 52,32 38,36 32,52 26,36 12,32 26,28" fill="#ff2a85" stroke="#ffe600" stroke-width="1.5"/><circle cx="32" cy="32" r="4" fill="#fff"/></svg>`
+            },
+            REBEL: {
+                id: 'REBEL',
+                name: 'Buntownik na Autostradzie Słońca',
+                subtitle: 'Coming-of-Age / Road Movie',
+                films: 'Klimat: Wolny dzień Ferrisa Buellera • Klub Winowajców • Powrót do przyszłości',
+                openingShot: 'Otwarte okna samochodu pędzącego pustą szosą o zachodzie słońca, głośna muzyka z kaseciaka i wiatr rozwiewający włosy.',
+                description: 'Żyjesz w historii o wolności, ruchu i przełamywaniu rutyny! Największym wrogiem w Twoim scenariuszu jest nuda i sztywne ramy narzucone przez innych. Nawet ze zwykłego wyjścia po bułki potrafisz zrobić niezapomnianą wyprawę. Cenisz autentyczność, spontaniczność i ludzi, z którymi można śmiać się do rana lub ruszyć przed siebie bez dokładnego planu.',
+                superpower: 'Zaraźliwa energia, odwaga do podążania własną ścieżką i błyskawiczne odnajdywanie się w nieprzewidzianych sytuacjach.',
+                challenge: 'Szybkie tempo i wieczna pogoń za nowym horyzontem sprawiają, że czasem uciekasz przed tym, co wymaga cierpliwości.',
+                soundtrack: 'Tears for Fears – „Everybody Wants to Rule the World”, Simple Minds – „Don’t You (Forget About Me)” i energetyczny rock z lat 80.',
+                prop: 'Okulary przeciwsłoneczne Aviator, kurtka dżinsowa z naszywkami i bilet w nieznane.',
+                color: '#ffe600',
+                svg: `<svg viewBox="0 0 64 64" class="w-16 h-16"><circle cx="32" cy="28" r="18" fill="#ffe600"/><path d="M8 44 L56 44 L44 58 L20 58 Z" fill="#ff2a85"/><line x1="32" y1="44" x2="32" y2="58" stroke="#fff" stroke-width="3" stroke-dasharray="3 2"/><path d="M12 28 L52 28" stroke="#090414" stroke-width="3"/></svg>`
+            },
+            DETECTIVE: {
+                id: 'DETECTIVE',
+                name: 'Nocny Detektyw w Deszczu Neonów',
+                subtitle: 'Neo-Noir / Urban Thriller',
+                films: 'Klimat: Łowca Androidów (Blade Runner) • Policjanci z Miami • Drive',
+                openingShot: 'Krople deszczu spływające po szybie nocnego baru, odbicie różowego neonu w kałuży i spokojne spojrzenie znad kubka czarnej kawy.',
+                description: 'Twój film ma gęsty, hipnotyzujący klimat nocnej metropolii. Jesteś urodzonym obserwatorem – widzisz i rozumiesz więcej niż ci, którzy najgłośniej krzyczą. Podczas gdy inni ulegają emocjom lub pozorom, Ty zachowujesz chłodny spokój, ironiczny dystans i przenikliwość. Masz swój własny, nienaruszalny kodeks moralny i najlepiej funkcjonujesz wtedy, gdy miasto zasypia.',
+                superpower: 'Bezkompromisowa przenikliwość, odporność na manipulacje i umiejętność zachowania zimnej krwi pod presją.',
+                challenge: 'Trzymanie gardy wysoko i poleganie wyłącznie na sobie bywa samotne – czasem warto wpuścić kogoś za kulisy.',
+                soundtrack: 'Vangelis – „Blade Runner Blues”, Phil Collins – „In the Air Tonight” oraz nocny saksofon i głęboki synthwave.',
+                prop: 'Klasyczny prochowiec z postawionym kołnierzem, analogowy zegarek i ulubione miejsce przy oknie w nocnym dinerze.',
+                color: '#ff2a85',
+                svg: `<svg viewBox="0 0 64 64" class="w-16 h-16"><rect x="14" y="14" width="36" height="36" rx="4" fill="none" stroke="#ff2a85" stroke-width="2.5"/><line x1="10" y1="26" x2="54" y2="26" stroke="#00f0ff" stroke-width="3"/><line x1="18" y1="36" x2="46" y2="36" stroke="#ffe600" stroke-width="2"/><circle cx="32" cy="46" r="3" fill="#00f0ff"/></svg>`
+            },
+            HERO: {
+                id: 'HERO',
+                name: 'Bohater Wielkiego Finału',
+                subtitle: 'Action / Hero’s Journey',
+                films: 'Klimat: Karate Kid • Rocky IV • Top Gun • Powrót Jedi',
+                openingShot: 'Wschód słońca nad miastem, wiązanie sznurowadeł, głęboki oddech przed decydującym starciem i pierwsze uderzenie perkusji w tle.',
+                description: 'Żyjesz w klasycznej opowieści o przezwyciężaniu własnych słabości, odwadze i walce o to, co naprawdę ważne. Każda porażka w Twoim życiu to tylko scena przed epickim montażem treningowym! Kiedy sytuacja robi się trudna, nie chowasz głowy w piasek – zakasujesz rękawy, stajesz na czele i chronisz tych, na których Ci zależy.',
+                superpower: 'Niezłomna determinacja, odwaga cywilna i zdolność inspirowania innych do działania w chwilach zwątpienia.',
+                challenge: 'Bierzesz na swoje barki zbyt dużą odpowiedzialność, zapominając, że nawet największy bohater potrzebuje czasem odpoczynku.',
+                soundtrack: 'Survivor – „Eye of the Tiger”, Kenny Loggins – „Danger Zone” i triumfalne hymny syntezatorowo-gitarowe.',
+                prop: 'Opaska na nadgarstek, szczęśliwy talizman od mentora i niezawodne buty gotowe na każde wyzwanie.',
+                color: '#ff5500',
+                svg: `<svg viewBox="0 0 64 64" class="w-16 h-16"><polygon points="32,8 20,34 32,34 26,56 46,26 33,26" fill="#ffe600" stroke="#ff2a85" stroke-width="2"/></svg>`
+            },
+            DREAMER: {
+                id: 'DREAMER',
+                name: 'Marzyciel z Ostatniego Rzędu',
+                subtitle: 'Indie Drama / Romantic Nostalgia',
+                films: 'Klimat: Stowarzyszenie Umarłych Poetów • Dziewczyna w różowej sukience • Kino Paradiso',
+                openingShot: 'Złote popołudniowe światło wpadające przez okno starej księgarni lub kina, słuchawki na uszach i uśmiech pełen niewypowiedzianych myśli.',
+                description: 'Twoje życie to pełen ciepła, wzruszeń i nieoczywistego piękna film autorski. Dostrzegasz poezję w drobnych gestach, ulotnych spojrzeniach, zapachu deszczu i długich rozmowach, które zmieniają czyjeś spojrzenie na świat. Nie interesuje Cię powierzchowny wyścig – szukasz prawdziwej bliskości, autentycznych emocji i sensu, który zostaje w sercu na lata.',
+                superpower: 'Głęboka empatia, wrażliwość estetyczna i dar sprawiania, że ludzie czują się przy Tobie naprawdę wysłuchani.',
+                challenge: 'Nostalgia i idealizm potrafią sprawić, że zbyt długo rozpamiętujesz przeszłość lub przeżywasz rozczarowania prozą życia.',
+                soundtrack: 'The Cure – „Pictures of You”, The Smiths – „There Is a Light That Never Goes Out” oraz osobiście nagrana kaseta Mixtape.',
+                prop: 'Walkman z ręcznie opisaną kasetą, lekko pognieciona książka w kieszeni i aparat analogowy.',
+                color: '#b829ff',
+                svg: `<svg viewBox="0 0 64 64" class="w-16 h-16"><rect x="10" y="18" width="44" height="28" rx="4" fill="none" stroke="#b829ff" stroke-width="2.5"/><circle cx="22" cy="32" r="5" fill="#00f0ff"/><circle cx="42" cy="32" r="5" fill="#00f0ff"/><path d="M24 22 L40 22" stroke="#ff2a85" stroke-width="2"/></svg>`
+            },
+            VISIONARY: {
+                id: 'VISIONARY',
+                name: 'Władca Wyobraźni i Magii',
+                subtitle: '80s Fantasy / Labyrinths & Worlds',
+                films: 'Klimat: Niekończąca się opowieść • Labirynt • Tron • Gremliny',
+                openingShot: 'Stary strych rozświetlony blaskiem monitora lub otwartej księgi, z której strony zaczynają unosić się świetliste iskry.',
+                description: 'Żyjesz na styku codzienności i czystej kreacji. Twój umysł to nieustannie pracujące studio efektów specjalnych i fabryka nowych światów. Tam, gdzie inni widzą nudny pokój lub zwykłe zadanie, Ty dostrzegasz portal do stworzenia czegoś niezwykłego. Masz w sobie duszę wynalazcy, artysty i gawędziarza, który nigdy nie stracił dziecięcego zachwytu nad światem.',
+                superpower: 'Nieograniczona kreatywność, nieszablonowe myślenie i umiejętność zamieniania wizji w rzeczywistość.',
+                challenge: 'Przyziemne obowiązki, formularze i rutyna potrafią przytłoczyć Cię bardziej niż walka ze smokiem w labiryncie.',
+                soundtrack: 'Limahl – „NeverEnding Story”, David Bowie – „Magic Dance” oraz kosmiczny synth-ambient Jean-Michela Jarre’a.',
+                prop: 'Tajemniczy klucz, szkicownik pełen niezwykłych pomysłów i dwudziestościenna kostka do gry.',
+                color: '#00ff88',
+                svg: `<svg viewBox="0 0 64 64" class="w-16 h-16"><polygon points="32,8 54,22 54,44 32,56 10,44 10,22" fill="none" stroke="#00ff88" stroke-width="2.5"/><polygon points="32,8 32,32 54,22" fill="rgba(0,240,255,0.3)"/><circle cx="32" cy="32" r="6" fill="#ffe600"/></svg>`
+            }
+        };
+
+        /* ==========================================================================
+           2. BAZA 20 PYTAŃ O CODZIENNE ZDARZENIA (STRONY 02 DO 21)
+           ========================================================================== */
+        const QUESTIONS = [
+            {
+                location: "SYPIALNIA • GODZINA 06:55",
+                timecode: "00:01:15",
+                icon: "⏰",
+                question: "Cyfrowy budzik z czerwonymi cyframi zaczyna głośno pikać. Za oknem dopiero świta. Jaka jest Twoja pierwsza myśl i reakcja?",
+                options: [
+                    { text: "Otwieram oczy i od razu analizuję dziwny sen, który miałem nad ranem – czuję, że ten dzień przyniesie jakąś niespodziankę.", scores: { SEEKER: 3, VISIONARY: 1 } },
+                    { text: "Uderzam w przycisk drzemki, przeciągam się i myślę, jak dzisiaj wywinąć się z nudy i zrobić coś po swojemu.", scores: { REBEL: 3, DREAMER: 1 } },
+                    { text: "Wyłączam budzik jednym ruchem, zanim skończy pierwszy sygnał. Wstaję w ciszy i patrzę przez okno na puste ulice.", scores: { DETECTIVE: 3, HERO: 1 } },
+                    { text: "Wskakuję od razu na równe nogi! Mam dziś ważny cel do zrealizowania i nie zamierzam tracić ani minuty.", scores: { HERO: 3, REBEL: 1 } }
+                ]
+            },
+            {
+                location: "PRZED SZAFĄ • PORANEK",
+                timecode: "00:05:40",
+                icon: "🧥",
+                question: "Stoisz przed szafą i wybierasz strój na dzisiejsze wyjście z domu. Czym się kierujesz?",
+                options: [
+                    { text: "Wygodą i praktycznością – potrzebuję kieszeni na drobiazgi i butów, w których można przejść całe miasto.", scores: { SEEKER: 2, HERO: 2 } },
+                    { text: "Wyrazistym stylem! Ulubiona kurtka, podwinięte rękawy albo element, który od razu pokazuje mój charakter.", scores: { REBEL: 3, VISIONARY: 1 } },
+                    { text: "Stonowanymi, ciemniejszymi barwami i klasycznym krojem – lubię wyglądać dobrze, ale nie krzykliwie.", scores: { DETECTIVE: 3, DREAMER: 1 } },
+                    { text: "Wybieram coś z duszą – miękki sweter, ubranie z historią lub nietypowy dodatek znaleziony w małym sklepiku.", scores: { DREAMER: 3, VISIONARY: 2 } }
+                ]
+            },
+            {
+                location: "WYJŚCIE Z DOMU • WALKMAN W DŁONI",
+                timecode: "00:11:08",
+                icon: "🎧",
+                question: "Zakładasz słuchawki z pomarańczową gąbką i wciskasz fizyczny przycisk PLAY. Jaka muzyka nadaje rytm Twojej drodze?",
+                options: [
+                    { text: "Pulsujące syntezatory i tajemnicze melodie, przez które zwykłe przejście przez osiedle wygląda jak zwiastun filmu.", scores: { SEEKER: 3, DETECTIVE: 2 } },
+                    { text: "Szybki, przebojowy rock lub synth-pop z mocnym refrenem – idę krokiem dopasowanym do uderzeń perkusji!", scores: { REBEL: 2, HERO: 3 } },
+                    { text: "Nostalgiczne piosenki z pięknym tekstem, które sprawiają, że patrzę na mijanych ludzi z lekkim zamyśleniem.", scores: { DREAMER: 3, REBEL: 1 } },
+                    { text: "Epickie, przestrzenne brzmienia i niezwykłe kompozycje, które przenoszą moje myśli do zupełnie innego świata.", scores: { VISIONARY: 3, SEEKER: 1 } }
+                ]
+            },
+            {
+                location: "SKRZYŻOWANIE • DROGA DO CELU",
+                timecode: "00:16:22",
+                icon: "🚲",
+                question: "Twoja codzienna trasa jest dziś zablokowana przez roboty drogowe. Obok widzisz wąską, zarośniętą ścieżkę między starymi ogrodami, której nigdy wcześniej nie zauważyłeś.",
+                options: [
+                    { text: "Bez wahania skręcam w nieznaną ścieżkę! Muszę sprawdzić, dokąd prowadzi i dlaczego wcześniej jej nie widziałem.", scores: { SEEKER: 3, VISIONARY: 2 } },
+                    { text: "Super, wreszcie jakaś odmiana! Przeskakuję przez niską barierkę i traktuję to jako małą przygodę.", scores: { REBEL: 3, HERO: 1 } },
+                    { text: "Oceniam chłodno układ ulic, sprawdzam czas na zegarku i wybieram najsprawniejszy objazd bez zbędnego chaosu.", scores: { DETECTIVE: 3, HERO: 1 } },
+                    { text: "Idę powoli nową alejką, podziwiając stare drzewa, omszałe murki i ciesząc się chwilą spokoju z dala od zgiełku.", scores: { DREAMER: 3, VISIONARY: 1 } }
+                ]
+            },
+            {
+                location: "SZKOŁA / PRACA • GODZINA 11:30",
+                timecode: "00:22:45",
+                icon: "📟",
+                question: "W środku dnia psuje się ważne urządzenie lub pojawia się nagły kryzys, a wszyscy wokół zaczynają panikować i przerzucać się winą. Co robisz?",
+                options: [
+                    { text: "Przejmuję dowodzenie: uspokajam grupę, dzielę zadania i biorę najtrudniejszą część na siebie.", scores: { HERO: 3, REBEL: 1 } },
+                    { text: "Wycofuję się o krok, obserwuję sytuację i po chwili wskazuję dokładnie tę jedną przyczynę, którą wszyscy przeoczyli.", scores: { DETECTIVE: 3, SEEKER: 2 } },
+                    { text: "Wpadam na zupełnie niekonwencjonalny, lekko szalony pomysł obejścia problemu przy pomocy spinacza i taśmy.", scores: { VISIONARY: 3, REBEL: 2 } },
+                    { text: "Najpierw wspieram osobę, która najbardziej się zestresowała, i rozładowuję napięcie ciepłym słowem lub żartem.", scores: { DREAMER: 3, HERO: 1 } }
+                ]
+            },
+            {
+                location: "PRZERWA NA LUNCH • STOŁÓWKA",
+                timecode: "00:28:10",
+                icon: "🍔",
+                question: "Masz godzinę wolnego w ciągu dnia. Gdzie i jak najchętniej ją spędzasz?",
+                options: [
+                    { text: "W wąskim gronie zaufanych znajomych w ustronnym kącie – omawiamy nasze sekretne plany i ostatnie odkrycia.", scores: { SEEKER: 3, VISIONARY: 1 } },
+                    { text: "Wychodzę na zewnątrz, siadam na masce auta lub murku w słońcu i cieszę się chwilą pełnej swobody.", scores: { REBEL: 3, DREAMER: 1 } },
+                    { text: "Wybieram stolik na uboczu z dobrą kawą, skąd mam widok na całe pomieszczenie, ale nikt mi nie przeszkadza.", scores: { DETECTIVE: 3 } },
+                    { text: "Szukam spokojnego miejsca ze swoim szkicownikiem, książką albo rozmawiam od serca z jedną bliską osobą.", scores: { DREAMER: 2, VISIONARY: 2 } }
+                ]
+            },
+            {
+                location: "POPOŁUDNIE • NAGŁA ULEWA",
+                timecode: "00:34:00",
+                icon: "🌧️",
+                question: "Gdy wychodzisz po południu, niebo nagle ciemnieje i zaczyna padać gęsty deszcz, a Ty nie masz przy sobie parasola.",
+                options: [
+                    { text: "Śmieję się i biegnę przez deszcz! Przemoczone ubranie wyschnie, a taki bieg daje niesamowite poczucie życia.", scores: { REBEL: 3, HERO: 2 } },
+                    { text: "Stawiam kołnierz kurtki, chowam dłonie w kieszeniach i idę spokojnym krokiem – deszcz i odbicia świateł w kałużach to mój żywioł.", scores: { DETECTIVE: 3, DREAMER: 1 } },
+                    { text: "Chowam się pod markizą małego, starego antykwariatu lub księgarni i wykorzystuję okazję, by przejrzeć zakurzone półki.", scores: { SEEKER: 2, VISIONARY: 2, DREAMER: 2 } },
+                    { text: "Rozglądam się, czy ktoś obok nie potrzebuje pomocy z ciężkimi torbami, i organizuję szybki transport pod dach.", scores: { HERO: 3 } }
+                ]
+            },
+            {
+                location: "ANTYKWARIAT / KOMIS • GODZINA 16:45",
+                timecode: "00:39:18",
+                icon: "📼",
+                question: "Na zapleczu sklepu ze starociami znajdujesz pudełko z napisem „Rzeczy znalezione – po 1$”. Co wyciągasz z niego jako pierwsze?",
+                options: [
+                    { text: "Kasetę VHS bez etykiety, opisaną jedynie ręcznym flamastrem: „NIE KASOWAĆ – LATO '84”.", scores: { SEEKER: 3, DETECTIVE: 2 } },
+                    { text: "Starą, bogato zdobioną grę planszową w drewnianym pudełku albo dziwny mechaniczny gadżet.", scores: { VISIONARY: 3, SEEKER: 1 } },
+                    { text: "Kolekcję pocztówek i listów z podróży po słonecznym wybrzeżu Kalifornii z przełomu dekad.", scores: { DREAMER: 3, REBEL: 2 } },
+                    { text: "Solidny, wojskowy kompas lub stary zegarek stopera, który po nakręceniu wciąż idealnie tyka.", scores: { HERO: 3, DETECTIVE: 1 } }
+                ]
+            },
+            {
+                location: "NEONOWY DINER • SPOTKANIE ZE ZNAJOMYMI",
+                timecode: "00:45:02",
+                icon: "🥤",
+                question: "Siedzicie wieczorem w dinerze na czerwonych kanapach przy frytkach i shake'ach. Jaką rolę pełnisz w swojej paczce?",
+                options: [
+                    { text: "Jestem osobą, która rzuca hasło: „Słuchajcie, a co jeśli pojedziemy tam teraz?” i rozkręca całą atmosferę.", scores: { REBEL: 3, HERO: 1 } },
+                    { text: "Uważnie słucham każdego, wyłapuję kiedy ktoś ma gorszy dzień i dbam o to, by nikt nie poczuł się pominięty.", scores: { DREAMER: 3, HERO: 1 } },
+                    { text: "Rzucam celne, lekko ironiczne komentarze z głębi boksu, ale gdy ktoś ma prawdziwy problem – daję najkonkretniejszą radę.", scores: { DETECTIVE: 3 } },
+                    { text: "Snuję fascynujące teorie, opowiadam niesamowite historie i zarażam resztę nowymi pomysłami na wspólne projekty.", scores: { VISIONARY: 2, SEEKER: 2 } }
+                ]
+            },
+            {
+                location: "SZOSA ZA MIASTEM • ZACHÓD SŁOŃCA",
+                timecode: "00:51:30",
+                icon: "🌅",
+                question: "Niebo na horyzoncie robi się fioletowo-pomarańczowe. Jedziesz autobusem lub samochodem. O czym najczęściej myślisz, patrząc przez szybę?",
+                options: [
+                    { text: "O wszystkich miejscach, których jeszcze nie widziałem, i o tym, jak dobrze byłoby nigdy nie musieć się zatrzymywać.", scores: { REBEL: 3, SEEKER: 1 } },
+                    { text: "O ważnych ludziach w moim życiu, wspomnieniach, które mnie ukształtowały, i o tym, co chciałbym komuś powiedzieć.", scores: { DREAMER: 3 } },
+                    { text: "Układam w głowie kolejne kroki dużego wyzwania, nad którym pracuję – wiem, że wkrótce nadejdzie mój czas.", scores: { HERO: 3, DETECTIVE: 1 } },
+                    { text: "Wyobrażam sobie alternatywne wersje rzeczywistości, historie filmowe lub wynalazki, które chciałbym stworzyć.", scores: { VISIONARY: 3, SEEKER: 1 } }
+                ]
+            },
+            {
+                location: "SALON GIER ARCADE • WIECZÓR",
+                timecode: "00:57:12",
+                icon: "🕹️",
+                question: "Wchodzisz do głośnego salonu gier pełnego migających automatów. Został Ci w kieszeni ostatni żeton. Do którego automatu podchodzisz?",
+                options: [
+                    { text: "Do tego z najtrudniejszym rekordem w całym salonie – chcę wpisać swoje inicjały na pierwszym miejscu tabeli!", scores: { HERO: 3, REBEL: 1 } },
+                    { text: "Do gry labiryntowej lub tekstowej przygodówki pełnej ukrytych przejść, zagadek i sekretnych poziomów.", scores: { SEEKER: 2, VISIONARY: 3 } },
+                    { text: "Do symulatora szybkiej jazdy z kierownicą – liczy się pęd, muzyka i adrenalina!", scores: { REBEL: 3 } },
+                    { text: "Oddaję żeton młodszemu graczowi, który patrzy z boku, albo gram z kimś w duecie dla czystej frajdy ze spotkania.", scores: { DREAMER: 3, HERO: 1 } }
+                ]
+            },
+            {
+                location: "PARKING PRZED CENTRUM • KONFRONTACJA",
+                timecode: "01:03:45",
+                icon: "⚡",
+                question: "Jesteś świadkiem sytuacji, w której ktoś zachowuje się nieuczciwie lub próbuje zastraszyć słabszą osobę. Jak reagujesz?",
+                options: [
+                    { text: "Bez wahania wychodzę naprzód i staję w obronie tej osoby – nie zgadzam się na niesprawiedliwość.", scores: { HERO: 3 } },
+                    { text: "Podchodzę ze spokojem, patrzę prowodyrowi prosto w oczy i jednym celnym zdaniem zbijam go z pantałyku.", scores: { DETECTIVE: 3, REBEL: 1 } },
+                    { text: "Stosuję sprytny fortel lub odwracam uwagę tak, by wyciągnąć poszkodowaną osobę z opresji bez zbędnej bijatyki.", scores: { SEEKER: 2, VISIONARY: 2, REBEL: 1 } },
+                    { text: "Upewniam się, że poszkodowany jest bezpieczny, a potem poświęcam czas, by podnieść go na duchu.", scores: { DREAMER: 3, HERO: 1 } }
+                ]
+            },
+            {
+                location: "WYPRAWA ZA MIASTO • PUNKT WIDOKOWY",
+                timecode: "01:09:20",
+                icon: "📻",
+                question: "Dotarliście paczką na wzgórze nad miastem. W oddali widać tysiące światełek. Co przykuwa Twoją uwagę?",
+                options: [
+                    { text: "Dziwne, rytmicznie migające światło po drugiej stronie lasu, gdzie teoretycznie znajduje się tylko stara stacja przekaźnikowa.", scores: { SEEKER: 3, DETECTIVE: 1 } },
+                    { text: "Panorama dróg wychodzących z miasta – zastanawiam się, dokąd można nimi dojechać do rana.", scores: { REBEL: 3 } },
+                    { text: "To, że w każdym z tych oświetlonych okien w dole toczy się czyjaś osobna, wzruszająca historia.", scores: { DREAMER: 3, VISIONARY: 1 } },
+                    { text: "Układ gwiazd na niebie – zaczynam opowiadać znajomym o kosmosie i niesamowitych hipotezach naukowych.", scores: { VISIONARY: 3, SEEKER: 1 } }
+                ]
+            },
+            {
+                location: "BIURKO W POKOJU • TWOJA PRZESTRZEŃ",
+                timecode: "01:15:50",
+                icon: "🗂️",
+                question: "Gdyby ktoś wszedł teraz do Twojego pokoju i spojrzał na Twoje biurko lub półkę, co powiedziałoby o Tobie najwięcej?",
+                options: [
+                    { text: "Artystyczny nieład: otwarte notatniki, rozpoczęte projekty, gadżety, szkice i książki z różnych dziedzin.", scores: { VISIONARY: 3, SEEKER: 2 } },
+                    { text: "Pamiątki z wyjazdów, bilety z koncertów, zdjęcia ze znajomymi i płyty rozrzucone blisko odtwarzacza.", scores: { REBEL: 2, DREAMER: 3 } },
+                    { text: "Minimalizm i porządek – wszystko ma swoje miejsce, a najważniejsze rzeczy są schowane przed wzrokiem ciekawskich.", scores: { DETECTIVE: 3 } },
+                    { text: "Lista celów, sprzęt sportowy lub hobbystyczny gotowy do akcji i motywujące trofea z przeszłości.", scores: { HERO: 3 } }
+                ]
+            },
+            {
+                location: "TELEFON STACJONARNY • GODZINA 22:30",
+                timecode: "01:21:15",
+                icon: "☎️",
+                question: "Późnym wieczorem dzwoni telefon na długim, skręconym kablu. Ktoś bliski mówi: „Nie uwierzysz, co się właśnie stało, musisz mi pomóc!”.",
+                options: [
+                    { text: "„Już zakładam buty, będę za dziesięć minut!” – jestem gotów do działania zanim odłożę słuchawkę.", scores: { HERO: 3, REBEL: 2 } },
+                    { text: "„Spokojnie, mów po kolei: gdzie jesteś, kto jeszcze o tym wie i czego dokładnie potrzebujemy?”", scores: { DETECTIVE: 3, SEEKER: 2 } },
+                    { text: "Chwytam latarkę i notes – czuję dreszcz ekscytacji, że właśnie zaczyna się coś niezwykłego.", scores: { SEEKER: 3, VISIONARY: 1 } },
+                    { text: "„Jestem z Tobą, nigdzie się nie ruszaj, zaraz wszystko przegadamy i wspólnie przez to przejdziemy.”", scores: { DREAMER: 3, HERO: 1 } }
+                ]
+            },
+            {
+                location: "NOCNA LAMPA • CHWILA ZWĄTPIENIA",
+                timecode: "01:27:40",
+                icon: "🌙",
+                question: "Każdy bohater ma w swoim filmie trudniejszą scenę, gdy coś nie poszło zgodnie z planem. Jak radzisz sobie z niepowodzeniem?",
+                options: [
+                    { text: "Zaciskam zęby, wyciągam wnioski i trenuję jeszcze mocniej – następnym razem będę dwa razy lepiej przygotowany.", scores: { HERO: 3 } },
+                    { text: "Idę na długi, samotny spacer po nocnym mieście, żeby w ciszy poukładać sobie wszystkie fakty na nowo.", scores: { DETECTIVE: 3, SEEKER: 1 } },
+                    { text: "Włączam ulubioną kasetę, pozwalam sobie przeżyć te emocje, a potem przekuwam je w coś pięknego lub ważną rozmowę.", scores: { DREAMER: 3, VISIONARY: 1 } },
+                    { text: "Macham ręką na stary plan i wymyślam zupełnie nową, jeszcze ciekawszą drogę – świat się na tym nie kończy!", scores: { REBEL: 3, VISIONARY: 2 } }
+                ]
+            },
+            {
+                location: "WYPOŻYCZALNIA WIDEO • PÓŁKA Z KASETAMI",
+                timecode: "01:33:05",
+                icon: "🎬",
+                question: "Gdyby o Twoim dotychczasowym życiu powstał film, jaki klimat miałyby jego najlepsze sceny?",
+                options: [
+                    { text: "Pełne napięcia i odkrywania prawdy – momenty, w których nagle wszystkie elementy układanki wskakują na swoje miejsce.", scores: { SEEKER: 3, DETECTIVE: 2 } },
+                    { text: "Pełne słońca, śmiechu, szalonych decyzji podjętych w ostatniej chwili i poczucia nieskrępowanej wolności.", scores: { REBEL: 3 } },
+                    { text: "Wzruszające, autentyczne chwile bliskości, nocne rozmowy na dachu i momenty, które chwytają za serce.", scores: { DREAMER: 3 } },
+                    { text: "Wizjonerskie, niezwykłe kadry pełne wyobraźni lub wielkich zwycięstw po długiej drodze pod górę.", scores: { VISIONARY: 2, HERO: 2 } }
+                ]
+            },
+            {
+                location: "UKRYTY TALENT • TWOJA TAJNA BROŃ",
+                timecode: "01:38:50",
+                icon: "✨",
+                question: "Co znajomi uważają za Twoją największą, niemal „filmową” zaletę w codziennym życiu?",
+                options: [
+                    { text: "To, że widzę ludzi na wylot, nie daję się nabrać na pozory i zawsze zachowuję zimną krew.", scores: { DETECTIVE: 3 } },
+                    { text: "To, że mam tysiąc niezwykłych pomysłów na minutę i potrafię zaczarować szarą rzeczywistość.", scores: { VISIONARY: 3, SEEKER: 1 } },
+                    { text: "To, że można na mnie polegać w każdej walce i nigdy nie zostawiam nikogo w potrzebie.", scores: { HERO: 3 } },
+                    { text: "To, że przy mnie można zrzucić maskę, poczuć się wolnym albo porozmawiać o tym, co naprawdę ważne.", scores: { DREAMER: 2, REBEL: 2 } }
+                ]
+            },
+            {
+                location: "ŚRODEK NOCY • GODZINA 01:15",
+                timecode: "01:44:10",
+                icon: "📻",
+                question: "Nie możesz zasnąć w środku nocy. Co najprawdopodobniej robisz o tej porze?",
+                options: [
+                    { text: "Czytam o niewyjaśnionych zjawiskach, niszowych tematach i szukam odpowiedzi na pytanie, które nie daje mi spokoju.", scores: { SEEKER: 3, DETECTIVE: 1 } },
+                    { text: "Tworzę! Piszę, projektuję, programuję albo obmyślam nowy świat, bo w nocy wyobraźnia działa najlepiej.", scores: { VISIONARY: 3 } },
+                    { text: "Słucham cicho muzyki w ciemności, wspominam ważne chwile lub piszę długą wiadomość do kogoś bliskiego.", scores: { DREAMER: 3 } },
+                    { text: "Patrzę przez okno na nocne światła ulicy, planując jutrzejszą wyprawę lub wielkie wyzwanie.", scores: { REBEL: 2, HERO: 2, DETECTIVE: 1 } }
+                ]
+            },
+            {
+                location: "SCENA FINAŁOWA • NAPISY KOŃCOWE",
+                timecode: "01:49:59",
+                icon: "🌟",
+                question: "Ostatnie pytanie: kamera oddala się powoli, zaczyna grać muzyka finałowa. Czego najbardziej pragniesz w kolejnym rozdziale swojej historii?",
+                options: [
+                    { text: "Odkrycia wielkiej tajemnicy i przeżycia przygody, która na zawsze zmieni moje rozumienie świata.", scores: { SEEKER: 3, VISIONARY: 1 } },
+                    { text: "Poczucia całkowitej wolności, życia na własnych zasadach i otwartej drogi prowadzącej za horyzont.", scores: { REBEL: 3 } },
+                    { text: "Zwycięstwa w sprawie, o którą walczę, oraz dumy, że nie poddałem się mimo przeciwności.", scores: { HERO: 3, DETECTIVE: 1 } },
+                    { text: "Prawdziwej więzi, spełnienia marzeń i stworzenia czegoś pięknego, co zostanie po mnie na długo.", scores: { DREAMER: 2, VISIONARY: 2 } }
+                ]
+            }
+        ];
+
+        /* ==========================================================================
+           3. STAN APLIKACJI I EFEKTY DŹWIĘKOWE SYNTH (WEB AUDIO API)
+           ========================================================================== */
+        let currentQuestionIndex = 0;
+        let userAnswers = new Array(QUESTIONS.length).fill(null);
+        let soundEnabled = true;
+        let crtEnabled = true;
+        let audioCtx = null;
+        let finalSummaryText = "";
+
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) {
+                    audioCtx = new AudioContextClass();
+                }
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playSynthSound(type) {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                if (!audioCtx) return;
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'coin') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(987.77, now);
+                    osc.frequency.setValueAtTime(1318.51, now + 0.08);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.45);
+                } else if (type === 'select') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.11);
+                    gain.gain.setValueAtTime(0.14, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.12);
+                } else if (type === 'rewind') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(620, now);
+                    osc.frequency.exponentialRampToValueAtTime(220, now + 0.14);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.15);
+                } else if (type === 'fanfare') {
+                    const notes = [261.63, 329.63, 392.00, 523.25];
+                    notes.forEach((freq, idx) => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.09);
+                        gain.gain.setValueAtTime(0.08, now + idx * 0.09);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.09 + 0.7);
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        osc.start(now + idx * 0.09);
+                        osc.stop(now + idx * 0.09 + 0.7);
+                    });
+                }
+            } catch (e) {
+                // ignoruj
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundIcon').textContent = soundEnabled ? '🔊' : '🔇';
+            document.getElementById('soundLabel').textContent = soundEnabled ? 'SYNTH: ON' : 'SYNTH: OFF';
+            if (soundEnabled) playSynthSound('select');
+        }
+
+        function toggleCRT() {
+            crtEnabled = !crtEnabled;
+            const overlay = document.getElementById('crtOverlay');
+            overlay.classList.toggle('crt-off', !crtEnabled);
+            document.getElementById('crtLabel').textContent = crtEnabled ? 'CRT: ON' : 'CRT: OFF';
+            playSynthSound('select');
+        }
+
+        /* ==========================================================================
+           4. LOGIKA ROZGRYWKI I RENDEROWANIA KART (STRONY 01 - 22)
+           ========================================================================== */
+        function startQuiz() {
+            playSynthSound('coin');
+            currentQuestionIndex = 0;
+            userAnswers.fill(null);
+
+            document.getElementById('introScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.add('hidden');
+            document.getElementById('questionScreen').classList.remove('hidden');
+
+            renderQuestionCard();
+        }
+
+        function getSceneIconSvg(emojiIcon, index) {
+            return `
+                <div class="relative flex items-center justify-center w-full h-full">
+                    <span class="text-3xl sm:text-4xl z-10">${emojiIcon}</span>
+                    <div class="absolute inset-1 border border-pink-500/30 rounded-lg pointer-events-none"></div>
+                    <span class="absolute bottom-0.5 right-1 font-arcade text-[8px] text-cyan-400/70">#${String(index + 1).padStart(2, '0')}</span>
+                </div>
+            `;
+        }
+
+        function renderQuestionCard() {
+            const q = QUESTIONS[currentQuestionIndex];
+            const sceneNumStr = String(currentQuestionIndex + 1).padStart(2, '0');
+            const pageBannerNumber = currentQuestionIndex + 2;
+            const pageBannerStr = String(pageBannerNumber).padStart(2, '0');
+            const percent = Math.round(((currentQuestionIndex + 1) / QUESTIONS.length) * 100);
+
+            document.getElementById('sceneNumber').textContent = sceneNumStr;
+            document.getElementById('sceneTimecode').textContent = `[TC ${q.timecode}]`;
+            document.getElementById('vhsStatusText').textContent = `PLAY ▶ STRONA ${pageBannerStr}/22 (SCENA ${sceneNumStr})`;
+            document.getElementById('progressPercent').textContent = `TAŚMA: ${percent}%`;
+            document.getElementById('progressBar').style.width = `${percent}%`;
+
+            setPageBanner('questionBannerImg', pageBannerNumber);
+            document.getElementById('questionBannerBadge').textContent = `KADR #${pageBannerStr} / 22 • SCENA ${sceneNumStr}`;
+
+            const cardBody = document.getElementById('questionCardBody');
+            cardBody.classList.remove('card-animate');
+            void cardBody.offsetWidth;
+            cardBody.classList.add('card-animate');
+
+            document.getElementById('sceneIconContainer').innerHTML = getSceneIconSvg(q.icon, currentQuestionIndex);
+            document.getElementById('sceneLocation').textContent = q.location;
+            document.getElementById('questionText').textContent = q.question;
+
+            const letters = ['A', 'B', 'C', 'D'];
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = '';
+
+            q.options.forEach((opt, optIdx) => {
+                const isSelected = userAnswers[currentQuestionIndex] === optIdx;
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = `option-btn w-full text-left p-4 sm:p-5 rounded-xl flex items-start gap-3.5 cursor-pointer ${isSelected ? 'selected' : ''}`;
+                btn.onclick = () => selectAnswer(optIdx);
+
+                btn.innerHTML = `
+                    <span class="flex-shrink-0 w-8 h-8 rounded-lg bg-pink-600/80 border border-yellow-300/70 text-white font-arcade text-xs flex items-center justify-center shadow-[0_0_10px_rgba(255,42,133,0.5)]">
+                        ${letters[optIdx]}
+                    </span>
+                    <span class="text-sm sm:text-base text-purple-50 leading-relaxed pt-0.5">
+                        ${opt.text}
+                    </span>
+                `;
+                optionsContainer.appendChild(btn);
+            });
+
+            const prevBtn = document.getElementById('prevBtn');
+            prevBtn.disabled = currentQuestionIndex === 0;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function selectAnswer(optionIndex) {
+            playSynthSound('select');
+            userAnswers[currentQuestionIndex] = optionIndex;
+
+            const buttons = document.querySelectorAll('#optionsContainer .option-btn');
+            buttons.forEach((btn, idx) => {
+                btn.classList.toggle('selected', idx === optionIndex);
+            });
+
+            setTimeout(() => {
+                if (currentQuestionIndex < QUESTIONS.length - 1) {
+                    currentQuestionIndex++;
+                    renderQuestionCard();
+                } else {
+                    calculateAndShowResults();
+                }
+            }, 220);
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                playSynthSound('rewind');
+                currentQuestionIndex--;
+                renderQuestionCard();
+            }
+        }
+
+        /* ==========================================================================
+           5. OBLICZANIE WYNIKU I EKRAN PODSUMOWANIA (STRONA 22)
+           ========================================================================== */
+        function calculateAndShowResults() {
+            playSynthSound('fanfare');
+
+            const rawScores = {
+                SEEKER: 0,
+                REBEL: 0,
+                DETECTIVE: 0,
+                HERO: 0,
+                DREAMER: 0,
+                VISIONARY: 0
+            };
+
+            userAnswers.forEach((ansIdx, qIdx) => {
+                if (ansIdx !== null) {
+                    const chosenOption = QUESTIONS[qIdx].options[ansIdx];
+                    for (const [archKey, pts] of Object.entries(chosenOption.scores)) {
+                        rawScores[archKey] += pts;
+                    }
+                }
+            });
+
+            const totalPoints = Object.values(rawScores).reduce((a, b) => a + b, 0) || 1;
+            const sortedArchetypes = Object.keys(ARCHETYPES).map(key => {
+                const score = rawScores[key];
+                const percentage = Math.round((score / totalPoints) * 100);
+                return {
+                    ...ARCHETYPES[key],
+                    score,
+                    percentage
+                };
+            }).sort((a, b) => b.score - a.score);
+
+            const winner = sortedArchetypes[0];
+
+            setPageBanner('resultBannerImg', 22);
+
+            document.getElementById('questionScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.remove('hidden');
+            document.getElementById('vhsStatusText').textContent = `FINAŁ ▶ STRONA 22/22`;
+
+            document.getElementById('resultTitle').textContent = winner.name;
+            document.getElementById('resultSubtitle').textContent = `(${winner.subtitle})`;
+            document.getElementById('resultBadgeSvg').innerHTML = winner.svg;
+            document.getElementById('resultFilms').textContent = winner.films;
+            document.getElementById('resultOpeningShot').textContent = winner.openingShot;
+            document.getElementById('resultDescription').textContent = winner.description;
+            document.getElementById('resultSuperpower').textContent = winner.superpower;
+            document.getElementById('resultChallenge').textContent = winner.challenge;
+            document.getElementById('resultSoundtrack').textContent = winner.soundtrack;
+            document.getElementById('resultProp').textContent = winner.prop;
+
+            const statsContainer = document.getElementById('statsContainer');
+            statsContainer.innerHTML = '';
+
+            const maxScore = Math.max(...sortedArchetypes.map(a => a.score), 1);
+
+            sortedArchetypes.forEach((arch, idx) => {
+                const relativeBarWidth = Math.max(Math.round((arch.score / maxScore) * 100), 8);
+                const isTop = idx === 0;
+
+                const row = document.createElement('div');
+                row.className = 'space-y-1';
+                row.innerHTML = `
+                    <div class="flex justify-between items-center text-xs sm:text-sm">
+                        <span class="${isTop ? 'text-yellow-300 font-bold' : 'text-purple-200'}">
+                            ${isTop ? '★ ' : ''}${arch.name} <span class="text-purple-400 text-xs">(${arch.subtitle})</span>
+                        </span>
+                        <span class="font-vhs text-xl ${isTop ? 'text-yellow-300' : 'text-cyan-300'}">
+                            ${arch.percentage}%
+                        </span>
+                    </div>
+                    <div class="w-full h-4 bg-purple-950/80 rounded border border-purple-500/40 p-0.5 eq-bar-bg overflow-hidden">
+                        <div class="h-full rounded transition-all duration-700" 
+                             style="width: ${relativeBarWidth}%; background: ${arch.color}; box-shadow: 0 0 12px ${arch.color};">
+                        </div>
+                    </div>
+                `;
+                statsContainer.appendChild(row);
+            });
+
+            finalSummaryText = `📼 W JAKIEJ HISTORII ŻYJESZ? (Retro Test 1985)\n` +
+                `★ Mój Archetyp Fabularny: ${winner.name} (${winner.subtitle})\n` +
+                `🎬 ${winner.films}\n` +
+                `⚡ Supermoc: ${winner.superpower}\n` +
+                `🎧 Soundtrack: ${winner.soundtrack}\n` +
+                `🎒 Rekwizyt: ${winner.prop}\n` +
+                `📊 Dopasowanie: ${sortedArchetypes.map(a => `${a.name}: ${a.percentage}%`).join(' | ')}`;
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function resetQuiz() {
+            playSynthSound('rewind');
+            setPageBanner('introBannerImg', 1);
+            document.getElementById('resultScreen').classList.add('hidden');
+            document.getElementById('questionScreen').classList.add('hidden');
+            document.getElementById('introScreen').classList.remove('hidden');
+            document.getElementById('vhsStatusText').textContent = `PLAY ▶ STRONA 01/22`;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function copyResultToClipboard() {
+            playSynthSound('coin');
+            const textArea = document.createElement('textarea');
+            textArea.value = finalSummaryText;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-9999px';
+            document.body.appendChild(textArea);
+            textArea.select();
+
+            try {
+                document.execCommand('copy');
+                const btnText = document.getElementById('copyBtnText');
+                btnText.textContent = 'SKOPIOWANO DO SCHOWKA!';
+                showCustomToast('✓ SKOPIOWANO KARTĘ POSTACI DO SCHOWKA!');
+
+                setTimeout(() => {
+                    btnText.textContent = 'SKOPIUJ WYNIK DO SCHOWKA';
+                }, 3000);
+            } catch (err) {
+                console.error('Błąd kopiowania:', err);
+            } finally {
+                document.body.removeChild(textArea);
+            }
+        }
+
+        /* ==========================================================================
+           6. OBSŁUGA KLAWIATURY ORAZ INICJALIZACJA STRONY 01
+           ========================================================================== */
+        window.addEventListener('keydown', (e) => {
+            const questionScreenVisible = !document.getElementById('questionScreen').classList.contains('hidden');
+            if (!questionScreenVisible) return;
+
+            const key = e.key.toUpperCase();
+            if (key === 'A' || key === '1') selectAnswer(0);
+            else if (key === 'B' || key === '2') selectAnswer(1);
+            else if (key === 'C' || key === '3') selectAnswer(2);
+            else if (key === 'D' || key === '4') selectAnswer(3);
+            else if (e.key === 'ArrowLeft' || e.key === 'Backspace') prevQuestion();
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setPageBanner('introBannerImg', 1);
+            setPageBanner('resultBannerImg', 22);
+        });
+    </script>
+</body>
+</html>

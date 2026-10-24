@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>W Jakiej Historii Żyjesz? // Nowe Współczesne Archetypy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;0,700;1,400&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #07090e;
+            --bg-card: #0f131d;
+            --bg-card-hover: #161c2b;
+            --border-color: #232c43;
+            --border-highlight: #38bdf8;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --accent-debugger: #10b981;
+            --accent-glitch: #f43f5e;
+            --accent-ghost: #38bdf8;
+            --accent-overclocker: #f59e0b;
+            --primary: #38bdf8;
+            --secondary: #818cf8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(56, 189, 248, 0.07) 0%, transparent 40%),
+                radial-gradient(circle at 85% 85%, rgba(244, 63, 94, 0.06) 0%, transparent 40%),
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+            color: var(--text-main);
+            font-family: 'Space Grotesk', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px;
+            line-height: 1.6;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 820px;
+            position: relative;
+        }
+
+        /* Top Terminal Bar */
+        .terminal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(15, 19, 29, 0.9);
+            border: 1px solid var(--border-color);
+            border-bottom: none;
+            border-radius: 14px 14px 0 0;
+            padding: 12px 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            backdrop-filter: blur(10px);
+        }
+
+        .terminal-dots {
+            display: flex;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #334155;
+        }
+        .dot.r { background: #ef4444; }
+        .dot.y { background: #f59e0b; }
+        .dot.g { background: #10b981; }
+
+        .card {
+            background: rgba(15, 19, 29, 0.88);
+            border: 1px solid var(--border-color);
+            border-radius: 0 0 16px 16px;
+            padding: 36px 32px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(12px);
+            transition: opacity 0.28s ease, transform 0.28s ease;
+        }
+
+        .card.fade-out {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+
+        /* Baner 3168 x 1344 (proporcje 33:14) */
+        .page-banner {
+            width: 100%;
+            aspect-ratio: 3168 / 1344;
+            background: 
+                linear-gradient(135deg, rgba(15, 19, 29, 0.95), rgba(22, 28, 43, 0.85)),
+                repeating-linear-gradient(
+                    45deg,
+                    rgba(56, 189, 248, 0.03) 0px,
+                    rgba(56, 189, 248, 0.03) 10px,
+                    transparent 10px,
+                    transparent 20px
+                );
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 24px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .page-banner img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            position: relative;
+            z-index: 2;
+        }
+
+        .page-banner.img-missing img {
+            display: none;
+        }
+
+        .banner-placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-muted);
+            z-index: 1;
+            pointer-events: none;
+            text-align: center;
+            padding: 12px;
+            border: 1px dashed rgba(56, 189, 248, 0.22);
+            border-radius: 11px;
+            margin: 6px;
+        }
+
+        .banner-placeholder .file-badge {
+            color: var(--primary);
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .banner-placeholder .ratio-info {
+            font-size: 0.7rem;
+            opacity: 0.65;
+        }
+
+        /* Typography & Badges */
+        .eyebrow {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            color: var(--primary);
+            margin-bottom: 10px;
+            display: inline-block;
+            background: rgba(56, 189, 248, 0.1);
+            padding: 4px 10px;
+            border-radius: 4px;
+            border: 1px solid rgba(56, 189, 248, 0.25);
+        }
+
+        h1 {
+            font-size: clamp(1.8rem, 4vw, 2.55rem);
+            font-weight: 700;
+            line-height: 1.18;
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
+        }
+
+        .lead {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+            margin-bottom: 28px;
+        }
+
+        /* Archetypes Preview Grid on Intro */
+        .archetype-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .arch-preview {
+            background: rgba(22, 28, 43, 0.7);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 18px;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+
+        .arch-preview:hover {
+            transform: translateY(-2px);
+        }
+
+        .arch-preview::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+        }
+
+        .arch-preview.debugger::before { background: var(--accent-debugger); }
+        .arch-preview.glitch::before { background: var(--accent-glitch); }
+        .arch-preview.ghost::before { background: var(--accent-ghost); }
+        .arch-preview.overclocker::before { background: var(--accent-overclocker); }
+
+        .arch-code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .arch-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: var(--text-main);
+        }
+
+        .arch-sub {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .arch-preview.debugger .arch-sub { color: var(--accent-debugger); }
+        .arch-preview.glitch .arch-sub { color: var(--accent-glitch); }
+        .arch-preview.ghost .arch-sub { color: var(--accent-ghost); }
+        .arch-preview.overclocker .arch-sub { color: var(--accent-overclocker); }
+
+        .arch-desc {
+            font-size: 0.88rem;
+            color: var(--text-muted);
+        }
+
+        /* Progress Bar */
+        .progress-wrapper {
+            margin-bottom: 20px;
+        }
+
+        .progress-meta {
+            display: flex;
+            justify-content: space-between;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 6px;
+            background: #1e293b;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            width: 0%;
+            transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Question Card Elements */
+        .scene-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 14px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+        }
+
+        .scene-tag {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            padding: 3px 9px;
+            border-radius: 4px;
+            color: var(--text-muted);
+        }
+
+        .question-title {
+            font-size: clamp(1.25rem, 2.6vw, 1.55rem);
+            font-weight: 600;
+            margin-bottom: 24px;
+            color: var(--text-main);
+            line-height: 1.38;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .option-btn {
+            background: var(--bg-card-hover);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 16px 18px;
+            color: var(--text-main);
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.98rem;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            transition: all 0.18s ease;
+            line-height: 1.45;
+        }
+
+        .option-btn:hover {
+            border-color: var(--primary);
+            background: rgba(56, 189, 248, 0.08);
+            transform: translateX(4px);
+        }
+
+        .option-btn.selected {
+            border-color: var(--primary);
+            background: rgba(56, 189, 248, 0.14);
+            box-shadow: 0 0 0 1px var(--primary);
+        }
+
+        .opt-key {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            background: rgba(56, 189, 248, 0.12);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            min-width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1px;
+            flex-shrink: 0;
+        }
+
+        /* Buttons & Navigation */
+        .nav-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+        }
+
+        .btn {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 13px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #07090e;
+        }
+
+        .btn-primary:hover {
+            background: #7dd3fc;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px -4px rgba(56, 189, 248, 0.45);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            color: var(--text-main);
+            border-color: var(--text-muted);
+        }
+
+        /* Results / Summary Screen */
+        .result-header {
+            border-left: 4px solid var(--primary);
+            padding-left: 18px;
+            margin-bottom: 28px;
+        }
+
+        .result-archetype-name {
+            font-size: clamp(1.9rem, 4.5vw, 2.75rem);
+            font-weight: 700;
+            line-height: 1.15;
+            margin: 6px 0;
+        }
+
+        .result-subtitle {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            color: var(--primary);
+        }
+
+        .story-box {
+            background: rgba(22, 28, 43, 0.75);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .story-box h3 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        .story-box p {
+            font-size: 1.02rem;
+            color: var(--text-main);
+            margin-bottom: 14px;
+        }
+
+        .story-box p:last-child {
+            margin-bottom: 0;
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+
+        .meta-item {
+            background: rgba(15, 19, 29, 0.9);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 16px;
+        }
+
+        .meta-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .meta-val {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .stats-breakdown {
+            margin-bottom: 30px;
+        }
+
+        .stat-row {
+            margin-bottom: 14px;
+        }
+
+        .stat-label-row {
+            display: flex;
+            justify-content: space-between;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            margin-bottom: 6px;
+        }
+
+        .stat-bar-bg {
+            height: 8px;
+            background: #1e293b;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .stat-bar-fill {
+            height: 100%;
+            border-radius: 999px;
+            transition: width 0.8s ease;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 600px) {
+            .card {
+                padding: 24px 18px;
+            }
+            .option-btn {
+                padding: 14px;
+                font-size: 0.93rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="terminal-header">
+        <div class="terminal-dots">
+            <span class="dot r"></span>
+            <span class="dot y"></span>
+            <span class="dot g"></span>
+        </div>
+        <div id="terminal-status">SYS.NARRATIVE_ENGINE // v2.04</div>
+    </div>
+
+    <!-- EKRAN WPROWADZENIA -->
+    <div id="screen-intro" class="card">
+        <!-- BANER 0.png (3168 x 1344) -->
+        <div class="page-banner">
+            <img src="img/0.png" alt="Baner Wprowadzenia" onload="this.parentElement.classList.remove('img-missing')" onerror="this.parentElement.classList.add('img-missing')">
+            <div class="banner-placeholder">
+                <span class="file-badge">0.png</span>
+                <span class="ratio-info">BANER INTRO // 3168 × 1344 px</span>
+            </div>
+        </div>
+
+        <span class="eyebrow">Interaktywny Test Psychologiczno-Fabularny</span>
+        <h1>W jakiej historii naprawdę żyjesz?</h1>
+        <p class="lead">
+            Zapomnij o wyświechtanych kliszach kina akcji z lat 80. Współczesny świat pisze scenariusze w świetle monitorów, pośród cichych awarii infrastruktury, przeładowanych kalendarzy i algorytmów śledzących każdy nasz ruch. Odpowiedz na <strong>20 pytań o codzienne mikro-zdarzenia</strong> i sprawdź, który z czterech współczesnych archetypów definiuje Twoją osobistą fabułę.
+        </p>
+
+        <div class="archetype-grid">
+            <div class="arch-preview debugger">
+                <div class="arch-code">ARCH_01 // SYSTEM_FIXER</div>
+                <div class="arch-title">„The Debugger”</div>
+                <div class="arch-sub">Cichy naprawiacz systemów</div>
+                <div class="arch-desc">Człowiek, który dostrzega ukryte błędy w otaczającym świecie i po cichu je naprawia, zanim ktokolwiek zauważy, że groziła katastrofa.</div>
+            </div>
+            <div class="arch-preview glitch">
+                <div class="arch-code">ARCH_02 // EDGE_ANALYST</div>
+                <div class="arch-title">„Glitch in the System”</div>
+                <div class="arch-sub">Niepokorny analityk</div>
+                <div class="arch-desc">Buntownik żyjący na krawędzi algorytmów. Kwestionuje reguły, celowo karmi system fałszywymi danymi i znajduje luki tam, gdzie inni widzą mur.</div>
+            </div>
+            <div class="arch-preview ghost">
+                <div class="arch-code">ARCH_03 // CLOUD_DRIFTER</div>
+                <div class="arch-title">„Ghost Writer”</div>
+                <div class="arch-sub">Cyfrowy nomada</div>
+                <div class="arch-desc">Uważny obserwator znikający w chmurze danych. Kolekcjonuje cudze historie, zachowując pełną niezależność i bilet w jedną stronę w kieszeni.</div>
+            </div>
+            <div class="arch-preview overclocker">
+                <div class="arch-code">ARCH_04 // MAX_THROUGHPUT</div>
+                <div class="arch-title">„Overclocker”</div>
+                <div class="arch-sub">Przeładowany optymalizator</div>
+                <div class="arch-desc">Perfekcjonista goniący za niemożliwym. Wykręca własny umysł i czas powyżej fabrycznych limitów, traktując rzeczywistość jak projekt do zoptymalizowania.</div>
+            </div>
+        </div>
+
+        <div class="nav-bar" style="justify-content: flex-end;">
+            <button class="btn btn-primary" onclick="startQuiz()">
+                URUCHOM SYMULACJĘ (20 KART) <span>→</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- EKRAN PYTAŃ (20 KART) -->
+    <div id="screen-question" class="card hidden">
+        <div class="progress-wrapper">
+            <div class="progress-meta">
+                <span id="q-counter">KARTA 01 / 20</span>
+                <span id="q-percent">5%</span>
+            </div>
+            <div class="progress-track">
+                <div id="progress-fill" class="progress-fill"></div>
+            </div>
+        </div>
+
+        <!-- BANER 1.png - 20.png (3168 x 1344) -->
+        <div class="page-banner" id="q-banner-box">
+            <img id="q-banner-img" src="1.png" alt="Baner Sceny" onload="this.parentElement.classList.remove('img-missing')" onerror="this.parentElement.classList.add('img-missing')">
+            <div class="banner-placeholder">
+                <span class="file-badge" id="q-banner-label">1.png</span>
+                <span class="ratio-info">BANER SCENY // 3168 × 1344 px</span>
+            </div>
+        </div>
+
+        <div class="scene-meta">
+            <span id="q-location" class="scene-tag">LOKACJA: --</span>
+            <span id="q-time" class="scene-tag">CZAS: --</span>
+        </div>
+
+        <h2 id="q-title" class="question-title">Treść pytania...</h2>
+
+        <div id="options-container" class="options-list"></div>
+
+        <div class="nav-bar">
+            <button id="btn-prev" class="btn btn-secondary" onclick="prevQuestion()">
+                ← POPRZEDNIA KARTA
+            </button>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-muted);">
+                KLIKNIJ ODPOWIEDŹ LUB [1-4] NA KLAWIATURZE
+            </span>
+        </div>
+    </div>
+
+    <!-- EKRAN PODSUMOWANIA -->
+    <div id="screen-result" class="card hidden">
+        <!-- BANER 21.png (3168 x 1344) -->
+        <div class="page-banner" id="res-banner-box">
+            <img id="res-banner-img" src="img/21.png" alt="Baner Wyniku" onload="this.parentElement.classList.remove('img-missing')" onerror="this.parentElement.classList.add('img-missing')">
+            <div class="banner-placeholder">
+                <span class="file-badge" id="res-banner-label">21.png</span>
+                <span class="ratio-info">BANER WYNIKU // 3168 × 1344 px</span>
+            </div>
+        </div>
+
+        <span class="eyebrow">ANALIZA ZAKOŃCZONA // TWÓJ PROFIL NARRACYJNY</span>
+        
+        <div id="result-header" class="result-header">
+            <div id="res-code" style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--text-muted);"></div>
+            <div id="res-title" class="result-archetype-name"></div>
+            <div id="res-subtitle" class="result-subtitle"></div>
+        </div>
+
+        <div class="story-box">
+            <h3>// W JAKIEJ HISTORII ŻYJESZ?</h3>
+            <p id="res-story-1"></p>
+            <p id="res-story-2"></p>
+        </div>
+
+        <div class="meta-grid">
+            <div class="meta-item">
+                <div class="meta-label">Gatunek Twojej Fabuły</div>
+                <div id="res-genre" class="meta-val"></div>
+            </div>
+            <div class="meta-item">
+                <div class="meta-label">Twój Ukryty Super-Atut</div>
+                <div id="res-superpower" class="meta-val"></div>
+            </div>
+            <div class="meta-item">
+                <div class="meta-label">Główny Antagonista</div>
+                <div id="res-nemesis" class="meta-val"></div>
+            </div>
+            <div class="meta-item">
+                <div class="meta-label">Kluczowy Rekwizyt</div>
+                <div id="res-artifact" class="meta-val"></div>
+            </div>
+        </div>
+
+        <div class="story-box">
+            <h3>// ROZKŁAD SYGNAŁÓW W TWOICH DECYZJACH</h3>
+            <div id="stats-container" class="stats-breakdown"></div>
+            <p id="res-secondary-note" style="font-size: 0.88rem; color: var(--text-muted); margin-top: 12px;"></p>
+        </div>
+
+        <div class="nav-bar">
+            <button class="btn btn-secondary" onclick="restartQuiz()">
+                ↺ ZRESETUJ I ODPOWIEDZ PONOWNIE
+            </button>
+            <button class="btn btn-primary" onclick="copyResult()">
+                SKOPIUJ PROFIL DO SCHOWKA
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+const questions = [
+    {
+        banner: "img/1.png",
+        location: "SCENA 01 // OSIEDLOWY PACZKOMAT",
+        time: "22:14 // LEKKI DESZCZ",
+        question: "Podchodzisz wieczorem do automatu paczkowego. Ekran zawiesił się na komunikacie błędu, a obok stoi zdezorientowany kurier z naręczem przesyłek. Co robisz?",
+        options: [
+            { text: "Zerkam przez ramię na kod błędu, rozpoznaję zwieszony proces terminala i podpowiadam kurierowi dokładną kombinację restartu.", type: "debugger" },
+            { text: "Uśmiecham się pod nosem – wykorzystuję rzadki moment, gdy kamera i skaner nie logują odbioru, wyciągając wnioski o dziurawym zabezpieczeniu sieci.", type: "glitch" },
+            { text: "Staję pod zadaszeniem kilka kroków dalej, odpalam odbiór zdalny z telefonu bez jednego słowa i znikam w bocznej uliczce.", type: "ghost" },
+            { text: "W 15 sekund przekierowuję paczkę w aplikacji do punktu obok, bo w moim harmonogramie wieczoru nie ma bufora na cudze przestoje.", type: "overclocker" }
+        ]
+    },
+    {
+        banner: "img/2.png",
+        location: "SCENA 02 // PORANNY RYTUAŁ",
+        time: "06:45 // KUCHNIA / BIURKO",
+        question: "Budzisz się 15 minut przed budzikiem. Za oknem miasto dopiero wstaje. Jaka jest Twoja pierwsza naturalna myśl?",
+        options: [
+            { text: "Słyszę, że lodówka albo piec pracuje na dziwnie wysokich obrotach – idę od razu sprawdzić uszczelkę i ciśnienie w układzie.", type: "debugger" },
+            { text: "Sprawdzam na telefonie, które nocne trendy i wiadomości są sztucznie pompowane przez boty, zanim reszta społeczeństwa w nie uwierzy.", type: "glitch" },
+            { text: "Rozkoszuję się bezwzględną ciszą. Przez tę chwilę nikt nie wie, że już nie śpię – jestem całkowicie poza radarem świata.", type: "ghost" },
+            { text: "Świetnie, 15 minut czystego zysku! Odpalam ekspres i odhaczam dwa najtrudniejsze zadania dnia, zanim inni zdążą przetrzeć oczy.", type: "overclocker" }
+        ]
+    },
+    {
+        banner: "img/3.png",
+        location: "SCENA 03 // SUPERMARKET",
+        time: "18:30 // GODZINA SZCZYTU",
+        question: "W sklepie tworzy się gigantyczny korek przy kasach samoobsługowych, bo klienci gubią się w komunikatach o strefie pakowania. Jak reagujesz?",
+        options: [
+            { text: "Odruchowo pomagam starszej osobie obok zważyć pieczywo i odblokowuję zator na dwóch stanowiskach, zanim podejdzie zmęczona obsługa.", type: "debugger" },
+            { text: "Znam dokładny próg czułości wagi tej konkretnej marki kas – skanuję towary nietypową sekwencją, omijając blokady systemowe.", type: "glitch" },
+            { text: "Mam na uszach słuchawki z aktywną redukcją szumu. Płacę zbliżeniowo, nie nawiązując kontaktu wzrokowego z tłumem, i wychodzę jak cień.", type: "ghost" },
+            { text: "Układam produkty w koszyku według kodów kreskowych jeszcze w alejkach – skanuję 12 rzeczy w 18 sekund i biję własny rekord wyjścia.", type: "overclocker" }
+        ]
+    },
+    {
+        banner: "img/4.png",
+        location: "SCENA 04 // SPOTKANIE ZESPOŁOWE",
+        time: "11:00 // WIDEOKONFERENCJA",
+        question: "Podczas ważnego spotkania ktoś prezentuje nowy, huczny plan działania, ale Ty po minucie widzisz w nim fundamentalną lukę logiczną. Twój ruch?",
+        options: [
+            { text: "Po spotkaniu podsyłam autorowi gotową poprawkę w arkuszu, która po cichu ratuje cały projekt przed wysypaniem się w piątek.", type: "debugger" },
+            { text: "Zadaję jedno pozornie niewinne pytanie na czacie ogólnym, które na oczach wszystkich obnaża absurd założeń i burzy korpo-narrację.", type: "glitch" },
+            { text: "Mam wyłączoną kamerę i mikrofon. Robię własne notatki z dynamiki grupy, nie angażując się w cudze wojny ambicjonalne.", type: "ghost" },
+            { text: "Przejmuję udostępnianie ekranu i w 3 minuty rozpisuję na żywo zoptymalizowany process, który jest o 40% szybszy.", type: "overclocker" }
+        ]
+    },
+    {
+        banner: "img/5.png",
+        location: "SCENA 05 // PRZESTRZEŃ CYFROWA",
+        time: "14:20 // EKRAN ROBOCZY",
+        question: "Gdyby obca osoba spojrzała teraz na pulpit Twojego komputera i otwarte karty w przeglądarce, co by zobaczyła?",
+        options: [
+            { text: "Pogrupowane katalogi, skrypty naprawcze, narzędzia diagnostyczne i starannie utrzymany porządek w plikach konfiguracyjnych.", type: "debugger" },
+            { text: "Trzy różne przeglądarki, niestandardowe wtyczki blokujące telemetrię, otwarty inspektor kodu i analizę dziwnego ruchu w sieci.", type: "glitch" },
+            { text: "Pusty pulpit bez jednej ikony, tryb prywatny, brak zapisanej historii i wszystko spięte w zaszyfrowanej chmurze.", type: "ghost" },
+            { text: "45 otwartych kart podzielonych na okna zadaniowe, skróty klawiszowe do wszystkiego, licznik czasu i dashboardy produktywności.", type: "overclocker" }
+        ]
+    },
+    {
+        banner: "img/6.png",
+        location: "SCENA 06 // AWARIA ZASILANIA",
+        time: "21:05 // CAŁA DZIELNICA",
+        question: "W całej okolicy nagle gaśnie światło i przestają działać lokalne nadajniki Wi-Fi. Zapada nietypowa ciemność. Co robisz w pierwszej minucie?",
+        options: [
+            { text: "Sięgam po latarkę, która zawsze leży w tym samym miejscu, sprawdzam bezpieczniki na klatce i upewniam się, czy nikt nie utknął w windzie.", type: "debugger" },
+            { text: "Wychodzę na balkon z fascynacją – uwielbiam ten moment, gdy cyfrowy nadzór ślepnie, a miasto na chwilę wraca do stanu surowego.", type: "glitch" },
+            { text: "Zapalam świeczkę, robię herbatę i czuję ulgę, że przez najbliższe dwie godziny świat nie ma prawa niczego ode mnie chcieć.", type: "ghost" },
+            { text: "W 10 sekund przełączam laptopa na powerbank wysokiego napięcia i hotspot satelitarny/LTE – nie stracę ani minuty przepustowości.", type: "overclocker" }
+        ]
+    },
+    {
+        banner: "img/7.png",
+        location: "SCENA 07 // ZGUBIONY PRZEDMIOT",
+        time: "16:10 // ŁAWKA W PARKU",
+        question: "Znajdujesz na ławce odblokowany smartfon z otwartą aplikacją notatek i niedokończoną wiadomością. Jak się zachowujesz?",
+        options: [
+            { text: "Sprawdzam kontakt ICE („w razie wypadku”), dzwonię do bliskiej osoby właściciela i czekam na miejscu, by bezpiecznie przekazać sprzęt.", type: "debugger" },
+            { text: "Z czystej analitycznej ciekawości rzucam okiem na strukturę otwartych aplikacji, po czym zostawiam w notatniku krótkie, enigmatyczne hasło i odnoszę do punktu.", type: "glitch" },
+            { text: "Kładę telefon w widocznym miejscu u baristy w pobliskiej kawiarni i odchodzę, zanim ktokolwiek powiąże mnie z całą sytuacją.", type: "ghost" },
+            { text: "W dwie minuty namierzam właściciela po nazwie profilu na LinkedIn/IG, wysyłam mu pinezkę GPS i biegnę dalej bez zatrzymywania się.", type: "overclocker" }
+        ]
+    },
+    {
+        banner: "img/8.png",
+        location: "SCENA 08 // NOCNA TRASA",
+        time: "00:30 // DROGA KRAJOWA",
+        question: "Jedziesz nocą przez miasto, a nawigacja nagle uparcie każe Ci skręcić w dziwną, nieoświetloną drogę serwisową.",
+        options: [
+            { text: "Wiem, że algorytm źle czyta remont na skrzyżowaniu – jadę sprawdzoną trasą i zgłaszam w aplikacji korektę mapy dla innych kierowców.", type: "debugger" },
+            { text: "Skręcam bez wahania! Chcę zobaczyć, co znajduje się w martwym punkcie mapy, którego zwykły ruch ma nie oglądać.", type: "glitch" },
+            { text: "Wyłączam komunikaty głosowe. Jadę przed siebie przy dobrej muzyce, traktując nocną trasę jak stan zawieszenia między miastami.", type: "ghost" },
+            { text: "Porównuję czas przejazdu na dwóch niezależnych mapach jednocześnie i wybieram wariant, który urywa 4 minuty na światłach.", type: "overclocker" }
+        ]
+    },
+    {
+        banner: "img/9.png",
+        location: "SCENA 09 // ALOKACJA ZASOBÓW",
+        time: "19:00 // POWIADOMIENIE BANKOWE",
+        question: "Na Twoje konto wpływa niespodziewany zwrot lub bonus finansowy, o którym zupełnie zapomniałeś. Na co idą te środki?",
+        options: [
+            { text: "Na porządne narzędzia, wymianę zużytej części w sprzęcie lub domowy zapas awaryjny, żeby wszystko działało bez zarzutu przez lata.", type: "debugger" },
+            { text: "Na niszowy sprzęt elektroniczny, niezależne projekty lub aktywa poza głównym obiegiem bankowym.", type: "glitch" },
+            { text: "Na fundusz swobody – lekki plecak, podróż bez sztywnego planu albo opłacenie spokoju na kolejne miesiące.", type: "ghost" },
+            { text: "W całości w dźwignię wydajności: szybszy procesor, automatyzację pracy, kurs specjalistyczny lub optymalizację zdrowia.", type: "overclocker" }
+        ]
+    },
+    {
+        banner: "img/10.png",
+        location: "SCENA 10 // DOMÓWKA / EVENT",
+        time: "23:15 // GŁOŚNE MIESZKANIE",
+        question: "Jesteś na dużej imprezie lub spotkaniu branżowym. Wokół panuje hałas i chaos rozmów. Gdzie można Cię znaleźć po godzinie?",
+        options: [
+            { text: "W kuchni lub przy routerze – właśnie naprawiam gospodarzowi przerywające nagłośnienie albo kapiący kran.", type: "debugger" },
+            { text: "W kącie z jedną osobą – prowadzimy gęstą rozmowę o tym, jak bardzo powierzchowne są społeczne rytuały odbywające się w salonie.", type: "glitch" },
+            { text: "Na balkonie albo już w drodze do domu – zastosowałem klasyczne „angielskie wyjście” i nikt nawet nie zauważył kiedy.", type: "ghost" },
+            { text: "W samym centrum – łączę ze sobą właściwych ludzi, wymieniam trzy konkrety biznesowe i wychodzę punktualnie o założonej godzinie.", type: "overclocker" }
+        ]
+    },
+    {
+        banner: "img/11.png",
+        location: "SCENA 11 // REKLAMA ZBYT DOKŁADNA",
+        time: "13:10 // EKRAN SMARTFONA",
+        question: "Wspominasz o czymś niszowym w rozmowie przy kawie, a godzinę później widzisz idealnie dopasowaną reklamę tego produktu. Twoja reakcja?",
+        options: [
+            { text: "Wchodzę w ustawienia uprawnień systemowych i krok po kroku wycinam aplikacjom dostęp do mikrofonu oraz identyfikatorów reklamowych.", type: "debugger" },
+            { text: "Zaczynam celowo mówić przy telefonie o absurdalnych produktach (np. częściach do łodzi podwodnych), żeby zatruć profil behawioralny.", type: "glitch" },
+            { text: "I tak korzystam z kont bez prawdziwych danych osobowych – dla algorytmów jestem tylko zbiorem przypadkowych pikseli.", type: "ghost" },
+            { text: "Jeśli algorytm zaoszczędził mi 20 minut szukania najlepszej oferty i podał link na tacy – korzystam, kupuję w 30 sekund i idę dalej.", type: "overclocker" }
+        ]
+    },
+    {
+        banner: "img/12.png",
+        location: "SCENA 12 // DOMOWE STUDIO / WARSZTAT",
+        time: "17:40 // TWOJA PRZESTRZEŃ",
+        question: "Gdybyś miał opisać swoją prywatną przestrzeń, w której spędzasz najwięcej czasu po godzinach, jak ona wygląda?",
+        options: [
+            { text: "Funkcjonalny warsztat lub stanowisko, gdzie każda śrubka, kabel i przejściówka ma swoje logiczne miejsce i przeznaczenie.", type: "debugger" },
+            { text: "Twórczy nieład pełen rozkręconych urządzeń, notatek na kartkach i nieszablonowych rozwiązań, które rozumiem tylko ja.", type: "glitch" },
+            { text: "Ascetyczny minimalizm – tylko rzeczy, które zmieściłyby się do dwóch walizek, gdybym jutro rano postanowił zmienić adres.", type: "ghost" },
+            { text: "Ergonomiczne centrum dowodzenia: dwa monitory, precyzyjne oświetlenie, zero rozpraszaczy i wszystko w zasięgu ręki.", type: "overclocker" }
+        ]
+    },
+    {
+        banner: "img/13.png",
+        location: "SCENA 13 // NIESŁUSZNY MANDAT / OPŁATA",
+        time: "09:15 // SKRZYNKA POCZTOWA",
+        question: "Otrzymujesz automatyczne wezwanie do zapłaty z systemu parkingowego, mimo że masz dowód opłacenia biletu. Co robisz?",
+        options: [
+            { text: "Wysyłam rzeczowe pismo z załączonym logiem transakcji i wskazuję im błąd w synchronizacji zegara ich parkometru.", type: "debugger" },
+            { text: "Znajduję w ich własnym regulaminie sprzeczny paragraf, który sprawia, że to oni muszą tłumaczyć się z bezprawnego przetwarzania danych.", type: "glitch" },
+            { text: "Załatwiam sprawę jednym bezosobowym formularzem online bez wchodzenia w emocje – szkoda mojej energii życiowej na urzędników.", type: "ghost" },
+            { text: "Mam gotowy szablon reklamacji w chmurze – podmieniam datę w 40 sekund, wysyłam i natychmiast wracam do swoich zadań.", type: "overclocker" }
+        ]
+    },
+    {
+        banner: "img/14.png",
+        location: "SCENA 14 // STYL KOMUNIKACJI",
+        time: "15:50 // KOMUNIKATOR",
+        question: "Znajomi i współpracownicy dobrze wiedzą, że pisząc do Ciebie na komunikatorze, można spodziewać się jednego:",
+        options: [
+            { text: "Że odpiszę dopiero wtedy, gdy mam już gotowe, sprawdzone rozwiązanie problemu, o który pytają.", type: "debugger" },
+            { text: "Krótkich, celnych ripost, linków otwierających oczy albo wiadomości o 3 nad ranem z zupełnie nowym odkryciem.", type: "glitch" },
+            { text: "Wyłączonych potwierdzeń przeczytania („seen”) – odpowiadam z refleksją, ale zawsze na własnych warunkach czasowych.", type: "ghost" },
+            { text: "Wypunktowanego konkretu w trzech linijkach. Nie znoszę wiadomości typu „Cześć, jesteś?” bez od razu opisanego tematu.", type: "overclocker" }
+        ]
+    },
+    {
+        banner: "img/15.png",
+        location: "SCENA 15 // OPÓŹNIONY POCIĄG",
+        time: "12:40 // DWORZEC CENTRALNY",
+        question: "Na tablicy świetlnej pojawia się informacja: Twój pociąg ma 80 minut opóźnienia. Tłum na peronie zaczyna głośno narzekać.",
+        options: [
+            { text: "Odpalam otwartą mapę radarową pociągów, sprawdzam gdzie dokładnie stoi skład i podpowiadam współpasażerom realną godzinę przyjazdu.", type: "debugger" },
+            { text: "Obserwuję jak łatwo jeden komunikat na ekranie wprowadza tłum w kontrolowaną panikę – i znajduję nieoczywiste połączenie zastępcze.", type: "glitch" },
+            { text: "Idę do najcichszej kawiarni na uboczu dworca, zamawiam kawę i traktuję tę godzinę jak darowany rozdział poza czasem.", type: "ghost" },
+            { text: "Siadam na ławce, wyciągam laptopa i w te 80 minut zamykam cały zaległy projekt z tygodnia.", type: "overclocker" }
+        ]
+    },
+    {
+        banner: "img/16.png",
+        location: "SCENA 16 // INSTALACJA NOWEGO SPRZĘTU",
+        time: "20:00 // ROZPAKOWYWANIE PUDEŁKA",
+        question: "Kupujesz nowe urządzenie elektroniczne lub instalujesz nowy program. Od czego zaczynasz po pierwszym uruchomieniu?",
+        options: [
+            { text: "Od aktualizacji firmware’u, sprawdzenia stabilności i dokładnego przejrzenia wszystkich ukrytych opcji serwisowych.", type: "debugger" },
+            { text: "Od odblokowania trybu deweloperskiego, wgrania alternatywnego oprogramowania lub wycięcia fabrycznych blokad producenta.", type: "glitch" },
+            { text: "Od wyłączenia wszystkich powiadomień, dźwięków, chmur synchronizacji i lokalizacji – sprzęt ma służyć po cichu.", type: "ghost" },
+            { text: "Od podkręcenia częstotliwości odświeżania, ustawienia makr i skrótów, żeby wycisnąć z niego 120% fabrycznej prędkości.", type: "overclocker" }
+        ]
+    },
+    {
+        banner: "img/17.png",
+        location: "SCENA 17 // KRYZYS W OTOCZENIU",
+        time: "10:15 // NAGŁY TELEFON",
+        question: "Ktoś bliski lub współpracownik dzwoni w emocjach, bo wszystko poszło nie tak i „świat się wali”. Jaką rolę przyjmujesz?",
+        options: [
+            { text: "Spokojnego inżyniera sytuacji: oddzielam emocje od faktów, znajduję przyczynę usterki i krok po kroku przywracam stabilność.", type: "debugger" },
+            { text: "Pokazuję mu drugie dno – uświadamiam, że kryzys wynika z fałszywych reguł gry, które właśnie można obrócić na własną korzyść.", type: "glitch" },
+            { text: "Uważnie słucham bez oceniania, dając dystans i bezpieczną przystań, która pozwala spojrzeć na problem z lotu ptaka.", type: "ghost" },
+            { text: "Przejmuję stery operacyjne: rozpisuję plan ratunkowy w 3 punktach, wykonuję dwa telefony i zamykam pożar w pół godziny.", type: "overclocker" }
+        ]
+    },
+    {
+        banner: "img/18.png",
+        location: "SCENA 18 // ŚLAD W SIECI",
+        time: "23:45 // WYSZUKIWARKA",
+        question: "Gdyby ktoś dzisiaj wpisał Twoje imię i nazwisko w wyszukiwarkę i chciał stworzyć Twój portret psychologiczny, co znajdzie?",
+        options: [
+            { text: "Kilka konkretnych śladów po rozwiązanych problemach, pomocnych wpisach technicznych lub solidnie wykonanych projektach.", type: "debugger" },
+            { text: "Sprzeczne tropy, niszowe fora, kilka ironicznych komentarzy i dane, które celowo nie składają się w jeden prosty szablon.", type: "glitch" },
+            { text: "Prawie nic aktualnego. Stare lub zminimalizowane profile, zero publicznych zdjęć z życia prywatnego – cyfrowa mgła.", type: "ghost" },
+            { text: "Dopracowane portfolio projektów, mierzalne rezultaty i ślady intensywnej działalności na kilku polach jednocześnie.", type: "overclocker" }
+        ]
+    },
+    {
+        banner: "img/19.png",
+        location: "SCENA 19 // WOLNA NIEDZIELA",
+        time: "14:00 // BRAK ZOBOWIĄZAŃ",
+        question: "Masz przed sobą zupełnie pustą niedzielę. Zero telefonów, zero terminów. Co sprawia Ci największą satysfakcję?",
+        options: [
+            { text: "Doprowadzenie do perfekcji czegoś w domu, w kodzie lub w kuchni – satysfakcja z rzeczy zrobionej rzetelnie od A do Z.", type: "debugger" },
+            { text: "Zanurzenie się w króliczą norę nietypowego tematu, testowanie nowej technologii albo rozpracowywanie jak działa jakiś system.", type: "glitch" },
+            { text: "Długi spacer bez celu, czytanie lub obserwowanie świata z poczuciem, że nie muszę w niczym uczestniczyć.", type: "ghost" },
+            { text: "Intensywny trening, rozbudowa własnego pobocznego projektu i planowanie kolejnego tygodnia tak, by wejść w poniedziałek z przewagą.", type: "overclocker" }
+        ]
+    },
+    {
+        banner: "img/20.png",
+        location: "SCENA 20 // FINAŁOWA KLATKA FILMU",
+        time: "23:59 // NAPISY KOŃCOWE",
+        question: "Gdyby Twoje dotychczasowe życie było współczesnym filmem, jak wyglądałaby ostatnia scena przed napisami końcowymi?",
+        options: [
+            { text: "Zbliżenie na zieloną diodę „SYSTEM OK” na serwerze lub urządzeniu, podczas gdy ja zamykam drzwi warsztatu i spokojnie odchodzę.", type: "debugger" },
+            { text: "Na wielkim telebimie w centrum miasta na sekundę mruga mój własny komunikat, a ja w tłumie przechodniów lekko się uśmiecham.", type: "glitch" },
+            { text: "Kamera pokazuje puste miejsce przy kawiarnianym stoliku, jeszcze ciepłą filiżankę i odjeżdżający w oddali pociąg.", type: "ghost" },
+            { text: "Widok z okna na nocną panoramę miasta, na biurku trzy ekrany pracujące na pełnych obrotach – i kliknięcie „DEPLOY” o północy.", type: "overclocker" }
+        ]
+    }
+];
+
+const archetypes = {
+    debugger: {
+        banner: "img/21.png",
+        code: "ARCHETYP_01 // SYSTEM_ARCHITECT_&_FIXER",
+        title: "„The Debugger”",
+        subtitle: "Cichy naprawiacz systemów",
+        color: "#10b981",
+        story1: "Żyjesz w historii, której większość ludzi nawet nie zauważa – dopóki coś się nie zepsuje. Tam, gdzie inni widzą zwykłą codzienność, Ty dostrzegasz architekturę procesów, zależności przyczynowo-skutkowe i drobne pęknięcia w fundamentach. Nie potrzebujesz oklasków ani świateł jupiterów. Twoją największą satysfakcją jest moment, w którym złożony mechanizm – czy to oprogramowanie, firma, sprzęt, czy relacja międzyludzka – zaczyna działać płynnie dzięki Twojej cichej interwencji.",
+        story2: "W świecie pełnym prowizorki i powierzchownych obietnic jesteś ostatnią linią obrony przed entropią. Ludzie instynktownie zwracają się do Ciebie, gdy kończą się slajdy z prezentacji, a zaczyna prawdziwa awaria. Twoja fabuła to neo-noirowy thriller techniczny o rzemieślniku, który trzyma ten świat w całości za pomocą logiki, cierpliwości i precyzyjnego śrubokręta.",
+        genre: "Techno-thriller / Neo-noir o cichym profesjonaliście",
+        superpower: "Diagnostyka rentgenowska – widzisz źródło problemu w 10 sekund",
+        nemesis: "Bylejakość, korporacyjna prowizorka i ignorowanie ostrzeżeń",
+        artifact: "Sprawdzony multitool, terminal diagnostyczny i pęk kluczy"
+    },
+    glitch: {
+        banner: "img/21.png",
+        code: "ARCHETYP_02 // ROGUE_ANALYST",
+        title: "„Glitch in the System”",
+        subtitle: "Niepokorny analityk",
+        color: "#f43f5e",
+        story1: "Żyjesz na krawędzi oficjalnego kodu rzeczywistości. Od dziecka miałeś alergię na zdanie „tak po prostu musi być”. Zamiast ślepo podążać za instrukcją, sprawdzasz, co się stanie, gdy wciśniesz dwa wykluczające się przyciski naraz. Widzisz, jak współczesne algorytmy, media i instytucje próbują formatować ludzkie zachowania – i z dziką satysfakcją wrzucasz piasek w te tryby.",
+        story2: "Twoja historia to cyberpunkowy dramat psychologiczny w stylu „Mr. Robot”. Posiadasz umysł analityka połączony z temperamentem rewolucjonisty. Potrafisz odwrócić narzucone reguły gry przeciwko ich twórcom, znaleźć nieudokumentowaną furtkę w każdym regulaminie i dostrzec prawdę ukrytą pod warstwami marketingowej narracji.",
+        genre: "Cyberpunkowy thriller konspiracyjny / Post-ironiczny dramat",
+        superpower: "Reverse-engineering – rozgryzanie ukrytych intencji i luk w systemach",
+        nemesis: "Bezmyślny konformizm, inwigilacja i zamknięte ekosystemy",
+        artifact: "Zaszyfrowany pendrive, własny skrypt i ironiczny uśmiech"
+    },
+    ghost: {
+        banner: "img/21.png",
+        code: "ARCHETYP_03 // CLOUD_NOMAD",
+        title: "„Ghost Writer”",
+        subtitle: "Cyfrowy nomada i obserwator",
+        color: "#38bdf8",
+        story1: "Żyjesz w historii o radykalnej wolności i uważnej obserwacji. W epoce, w której wszyscy desperacko walczą o atencję, lajki i hałaśliwą obecność, Ty wybrałeś supermoc niewidzialności. Przemieszczasz się między projektami, miejscami i grupami społecznymi z lekkością kogoś, kto nie pozwala się zamknąć w żadnej szufladce.",
+        story2: "Widzisz więcej niż inni właśnie dlatego, że stoisz pół kroku z boku. Ludzie często powierzają Ci swoje tajemnice, bo wyczuwają Twój spokój i brak oceniania. Twoja fabuła przypomina nastrojowe kino drogi połączone z cyfrowym minimalizmem – jesteś autorem, który pisze własny scenariusz z dala od zgiełku, zawsze mając otwartą drogę ewakuacji.",
+        genre: "Współczesne kino drogi / Minimalistyczny dramat obyczajowy",
+        superpower: "Znikający punkt – pełna niezależność emocjonalna i lokalizacyjna",
+        nemesis: "Mikrozarządzanie, przymusowa integracja i utrata prywatności",
+        artifact: "Słuchawki z ANC, lekki laptop i bilet bez daty powrotu"
+    },
+    overclocker: {
+        banner: "img/21.png",
+        code: "ARCHETYP_04 // HYPER_OPTIMIZER",
+        title: "„Overclocker”",
+        subtitle: "Przeładowany optymalizator",
+        color: "#f59e0b",
+        story1: "Żyjesz w historii o wysokim napięciu i nieustannym przekraczaniu limitów. Dla Ciebie doba nie ma 24 godzin – ma dokładnie 1440 minut, z których każdą można lepiej zaprojektować, zautomatyzować i wykorzystać. Kiedy inni mówią, że czegoś nie da się zbudować w weekend, Ty w poniedziałek rano pokazujesz działający prototyp.",
+        story2: "Twój umysł pracuje na podkręconym taktowaniu. Łączysz kropki z prędkością światłowodu, budujesz własne narzędzia i nie znosisz marnowania potencjału. Twoja fabuła to dynamiczny dramat o wizjonerze-perfekcjoniście, którego największym wyzwaniem nie jest pokonanie konkurencji, lecz pamiętanie o schłodzeniu własnego procesora, zanim osiągnie temperaturę krytyczną.",
+        genre: "Wysokooktanowy dramat o ambicji, technologii i wyścigu z czasem",
+        superpower: "Hiper-przepustowość – realizacja w tydzień tego, co innym zajmuje kwartał",
+        nemesis: "Powolność, nieefektywne spotkania i własne przebodźcowanie",
+        artifact: "Podwójne espresso, automatyczny skrypt i zegarek liczący sekundy"
+    }
+};
+
+let currentIndex = 0;
+let userAnswers = new Array(questions.length).fill(null);
+
+function updateBannerElement(imgId, labelId, fileName) {
+    const imgEl = document.getElementById(imgId);
+    const labelEl = document.getElementById(labelId);
+    if (labelEl) labelEl.textContent = fileName;
+    if (imgEl) {
+        imgEl.parentElement.classList.remove('img-missing');
+        imgEl.src = fileName;
+    }
+}
+
+function startQuiz() {
+    currentIndex = 0;
+    userAnswers.fill(null);
+    document.getElementById('screen-intro').classList.add('hidden');
+    document.getElementById('screen-result').classList.add('hidden');
+    const qScreen = document.getElementById('screen-question');
+    qScreen.classList.remove('hidden');
+    renderQuestion();
+}
+
+function renderQuestion() {
+    const q = questions[currentIndex];
+    const total = questions.length;
+    const numStr = String(currentIndex + 1).padStart(2, '0');
+    const pct = Math.round(((currentIndex + 1) / total) * 100);
+
+    document.getElementById('terminal-status').textContent = `SYS.NARRATIVE_ENGINE // KARTA_${numStr}_Z_${total}`;
+    document.getElementById('q-counter').textContent = `KARTA ${numStr} / ${total}`;
+    document.getElementById('q-percent').textContent = `${pct}%`;
+    document.getElementById('progress-fill').style.width = `${pct}%`;
+
+    // Aktualizacja banera x.png dla bieżącej karty (1.png - 20.png)
+    const bannerFile = q.banner || `${currentIndex + 1}.png`;
+    updateBannerElement('q-banner-img', 'q-banner-label', bannerFile);
+
+    document.getElementById('q-location').textContent = q.location;
+    document.getElementById('q-time').textContent = q.time;
+    document.getElementById('q-title').textContent = q.question;
+
+    const prevBtn = document.getElementById('btn-prev');
+    prevBtn.style.visibility = currentIndex === 0 ? 'hidden' : 'visible';
+
+    const container = document.getElementById('options-container');
+    container.innerHTML = '';
+
+    const keys = ['A', 'B', 'C', 'D'];
+    q.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn' + (userAnswers[currentIndex] === opt.type ? ' selected' : '');
+        btn.innerHTML = `
+            <span class="opt-key">${keys[idx]}</span>
+            <span>${opt.text}</span>
+        `;
+        btn.onclick = () => selectOption(opt.type);
+        container.appendChild(btn);
+    });
+}
+
+function selectOption(type) {
+    userAnswers[currentIndex] = type;
+    const qCard = document.getElementById('screen-question');
+    qCard.classList.add('fade-out');
+
+    setTimeout(() => {
+        if (currentIndex < questions.length - 1) {
+            currentIndex++;
+            renderQuestion();
+            qCard.classList.remove('fade-out');
+        } else {
+            qCard.classList.remove('fade-out');
+            showResults();
+        }
+    }, 180);
+}
+
+function prevQuestion() {
+    if (currentIndex > 0) {
+        currentIndex--;
+        renderQuestion();
+    }
+}
+
+function showResults() {
+    document.getElementById('screen-question').classList.add('hidden');
+    const resScreen = document.getElementById('screen-result');
+    resScreen.classList.remove('hidden');
+    document.getElementById('terminal-status').textContent = `SYS.NARRATIVE_ENGINE // WYNIK_KOŃCOWY`;
+
+    const counts = {
+        debugger: 0,
+        glitch: 0,
+        ghost: 0,
+        overclocker: 0
+    };
+
+    userAnswers.forEach(ans => {
+        if (ans && counts[ans] !== undefined) {
+            counts[ans]++;
+        }
+    });
+
+    const sorted = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+    const winnerKey = sorted[0];
+    const secondKey = sorted[1];
+    const winner = archetypes[winnerKey];
+    const second = archetypes[secondKey];
+
+    // Aktualizacja banera na ekranie wyników (domyślnie 21.png)
+    updateBannerElement('res-banner-img', 'res-banner-label', winner.banner || 'img/21.png');
+
+    const headerEl = document.getElementById('result-header');
+    headerEl.style.borderLeftColor = winner.color;
+
+    document.getElementById('res-code').textContent = winner.code;
+    document.getElementById('res-title').textContent = winner.title;
+    document.getElementById('res-subtitle').textContent = winner.subtitle;
+    document.getElementById('res-subtitle').style.color = winner.color;
+
+    document.getElementById('res-story-1').textContent = winner.story1;
+    document.getElementById('res-story-2').textContent = winner.story2;
+
+    document.getElementById('res-genre').textContent = winner.genre;
+    document.getElementById('res-superpower').textContent = winner.superpower;
+    document.getElementById('res-nemesis').textContent = winner.nemesis;
+    document.getElementById('res-artifact').textContent = winner.artifact;
+
+    const statsContainer = document.getElementById('stats-container');
+    statsContainer.innerHTML = '';
+
+    sorted.forEach(key => {
+        const arch = archetypes[key];
+        const pct = Math.round((counts[key] / questions.length) * 100);
+        const row = document.createElement('div');
+        row.className = 'stat-row';
+        row.innerHTML = `
+            <div class="stat-label-row">
+                <span>${arch.title} (${arch.subtitle})</span>
+                <span>${counts[key]}/20 (${pct}%)</span>
+            </div>
+            <div class="stat-bar-bg">
+                <div class="stat-bar-fill" style="width: ${pct}%; background: ${arch.color};"></div>
+            </div>
+        `;
+        statsContainer.appendChild(row);
+    });
+
+    document.getElementById('res-secondary-note').innerHTML = 
+        `<strong>Twój archetyp poboczny (Sub-profil):</strong> ${second.title} (${second.subtitle}). W sytuacjach skrajnych potrafisz płynnie przełączyć się w ten tryb działania.`;
+}
+
+function restartQuiz() {
+    document.getElementById('screen-result').classList.add('hidden');
+    document.getElementById('screen-intro').classList.remove('hidden');
+    document.getElementById('terminal-status').textContent = `SYS.NARRATIVE_ENGINE // v2.04`;
+}
+
+function copyResult() {
+    const title = document.getElementById('res-title').textContent;
+    const sub = document.getElementById('res-subtitle').textContent;
+    const genre = document.getElementById('res-genre').textContent;
+    const power = document.getElementById('res-superpower').textContent;
+    const text = `Mój współczesny archetyp fabularny to: ${title} – ${sub}.
+Gatunek mojej historii: ${genre}
+Super-atut: ${power}`;
+    navigator.clipboard.writeText(text).then(() => {
+        alert("Twój profil fabularny został skopiowany do schowka!");
+    });
+}
+
+// Obsługa klawiatury 1-4 dla szybkiego odpowiadania
+document.addEventListener('keydown', (e) => {
+    const qScreen = document.getElementById('screen-question');
+    if (qScreen.classList.contains('hidden')) return;
+    const q = questions[currentIndex];
+    if (['1', '2', '3', '4'].includes(e.key)) {
+        const idx = parseInt(e.key, 10) - 1;
+        if (q.options[idx]) {
+            selectOption(q.options[idx].type);
+        }
+    }
+});
+</script>
+
+</body>
+</html>
