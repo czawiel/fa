@@ -1,0 +1,2200 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baza Kontaktów B2B - OpenStreetMap</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        /* Niestandardowy pasek przewijania dla tabeli */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        @keyframes pulse-fast {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .animate-pulse-fast {
+            animation: pulse-fast 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- System powiadomień (Toast) -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+    <!-- Nagłówek -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-primary-600 flex items-center justify-center text-white shadow-md shadow-primary-500/20">
+                    <i class="fa-solid fa-envelope-open-text text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-slate-900 tracking-tight">B2B Lead Finder <span class="text-xs font-medium bg-primary-50 text-primary-700 px-2.5 py-0.5 rounded-full border border-primary-200 ml-1">OSM API</span></h1>
+                    <p class="text-xs text-slate-500">Wyszukiwarka publicznych danych kontaktowych firm i instytucji</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-slate-500 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200">
+                <i class="fa-solid fa-shield-halved text-emerald-600"></i>
+                <span>100% darmowe i otwarte dane (OpenStreetMap)</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Główna zawartość -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- Panel Wyszukiwania -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6">
+            <form id="search-form" class="space-y-5">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                    
+                    <!-- Pole Miasta -->
+                    <div class="md:col-span-3">
+                        <label for="city-input" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Miasto / Lokalizacja <span class="text-rose-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                <i class="fa-solid fa-location-dot"></i>
+                            </div>
+                            <input 
+                                type="text" 
+                                id="city-input" 
+                                required
+                                placeholder="np. Poznań, Kraków..." 
+                                class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all outline-none"
+                                value="Poznań"
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Wybór Branży / Kategorii -->
+                    <div class="md:col-span-3">
+                        <label for="category-select" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Branża / Kategoria OSM
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                <i class="fa-solid fa-briefcase"></i>
+                            </div>
+                            <select 
+                                id="category-select" 
+                                class="w-full pl-10 pr-8 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all outline-none appearance-none"
+                            >
+                                <option value="all">Wszystkie firmy (Pełny skan)</option>
+                                <option value="office">Biura, IT, Finanse, Usługi B2B (office)</option>
+                                <option value="shop">Sklepy i Handel detaliczny (shop)</option>
+                                <option value="craft">Rzemiosło, Produkcja, Budownictwo (craft)</option>
+                                <option value="amenity">Gastronomia, Medycyna, Edukacja (amenity)</option>
+                                <option value="tourism">Hotele, Noclegi i Turystyka (tourism)</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                                <i class="fa-solid fa-chevron-down text-xs"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- POLE: Wysyłam (Decydenci / Osoby odpowiedzialne za wdrożenia) -->
+                    <div class="md:col-span-4">
+                        <label for="target-role-select" class="block text-xs font-semibold text-primary-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                            <i class="fa-solid fa-paper-plane text-[10px]"></i>
+                            <span>Wysyłam (Osoby od wdrożeń / Decydenci)</span>
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-primary-500">
+                                <i class="fa-solid fa-user-tie"></i>
+                            </div>
+                            <select 
+                                id="target-role-select" 
+                                class="w-full pl-10 pr-8 py-2.5 bg-primary-50/60 border border-primary-300 text-slate-800 font-medium rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all outline-none appearance-none"
+                            >
+                                <option value="all">Wszystkie (Wdrożenia + Marketing + HR + Zarząd)</option>
+                                <option value="marketing">Marketing / PR / Wizerunek (CMO, Head of Marketing)</option>
+                                <option value="tech">Wdrożenia / IT / Produkt / AI (CTO, Innowacje)</option>
+                                <option value="hr">Rekrutacja / HR / Employer Branding (Head of HR)</option>
+                                <option value="ceo">CEO / Właściciel / Zarząd (SME & Agencje)</option>
+                                <option value="partners">Rozwój biznesu / Partnerstwa (B2B, Sales)</option>
+                                <option value="personal">Tylko generator imienny (imie.nazwisko@domena)</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-primary-600">
+                                <i class="fa-solid fa-chevron-down text-xs"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Przycisk Szukaj -->
+                    <div class="md:col-span-2 flex items-end">
+                        <button 
+                            type="submit" 
+                            id="search-btn"
+                            class="w-full py-2.5 px-4 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white font-semibold rounded-xl shadow-md shadow-primary-500/20 transition-all flex items-center justify-center gap-2 text-sm cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                        >
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <span>Pobierz</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Szybki wybór miast i opcje -->
+                <div class="pt-3 border-t border-slate-100 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 text-xs">
+                    <div class="flex flex-wrap items-center gap-1.5">
+                        <span class="text-slate-400 font-medium mr-1">Popularne miasta:</span>
+                        <button type="button" class="city-pill px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-primary-50 hover:text-primary-600 text-slate-600 transition-colors font-medium" data-city="Warszawa">Warszawa</button>
+                        <button type="button" class="city-pill px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-primary-50 hover:text-primary-600 text-slate-600 transition-colors font-medium" data-city="Kraków">Kraków</button>
+                        <button type="button" class="city-pill px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-primary-50 hover:text-primary-600 text-slate-600 transition-colors font-medium" data-city="Wrocław">Wrocław</button>
+                        <button type="button" class="city-pill px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-primary-50 hover:text-primary-600 text-slate-600 transition-colors font-medium" data-city="Poznań">Poznań</button>
+                        <button type="button" class="city-pill px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-primary-50 hover:text-primary-600 text-slate-600 transition-colors font-medium" data-city="Gdańsk">Gdańsk</button>
+                        <button type="button" class="city-pill px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-primary-50 hover:text-primary-600 text-slate-600 transition-colors font-medium" data-city="Łódź">Łódź</button>
+                        <button type="button" class="city-pill px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-primary-50 hover:text-primary-600 text-slate-600 transition-colors font-medium" data-city="Katowice">Katowice</button>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-4">
+                        <button type="button" id="toggle-b2b-guide-btn" class="text-primary-600 hover:text-primary-800 font-semibold flex items-center gap-1.5 cursor-pointer bg-primary-50 px-2.5 py-1 rounded-lg border border-primary-200 transition-colors">
+                            <i class="fa-solid fa-bullseye"></i>
+                            <span>Poradnik: Do kogo i jak pisać maile wdrożeniowe AI?</span>
+                        </button>
+
+                        <label class="inline-flex items-center cursor-pointer select-none">
+                            <input type="checkbox" id="only-valid-emails" checked class="sr-only peer">
+                            <div class="w-8 h-4 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all relative peer-checked:bg-primary-600"></div>
+                            <span class="ml-2 text-slate-600 font-medium">Waliduj składnię e-mail</span>
+                        </label>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Rozwijana ściągawka B2B Outbound -->
+            <div id="b2b-guide-panel" class="hidden mt-5 pt-5 border-t border-slate-200 bg-gradient-to-br from-indigo-50/70 via-white to-slate-50 rounded-xl p-4 sm:p-5 border">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-rocket text-primary-600"></i>
+                        <span>Strategia Cold Mailingu B2B: Osoby odpowiedzialne za wdrożenia i wizerunek</span>
+                    </h3>
+                    <button type="button" id="close-b2b-guide-btn" class="text-slate-400 hover:text-slate-600 text-xs cursor-pointer">
+                        <i class="fa-solid fa-xmark"></i> Ukryj
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-slate-600">
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-sm space-y-2">
+                        <div class="font-bold text-slate-800 flex items-center gap-1.5 text-primary-700">
+                            <i class="fa-solid fa-users-gear"></i> 1. Do kogo kierować maile?
+                        </div>
+                        <ul class="space-y-1.5 list-disc list-inside text-[11px] leading-relaxed">
+                            <li><strong>MŚP (SME) i Agencje:</strong> <span class="text-slate-800 font-medium">CEO / Właściciel</span> (szybkie decyzje), <span class="text-slate-800 font-medium">Head of Marketing</span> (wizerunek/PR), <span class="text-slate-800 font-medium">CTO / Head of Product</span> (integracje).</li>
+                            <li><strong>Korporacje (Enterprise):</strong> <span class="text-slate-800 font-medium">CMO / Brand Director</span> (budżet wizerunkowy), <span class="text-slate-800 font-medium">Head of Innovation</span> (wdrożenia AI), <span class="text-slate-800 font-medium">Head of HR / Talent Acquisition</span> (rekrutacja i EB).</li>
+                            <li class="text-amber-700"><em>Wskazówka:</em> Omijaj Procurement na starcie – uderzaj bezpośrednio do biznesu lub HR.</li>
+                        </ul>
+                    </div>
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-sm space-y-2">
+                        <div class="font-bold text-slate-800 flex items-center gap-1.5 text-emerald-700">
+                            <i class="fa-solid fa-at"></i> 2. Gdzie wysyłać? (Struktura)
+                        </div>
+                        <ul class="space-y-1.5 list-disc list-inside text-[11px] leading-relaxed">
+                            <li><strong>Adresy imienne (Najwyższa skuteczność):</strong> <code class="bg-slate-100 px-1 py-0.5 rounded text-slate-800">imie.nazwisko@domena.pl</code> lub <code class="bg-slate-100 px-1 py-0.5 rounded text-slate-800">i.nazwisko@domena.pl</code> (wygenerujesz je w tabeli przyciskiem <strong>Imienny + Szablon AI</strong>).</li>
+                            <li><strong>Dedykowane skrzynki działowe:</strong> <code class="bg-emerald-50 text-emerald-700 px-1 py-0.5 rounded">marketing@...</code>, <code class="bg-emerald-50 text-emerald-700 px-1 py-0.5 rounded">wdrozenia@...</code>, <code class="bg-emerald-50 text-emerald-700 px-1 py-0.5 rounded">rekrutacja@...</code>, <code class="bg-emerald-50 text-emerald-700 px-1 py-0.5 rounded">hr@...</code>.</li>
+                            <li><strong>Ogólne (Ostateczność):</strong> <code class="bg-slate-100 px-1 py-0.5 rounded">biuro@...</code> / <code class="bg-slate-100 px-1 py-0.5 rounded">kontakt@...</code> (ryzyko utknięcia na recepcji).</li>
+                        </ul>
+                    </div>
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-sm space-y-2">
+                        <div class="font-bold text-slate-800 flex items-center gap-1.5 text-amber-600">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> 3. Jak zwiększyć odpowiedź?
+                        </div>
+                        <ul class="space-y-1.5 list-disc list-inside text-[11px] leading-relaxed">
+                            <li><strong>Chwytliwy temat:</strong> <em>„Szybkie rozwiązanie AI do poprawy wizerunku [Nazwa firmy]”</em>.</li>
+                            <li><strong>Personalizacja + Wideo:</strong> Odnieś się do segmentu firmy i wklej link do <strong>30-sekundowego wideo (np. Loom)</strong>.</li>
+                            <li><strong>Jasne CTA:</strong> <em>„Czy znajdzie Pan/Pani 10 minut w czwartek na krótką prezentację demo?”</em></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pasek stanu ładowania i podgląd przebiegu pobierania na żywo -->
+        <div id="loading-state" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8 space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-12 h-12 rounded-2xl bg-primary-50 text-primary-600 flex items-center justify-center flex-shrink-0">
+                        <i id="loading-main-icon" class="fa-solid fa-circle-notch fa-spin text-xl"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 id="loading-title" class="text-base font-bold text-slate-900">Inicjalizacja pobierania wyników...</h3>
+                            <span id="loading-percent-badge" class="text-xs font-mono font-bold bg-primary-50 text-primary-700 px-2 py-0.5 rounded-md border border-primary-200">0%</span>
+                        </div>
+                        <p id="loading-subtitle" class="text-xs text-slate-500 mt-0.5">Łączenie z bazą OpenStreetMap Nominatim oraz Overpass API.</p>
+                    </div>
+                </div>
+                <div class="text-right hidden sm:block">
+                    <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Czas operacji</span>
+                    <span id="loading-timer" class="text-sm font-mono font-bold text-slate-700">0.0s</span>
+                </div>
+            </div>
+
+            <!-- Pasek postępu -->
+            <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden p-0.5">
+                <div id="loading-progress-bar" class="bg-gradient-to-r from-primary-500 to-indigo-600 h-full w-0 transition-all duration-300 rounded-full"></div>
+            </div>
+
+            <!-- Wizualne kroki procesu (4 etapy) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                <div id="step-card-1" class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 flex items-start gap-3 transition-all">
+                    <div id="step-icon-1" class="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-[11px] flex-shrink-0 mt-0.5">1</div>
+                    <div>
+                        <div class="font-bold text-slate-800">Geokodowanie (Nominatim)</div>
+                        <p id="step-desc-1" class="text-[11px] text-slate-500 mt-0.5">Pobieranie granic administracyjnych miasta</p>
+                    </div>
+                </div>
+                <div id="step-card-2" class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 flex items-start gap-3 transition-all">
+                    <div id="step-icon-2" class="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-[11px] flex-shrink-0 mt-0.5">2</div>
+                    <div>
+                        <div class="font-bold text-slate-800">Zapytanie Overpass QL</div>
+                        <p id="step-desc-2" class="text-[11px] text-slate-500 mt-0.5">Skanowanie węzłów i budynków w OSM</p>
+                    </div>
+                </div>
+                <div id="step-card-3" class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 flex items-start gap-3 transition-all">
+                    <div id="step-icon-3" class="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-[11px] flex-shrink-0 mt-0.5">3</div>
+                    <div>
+                        <div class="font-bold text-slate-800">Walidacja i Deduplikacja</div>
+                        <p id="step-desc-3" class="text-[11px] text-slate-500 mt-0.5">Odrzucanie błędnych maili i duplikatów</p>
+                    </div>
+                </div>
+                <div id="step-card-4" class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 flex items-start gap-3 transition-all">
+                    <div id="step-icon-4" class="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-[11px] flex-shrink-0 mt-0.5">4</div>
+                    <div>
+                        <div class="font-bold text-slate-800">Generowanie B2B & HR</div>
+                        <p id="step-desc-4" class="text-[11px] text-slate-500 mt-0.5">Ekstrakcja domen i skrzynek decyzyjnych</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Konsola przebiegu na żywo (Live Terminal) -->
+            <div class="bg-slate-900 rounded-xl p-4 border border-slate-800 text-left space-y-2">
+                <div class="flex items-center justify-between text-[11px] text-slate-400 border-b border-slate-800 pb-2">
+                    <span class="font-mono font-semibold text-indigo-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-terminal"></i> Dziennik przebiegu pobierania (Live Log)
+                    </span>
+                    <span class="font-mono text-[10px] text-slate-500">OSM Overpass / Nominatim Stream</span>
+                </div>
+                <div id="live-process-logs" class="font-mono text-xs space-y-1.5 max-h-40 overflow-y-auto custom-scrollbar text-slate-300">
+                    <!-- Logi dodawane dynamicznie -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Komunikat o błędzie krytycznym -->
+        <div id="error-state" class="hidden bg-rose-50 border border-rose-200 rounded-2xl p-5 flex items-start gap-4 text-rose-800">
+            <div class="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center flex-shrink-0 text-rose-600">
+                <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+            </div>
+            <div class="flex-grow">
+                <h3 class="text-sm font-bold text-rose-900" id="error-title">Wystąpił błąd podczas pobierania danych</h3>
+                <p class="text-xs text-rose-700 mt-1" id="error-message">Szczegóły błędu pojawią się tutaj.</p>
+            </div>
+            <button id="close-error-btn" class="text-rose-400 hover:text-rose-600 p-1 cursor-pointer">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Sekcja Statystyk i Narzędzi (widoczna po pobraniu) -->
+        <section id="results-dashboard" class="hidden space-y-6">
+            
+            <!-- Karty Statystyk -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl flex-shrink-0">
+                        <i class="fa-solid fa-building"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500 font-medium">Znalezione firmy</p>
+                        <p class="text-2xl font-bold text-slate-900" id="stat-total">0</p>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl flex-shrink-0">
+                        <i class="fa-solid fa-at"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500 font-medium">Unikalne e-maile (OSM)</p>
+                        <p class="text-2xl font-bold text-slate-900" id="stat-emails">0</p>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl flex-shrink-0">
+                        <i class="fa-solid fa-phone"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500 font-medium">Z numerem telefonu</p>
+                        <p class="text-2xl font-bold text-slate-900" id="stat-phones">0</p>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-xl flex-shrink-0">
+                        <i class="fa-solid fa-user-check"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500 font-medium">Z własną domeną B2B</p>
+                        <p class="text-2xl font-bold text-slate-900" id="stat-websites">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pasek akcji i filtrowania wyników -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-4 sm:p-5 border-b border-slate-200 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 bg-slate-50/50">
+                    
+                    <!-- Wyszukiwarka wewnętrzna w tabeli -->
+                    <div class="relative flex-grow max-w-md">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-filter text-xs"></i>
+                        </div>
+                        <input 
+                            type="text" 
+                            id="table-filter-input" 
+                            placeholder="Filtruj (nazwa, domena, stanowisko, ulica, kategoria)..." 
+                            class="w-full pl-9 pr-8 py-2 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
+                        >
+                        <button id="clear-filter-btn" class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer">
+                            <i class="fa-solid fa-circle-xmark text-xs"></i>
+                        </button>
+                    </div>
+
+                    <!-- Przyciski Eksportu i Kopiowania -->
+                    <div class="flex flex-wrap items-center gap-2">
+                        <div class="flex items-center bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs">
+                            <span class="text-slate-500 mr-1.5 font-medium">Tryb kopiowania:</span>
+                            <select id="copy-mode-select" class="bg-transparent font-semibold text-slate-800 outline-none cursor-pointer">
+                                <option value="osm">Maile ogólne z OSM (biuro/kontakt)</option>
+                                <option value="decision">Sugerowane maile wdrożeniowe (wg "Wysyłam")</option>
+                                <option value="combined">Pakiet: Ogólne OSM + Działy wdrożeń</option>
+                            </select>
+                        </div>
+
+                        <button 
+                            type="button" 
+                            id="copy-emails-btn"
+                            class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-xs sm:text-sm border border-indigo-200 transition-colors cursor-pointer"
+                        >
+                            <i class="fa-regular fa-copy"></i>
+                            <span>Kopiuj e-maile</span>
+                        </button>
+
+                        <button 
+                            type="button" 
+                            id="toggle-raw-emails-btn"
+                            class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs sm:text-sm border border-slate-200 transition-colors cursor-pointer"
+                        >
+                            <i class="fa-solid fa-list-ul"></i>
+                            <span>Podgląd listy</span>
+                        </button>
+
+                        <button 
+                            type="button" 
+                            id="toggle-diagnostics-btn"
+                            class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 font-semibold text-xs sm:text-sm border border-amber-200 transition-colors cursor-pointer"
+                            title="Pokaż raport błędów walidacji, odrzuconych rekordów i dziennik pobierania"
+                        >
+                            <i class="fa-solid fa-clipboard-check text-amber-600"></i>
+                            <span>Raport błędów i przebieg</span>
+                            <span id="diagnostics-badge-count" class="bg-amber-200/80 text-amber-900 px-1.5 py-0.2 rounded-md text-[11px] font-mono">0</span>
+                        </button>
+
+                        <button 
+                            type="button" 
+                            id="export-csv-btn"
+                            class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs sm:text-sm shadow-sm transition-colors cursor-pointer"
+                        >
+                            <i class="fa-solid fa-file-csv"></i>
+                            <span>Eksport CSV</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Szuflada: Raport błędów, odrzuconych rekordów i przebiegu pobierania -->
+                <div id="diagnostics-drawer" class="hidden bg-slate-50 border-b border-slate-200 p-4 sm:p-6 space-y-5">
+                    <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-200">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center">
+                                <i class="fa-solid fa-bug-slash text-sm"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-slate-900">Raport błędów walidacji, ostrzeżeń i przebiegu pobierania</h4>
+                                <p class="text-xs text-slate-500">Szczegółowe podsumowanie jakości danych z bazy OpenStreetMap oraz napotkanych problemów</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button type="button" id="export-errors-csv-btn" class="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-2xs">
+                                <i class="fa-solid fa-download text-slate-500"></i> Pobierz raport błędów (CSV)
+                            </button>
+                            <button type="button" id="close-diagnostics-btn" class="text-slate-400 hover:text-slate-700 text-xs font-semibold px-2 py-1 cursor-pointer">
+                                <i class="fa-solid fa-xmark"></i> Zamknij
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Liczniki diagnostyczne -->
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
+                        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-2xs">
+                            <span class="text-slate-400 block text-[11px]">Surowe obiekty OSM</span>
+                            <span id="diag-raw-count" class="text-lg font-bold text-slate-800 font-mono">0</span>
+                        </div>
+                        <div class="bg-white p-3 rounded-xl border border-rose-200 shadow-2xs">
+                            <span class="text-rose-600 font-medium block text-[11px]">Błędna składnia e-mail</span>
+                            <span id="diag-invalid-emails" class="text-lg font-bold text-rose-700 font-mono">0</span>
+                        </div>
+                        <div class="bg-white p-3 rounded-xl border border-amber-200 shadow-2xs">
+                            <span class="text-amber-700 font-medium block text-[11px]">Brak nazwy firmy</span>
+                            <span id="diag-missing-name" class="text-lg font-bold text-amber-700 font-mono">0</span>
+                        </div>
+                        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-2xs">
+                            <span class="text-slate-500 block text-[11px]">Pominięte duplikaty</span>
+                            <span id="diag-duplicates" class="text-lg font-bold text-slate-700 font-mono">0</span>
+                        </div>
+                        <div class="bg-white p-3 rounded-xl border border-indigo-200 shadow-2xs">
+                            <span class="text-indigo-600 font-medium block text-[11px]">Darmowe domeny (np. Gmail)</span>
+                            <span id="diag-free-domains" class="text-lg font-bold text-indigo-700 font-mono">0</span>
+                        </div>
+                        <div class="bg-white p-3 rounded-xl border border-emerald-200 shadow-2xs">
+                            <span class="text-emerald-600 font-medium block text-[11px]">Czas i serwer API</span>
+                            <span id="diag-duration" class="text-sm font-bold text-emerald-700 font-mono block mt-1">0.0s</span>
+                        </div>
+                    </div>
+
+                    <!-- Dwie kolumny: Lista błędów/ostrzeżeń oraz historia kroków -->
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                        <div class="lg:col-span-7 bg-white rounded-xl border border-slate-200 overflow-hidden flex flex-col">
+                            <div class="px-4 py-2.5 bg-slate-100/80 border-b border-slate-200 flex items-center justify-between text-xs font-bold text-slate-700">
+                                <span><i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1.5"></i> Zarejestrowane błędy danych i ostrzeżenia (<span id="diag-issues-total">0</span>)</span>
+                                <select id="diag-filter-select" class="bg-white border border-slate-300 rounded-lg px-2 py-0.5 text-[11px] font-normal outline-none cursor-pointer">
+                                    <option value="all">Wszystkie zdarzenia</option>
+                                    <option value="error">Tylko odrzucone błędy (Błędny e-mail / Brak nazwy)</option>
+                                    <option value="warning">Tylko ostrzeżenia (Darmowa domena / Duplikat)</option>
+                                </select>
+                            </div>
+                            <div class="max-h-56 overflow-y-auto custom-scrollbar divide-y divide-slate-100 text-xs" id="diag-issues-list">
+                                <!-- Lista błędów generowana dynamicznie -->
+                            </div>
+                        </div>
+
+                        <div class="lg:col-span-5 bg-slate-900 text-slate-200 rounded-xl border border-slate-800 overflow-hidden flex flex-col">
+                            <div class="px-4 py-2.5 bg-slate-950 border-b border-slate-800 text-xs font-bold text-indigo-400 flex items-center justify-between">
+                                <span><i class="fa-solid fa-clock-rotate-left mr-1.5"></i> Jak przebiegało pobieranie (Logi)</span>
+                                <span id="diag-endpoint-used" class="text-[10px] font-mono text-slate-400">overpass-api.de</span>
+                            </div>
+                            <div id="diag- logs-history" class="p-3.5 font-mono text-[11px] space-y-1.5 max-h-56 overflow-y-auto custom-scrollbar text-slate-300">
+                                <!-- Historia logów -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Szuflada z surową listą adresów e-mail -->
+                <div id="raw-emails-drawer" class="hidden bg-slate-900 text-slate-100 p-4 sm:p-5 border-b border-slate-800 space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold uppercase tracking-wider text-indigo-400">Lista adresów e-mail do masowej wysyłki</span>
+                            <span class="text-xs bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-full font-mono" id="raw-emails-count">0</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="flex items-center gap-1.5 text-xs text-slate-400">
+                                <label for="email-separator">Separator:</label>
+                                <select id="email-separator" class="bg-slate-800 text-white border border-slate-700 rounded-lg px-2 py-1 text-xs outline-none cursor-pointer">
+                                    <option value="\n">Nowa linia (Enter)</option>
+                                    <option value=", ">Przecinek (, )</option>
+                                    <option value="; ">Średnik (; )</option>
+                                </select>
+                            </div>
+                            <button type="button" id="close-drawer-btn" class="text-slate-400 hover:text-white text-xs cursor-pointer">
+                                <i class="fa-solid fa-xmark"></i> Zamknij
+                            </button>
+                        </div>
+                    </div>
+                    <textarea 
+                        id="raw-emails-textarea" 
+                        readonly 
+                        rows="5" 
+                        class="w-full bg-slate-950 text-emerald-400 font-mono text-xs p-3 rounded-xl border border-slate-800 focus:outline-none custom-scrollbar"
+                    ></textarea>
+                </div>
+
+                <!-- Pasek informacyjny nad tabelą -->
+                <div class="px-4 sm:px-5 py-2.5 bg-white border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+                    <div>
+                        Obszar: <strong class="text-slate-800" id="current-area-name">—</strong>
+                    </div>
+                    <div>
+                        Wyświetlono <strong class="text-slate-800" id="visible-rows-count">0</strong> z <strong class="text-slate-800" id="total-rows-count">0</strong> firm
+                    </div>
+                </div>
+
+                <!-- Tabela Wyników -->
+                <div class="overflow-x-auto custom-scrollbar max-h-[650px]">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-slate-50 border-b border-slate-200 sticky top-0 z-10 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                            <tr>
+                                <th class="py-3.5 px-3 w-10 text-center">#</th>
+                                <th class="py-3.5 px-4 min-w-[190px] cursor-pointer hover:text-slate-800 select-none" data-sort="name">
+                                    Nazwa firmy <i class="fa-solid fa-sort ml-1 text-slate-400"></i>
+                                </th>
+                                <th class="py-3.5 px-4 min-w-[130px] cursor-pointer hover:text-slate-800 select-none" data-sort="category">
+                                    Kategoria <i class="fa-solid fa-sort ml-1 text-slate-400"></i>
+                                </th>
+                                <th class="py-3.5 px-4 min-w-[200px] cursor-pointer hover:text-slate-800 select-none" data-sort="email">
+                                    E-mail z bazy OSM <i class="fa-solid fa-sort ml-1 text-slate-400"></i>
+                                </th>
+                                <th class="py-3.5 px-4 min-w-[290px] bg-indigo-50/60 text-indigo-900 border-x border-indigo-100">
+                                    <div class="flex items-center gap-1.5">
+                                        <i class="fa-solid fa-paper-plane text-indigo-600"></i>
+                                        <span>Wysyłam: Osoby od wdrożeń / Decydenci</span>
+                                    </div>
+                                </th>
+                                <th class="py-3.5 px-4 min-w-[130px]">Telefon / WWW</th>
+                                <th class="py-3.5 px-4 min-w-[170px]">Adres</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results-tbody" class="divide-y divide-slate-200 text-xs sm:text-sm bg-white">
+                            <!-- Wiersze generowane dynamicznie przez JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pusty stan tabeli (gdy filtr nic nie znajdzie) -->
+                <div id="empty-table-state" class="hidden p-10 text-center space-y-2">
+                    <div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto text-lg">
+                        <i class="fa-solid fa-magnifying-glass-minus"></i>
+                    </div>
+                    <h4 class="text-sm font-bold text-slate-700">Brak firm spełniających kryteria</h4>
+                    <p class="text-xs text-slate-500">Spróbuj zmienić frazę w filtrze tabeli lub wybierz inną kategorię OSM.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stan początkowy przed pierwszym wyszukiwaniem -->
+        <section id="initial-state" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 sm:p-10 text-center space-y-6">
+            <div class="w-16 h-16 rounded-2xl bg-primary-50 text-primary-600 flex items-center justify-center mx-auto text-2xl shadow-inner">
+                <i class="fa-solid fa-map-location-dot"></i>
+            </div>
+            <div class="max-w-lg mx-auto space-y-2">
+                <h2 class="text-lg font-bold text-slate-900">Gotowy do pobrania kontaktów B2B</h2>
+                <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">
+                    Wybierz miasto, kategorię oraz grupę docelową w polu <strong>„Wysyłam”</strong>, a następnie kliknij <strong>Pobierz</strong>. Aplikacja przeszuka bazę OpenStreetMap i wygeneruje adresy do działów wdrożeń, marketingu oraz zarządu.
+                </p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto text-left text-xs">
+                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
+                    <div class="font-bold text-slate-800 mb-1 flex items-center gap-1.5">
+                        <i class="fa-solid fa-1 text-primary-600"></i> Wybierz cel wysyłki
+                    </div>
+                    <p class="text-slate-500">Wskaż, czy celujesz w Marketing/PR, CTO/Wdrożenia AI, czy bezpośrednio w CEO/Właścicieli.</p>
+                </div>
+                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
+                    <div class="font-bold text-slate-800 mb-1 flex items-center gap-1.5">
+                        <i class="fa-solid fa-2 text-primary-600"></i> Generuj maile imienne
+                    </div>
+                    <p class="text-slate-500">Użyj przycisku „Imienny + Szablon AI”, aby stworzyć adresy <code>imie.nazwisko@domena</code> i gotowy Cold Mail.</p>
+                </div>
+                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
+                    <div class="font-bold text-slate-800 mb-1 flex items-center gap-1.5">
+                        <i class="fa-solid fa-3 text-primary-600"></i> Pobierz bazę CSV
+                    </div>
+                    <p class="text-slate-500">Skopiuj czyste adresy e-mail jednym kliknięciem lub pobierz arkusz CSV z dedykowanymi kolumnami.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL: Kreator Cold Maila AI & Generator Adresów Imiennych dla Decydentów -->
+    <div id="pitch-modal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl max-w-3xl w-full shadow-2xl border border-slate-200 overflow-hidden my-8 animate-fade-in">
+            <!-- Nagłówek Modala -->
+            <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-primary-600 flex items-center justify-center text-white shadow">
+                        <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold leading-tight" id="modal-company-name">Nazwa Firmy</h3>
+                        <p class="text-xs text-slate-400" id="modal-company-meta">Branża • Miasto • Domena</p>
+                    </div>
+                </div>
+                <button type="button" id="close-pitch-modal-btn" class="text-slate-400 hover:text-white p-1.5 rounded-lg transition-colors cursor-pointer">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-6 max-h-[82vh] overflow-y-auto custom-scrollbar">
+                
+                <!-- Sekcja 1: Kogo szukać i Generator Adresów Imiennych -->
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-200">
+                        <div>
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-primary-600 block">Krok 1: Namierz decydenta odpowiedzialnego za wdrożenia</span>
+                            <p class="text-xs text-slate-600 mt-0.5" id="modal-recommended-roles">Rekomendowane stanowiska: CEO / Head of Marketing / CTO</p>
+                        </div>
+                        <a id="modal-linkedin-btn" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0A66C2] hover:bg-[#004182] text-white text-xs font-semibold shadow-xs transition-colors whitespace-nowrap">
+                            <i class="fa-brands fa-linkedin"></i>
+                            <span>Szukaj decydenta na LinkedIn</span>
+                        </a>
+                    </div>
+
+                    <!-- Generator imie.nazwisko@domena -->
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+                        <div class="sm:col-span-4">
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Imię decydenta</label>
+                            <input type="text" id="decision-first-name" placeholder="np. Jan" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-primary-500 outline-none">
+                        </div>
+                        <div class="sm:col-span-4">
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nazwisko decydenta</label>
+                            <input type="text" id="decision-last-name" placeholder="np. Kowalski" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-primary-500 outline-none">
+                        </div>
+                        <div class="sm:col-span-4">
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Domena firmowa</label>
+                            <input type="text" id="decision-domain" placeholder="domena-firmy.pl" class="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-xs font-mono text-slate-700 focus:bg-white focus:ring-2 focus:ring-primary-500 outline-none">
+                        </div>
+                    </div>
+
+                    <!-- Wygenerowane pigułki imienne i działowe -->
+                    <div>
+                        <span class="text-[11px] font-semibold text-slate-500 block mb-1.5">Kliknij adres, aby ustawić go jako odbiorcę wiadomości (i skopiować):</span>
+                        <div id="modal-generated-emails-list" class="flex flex-wrap gap-1.5">
+                            <!-- Pigułki generowane dynamicznie -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sekcja 2: Personalizacja Wideo Demo (Loom) i Odbiorcy -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">
+                            Wybrany adres odbiorcy (Do:)
+                        </label>
+                        <input type="text" id="modal-recipient-email" class="w-full px-3 py-2 bg-indigo-50/50 border border-indigo-300 rounded-xl text-xs font-mono text-indigo-950 font-semibold focus:ring-2 focus:ring-primary-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">
+                            Link do 30-sekundowego wideo Demo (np. Loom / YouTube)
+                        </label>
+                        <input type="text" id="modal-loom-link" value="https://www.loom.com/share/twoje-demo-ai-30sek" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-primary-500 outline-none">
+                    </div>
+                </div>
+
+                <!-- Sekcja 3: Gotowy Szablon Cold Maila (zgodny z wytycznymi B2B) -->
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                            Krok 2: Spersonalizowany Cold Mail (Krótki temat + Wideo + Jasne CTA)
+                        </label>
+                        <span class="text-[11px] text-emerald-600 font-medium flex items-center gap-1">
+                            <i class="fa-solid fa-check-double"></i> Zoptymalizowany pod wysoki Open & Reply Rate
+                        </span>
+                    </div>
+
+                    <div>
+                        <span class="text-[11px] font-semibold text-slate-500 block mb-1">Temat wiadomości:</span>
+                        <div class="flex gap-2">
+                            <input type="text" id="modal-email-subject" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-semibold text-slate-900 focus:bg-white focus:ring-2 focus:ring-primary-500 outline-none">
+                            <button type="button" id="copy-subject-btn" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold border border-slate-200 whitespace-nowrap cursor-pointer">
+                                <i class="fa-regular fa-copy"></i> Kopiuj temat
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <span class="text-[11px] font-semibold text-slate-500 block mb-1">Treść wiadomości:</span>
+                        <textarea id="modal-email-body" rows="9" class="w-full p-3.5 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-800 leading-relaxed focus:bg-white focus:ring-2 focus:ring-primary-500 outline-none font-sans"></textarea>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Stopka Modala z akcjami -->
+            <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
+                <button type="button" id="copy-full-pitch-btn" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-800 font-semibold text-xs sm:text-sm border border-slate-300 shadow-2xs transition-colors cursor-pointer">
+                    <i class="fa-regular fa-copy text-primary-600"></i>
+                    <span>Kopiuj temat i treść</span>
+                </button>
+
+                <div class="flex items-center gap-2.5">
+                    <a id="open-mailto-btn" href="#" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-semibold text-xs sm:text-sm shadow-md shadow-primary-500/20 transition-all cursor-pointer">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        <span>Otwórz w programie pocztowym (Wyślij)</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stopka -->
+    <footer class="bg-white border-t border-slate-200 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
+            <div>
+                Dane dostarczane na licencji ODbL przez społeczność <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" class="text-primary-600 hover:underline font-medium">OpenStreetMap</a>.
+            </div>
+            <div>
+                Narzędzie przetwarza dane wyłącznie lokalnie w Twojej przeglądarce.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Logika JavaScript -->
+    <script>
+        // --- Słownik tłumaczeń najpopularniejszych tagów OSM na język polski ---
+        const OSM_CATEGORY_TRANSLATIONS = {
+            'office:company': 'Firma / Przedsiębiorstwo',
+            'office:it': 'Firma IT / Software',
+            'office:lawyer': 'Kancelaria prawna',
+            'office:accountant': 'Biuro rachunkowe',
+            'office:estate_agent': 'Biuro nieruchomości',
+            'office:insurance': 'Ubezpieczenia',
+            'office:architect': 'Biuro architektoniczne',
+            'office:advertising_agency': 'Agencja reklamowa',
+            'office:notary': 'Notariusz',
+            'office:tax_advisor': 'Doradca podatkowy',
+            'office:financial': 'Usługi finansowe',
+            'office:coworking': 'Biuro coworkingowe',
+            'office:association': 'Stowarzyszenie / Fundacja',
+            'office:ngo': 'Organizacja NGO',
+            'office:government': 'Urząd / Instytucja',
+            'office:educational_institution': 'Placówka edukacyjna',
+            'office:employment_agency': 'Agencja pracy',
+            'office:telecommunication': 'Telekomunikacja',
+            'office:logistics': 'Logistyka i Transport',
+            'office:yes': 'Biuro',
+
+            'shop:supermarket': 'Supermarket',
+            'shop:convenience': 'Sklep spożywczy',
+            'shop:clothes': 'Sklep odzieżowy',
+            'shop:car_repair': 'Warsztat samochodowy',
+            'shop:car': 'Salon / Komis samochodowy',
+            'shop:car_parts': 'Części samochodowe',
+            'shop:hairdresser': 'Salon fryzjerski',
+            'shop:beauty': 'Salon kosmetyczny',
+            'shop:bakery': 'Piekarnia / Cukiernia',
+            'shop:florist': 'Kwiaciarnia',
+            'shop:furniture': 'Sklep meblowy',
+            'shop:electronics': 'Sklep RTV/AGD',
+            'shop:computer': 'Sklep komputerowy',
+            'shop:doityourself': 'Sklep budowlany / Majsterkowanie',
+            'shop:bicycle': 'Sklep / Serwis rowerowy',
+            'shop:optician': 'Salon optyczny',
+            'shop:jewelry': 'Jubiler',
+            'shop:books': 'Księgarnia',
+            'shop:shoes': 'Sklep obuwniczy',
+            'shop:hardware': 'Artykuły metalowe / Narzędzia',
+            'shop:pet': 'Sklep zoologiczny',
+            'shop:sports': 'Sklep sportowy',
+            'shop:travel_agency': 'Biuro podróży',
+            'shop:copyshop': 'Drukarnia / Ksero',
+
+            'amenity:restaurant': 'Restauracja',
+            'amenity:cafe': 'Kawiarnia',
+            'amenity:fast_food': 'Fast food / Bistro',
+            'amenity:bar': 'Bar / Pub',
+            'amenity:pub': 'Pub',
+            'amenity:pharmacy': 'Apteka',
+            'amenity:clinic': 'Przychodnia / Klinika',
+            'amenity:doctors': 'Gabinet lekarski',
+            'amenity:dentist': 'Gabinet stomatologiczny',
+            'amenity:veterinary': 'Weterynarz',
+            'amenity:bank': 'Bank',
+            'amenity:school': 'Szkoła',
+            'amenity:kindergarten': 'Przedszkole',
+            'amenity:university': 'Uczelnia wyższa',
+            'amenity:language_school': 'Szkoła językowa',
+            'amenity:driving_school': 'Szkoła jazdy',
+            'amenity:car_wash': 'Myjnia samochodowa',
+            'amenity:car_rental': 'Wypożyczalnia aut',
+            'amenity:fuel': 'Stacja paliw',
+            'amenity:theatre': 'Teatr',
+            'amenity:cinema': 'Kino',
+            'amenity:arts_centre': 'Centrum kultury / sztuki',
+
+            'craft:carpenter': 'Stolarz',
+            'craft:electrician': 'Elektryk',
+            'craft:plumber': 'Hydraulik',
+            'craft:photographer': 'Fotograf',
+            'craft:shoemaker': 'Szewc',
+            'craft:tailor': 'Krawiec',
+            'craft:metal_construction': 'Konstrukcje metalowe',
+            'craft:window_construction': 'Stolarka okienna',
+            'craft:hvac': 'Klimatyzacja i Wentylacja (HVAC)',
+            'craft:printer': 'Drukarnia',
+            'craft:roofer': 'Dekarz',
+            'craft:glaziery': 'Szklarz',
+            'craft:electronics_repair': 'Serwis elektroniki',
+            'craft:caterer': 'Catering',
+
+            'tourism:hotel': 'Hotel',
+            'tourism:hostel': 'Hostel',
+            'tourism:guest_house': 'Pensjonat / Pokoje gościnne',
+            'tourism:apartment': 'Apartamenty na wynajem',
+            'tourism:museum': 'Muzeum',
+            'tourism:attraction': 'Atrakcja turystyczna',
+            'tourism:information': 'Informacja turystyczna'
+        };
+
+        const FREE_EMAIL_DOMAINS = new Set([
+            'gmail.com', 'googlemail.com', 'wp.pl', 'onet.pl', 'op.pl', 'poczta.onet.pl',
+            'interia.pl', 'interia.eu', 'poczta.fm', 'o2.pl', 'tlen.pl', 'go2.pl',
+            'yahoo.com', 'yahoo.pl', 'outlook.com', 'hotmail.com', 'live.com', 'icloud.com',
+            'protonmail.com', 'proton.me', 'gazeta.pl', 'autograf.pl', 'vp.pl', 'buziaczek.pl'
+        ]);
+
+        const TARGET_ROLE_CONFIG = {
+            all: {
+                label: 'Wszyscy decydenci (Marketing / Wdrożenia / HR / CEO)',
+                rolesHint: 'Head of Marketing, CTO / Wdrożenia, Head of HR / Rekrutacja, CEO',
+                prefixes: ['marketing', 'wdrozenia', 'rekrutacja', 'hr', 'ceo', 'partners']
+            },
+            marketing: {
+                label: 'Marketing / PR / Wizerunek',
+                rolesHint: 'Head of Marketing, Marketing Manager, CMO, Brand Director',
+                prefixes: ['marketing', 'pr', 'brand', 'media']
+            },
+            tech: {
+                label: 'Wdrożenia / IT / Produkt / Innowacje AI',
+                rolesHint: 'CTO, Head of Product, Head of Innovation, Digital Transformation Manager',
+                prefixes: ['wdrozenia', 'it', 'tech', 'innowacje']
+            },
+            hr: {
+                label: 'Rekrutacja / HR / Employer Branding (Osoby od rekrutacji)',
+                rolesHint: 'Head of HR, HR Manager, Talent Acquisition Specialist, Tech Recruiter, People & Culture',
+                prefixes: ['rekrutacja', 'hr', 'kariera', 'praca', 'talents', 'people']
+            },
+            ceo: {
+                label: 'CEO / Właściciel / Zarząd (SME & Agencje)',
+                rolesHint: 'CEO, Właściciel (Owner), Prezes Zarządu, Managing Director',
+                prefixes: ['ceo', 'zarzad', 'prezes', 'owner']
+            },
+            partners: {
+                label: 'Rozwój biznesu / Partnerstwa B2B',
+                rolesHint: 'Partnership Manager, Business Development Manager, Head of Sales',
+                prefixes: ['partners', 'wspolpraca', 'b2b', 'sales']
+            },
+            personal: {
+                label: 'Adresy imienne (Najwyższa skuteczność)',
+                rolesHint: 'imie.nazwisko@domena / i.nazwisko@domena (Użyj Kreatora AI)',
+                prefixes: ['marketing', 'rekrutacja', 'ceo']
+            }
+        };
+
+        let allLeads = [];
+        let filteredLeads = [];
+        let currentCityName = '';
+        let currentSort = { column: 'name', direction: 'asc' };
+        let activeModalLead = null;
+        let loadingTimerInterval = null;
+
+        let diagnosticsReport = {
+            rawElementsCount: 0,
+            validLeadsCount: 0,
+            invalidEmailCount: 0,
+            missingNameCount: 0,
+            duplicateCount: 0,
+            freeDomainCount: 0,
+            apiFailovers: 0,
+            endpointUsed: '',
+            durationSeconds: '0.0',
+            issues: [],
+            logs: []
+        };
+
+        const searchForm = document.getElementById('search-form');
+        const cityInput = document.getElementById('city-input');
+        const categorySelect = document.getElementById('category-select');
+        const targetRoleSelect = document.getElementById('target-role-select');
+        const onlyValidEmailsCheckbox = document.getElementById('only-valid-emails');
+        const searchBtn = document.getElementById('search-btn');
+        
+        const toggleB2bGuideBtn = document.getElementById('toggle-b2b-guide-btn');
+        const closeB2bGuideBtn = document.getElementById('close-b2b-guide-btn');
+        const b2bGuidePanel = document.getElementById('b2b-guide-panel');
+
+        const loadingState = document.getElementById('loading-state');
+        const loadingTitle = document.getElementById('loading-title');
+        const loadingSubtitle = document.getElementById('loading-subtitle');
+        const loadingPercentBadge = document.getElementById('loading-percent-badge');
+        const loadingProgressBar = document.getElementById('loading-progress-bar');
+        const loadingTimerEl = document.getElementById('loading-timer');
+        const liveProcessLogsEl = document.getElementById('live-process-logs');
+        
+        const errorState = document.getElementById('error-state');
+        const errorTitle = document.getElementById('error-title');
+        const errorMessage = document.getElementById('error-message');
+        const closeErrorBtn = document.getElementById('close-error-btn');
+        
+        const initialState = document.getElementById('initial-state');
+        const resultsDashboard = document.getElementById('results-dashboard');
+        
+        const statTotal = document.getElementById('stat-total');
+        const statEmails = document.getElementById('stat-emails');
+        const statPhones = document.getElementById('stat-phones');
+        const statWebsites = document.getElementById('stat-websites');
+        
+        const currentAreaNameEl = document.getElementById('current-area-name');
+        const visibleRowsCountEl = document.getElementById('visible-rows-count');
+        const totalRowsCountEl = document.getElementById('total-rows-count');
+        
+        const tableFilterInput = document.getElementById('table-filter-input');
+        const clearFilterBtn = document.getElementById('clear-filter-btn');
+        const resultsTbody = document.getElementById('results-tbody');
+        const emptyTableState = document.getElementById('empty-table-state');
+        
+        const copyModeSelect = document.getElementById('copy-mode-select');
+        const copyEmailsBtn = document.getElementById('copy-emails-btn');
+        const toggleRawEmailsBtn = document.getElementById('toggle-raw-emails-btn');
+        const toggleDiagnosticsBtn = document.getElementById('toggle-diagnostics-btn');
+        const diagnosticsBadgeCount = document.getElementById('diagnostics-badge-count');
+        const diagnosticsDrawer = document.getElementById('diagnostics-drawer');
+        const closeDiagnosticsBtn = document.getElementById('close-diagnostics-btn');
+        const exportErrorsCsvBtn = document.getElementById('export-errors-csv-btn');
+        const diagFilterSelect = document.getElementById('diag-filter-select');
+        const exportCsvBtn = document.getElementById('export-csv-btn');
+        
+        const rawEmailsDrawer = document.getElementById('raw-emails-drawer');
+        const rawEmailsTextarea = document.getElementById('raw-emails-textarea');
+        const rawEmailsCount = document.getElementById('raw-emails-count');
+        const emailSeparatorSelect = document.getElementById('email-separator');
+        const closeDrawerBtn = document.getElementById('close-drawer-btn');
+
+        const pitchModal = document.getElementById('pitch-modal');
+        const closePitchModalBtn = document.getElementById('close-pitch-modal-btn');
+        const modalCompanyName = document.getElementById('modal-company-name');
+        const modalCompanyMeta = document.getElementById('modal-company-meta');
+        const modalRecommendedRoles = document.getElementById('modal-recommended-roles');
+        const modalLinkedinBtn = document.getElementById('modal-linkedin-btn');
+        const decisionFirstName = document.getElementById('decision-first-name');
+        const decisionLastName = document.getElementById('decision-last-name');
+        const decisionDomain = document.getElementById('decision-domain');
+        const modalGeneratedEmailsList = document.getElementById('modal-generated-emails-list');
+        const modalRecipientEmail = document.getElementById('modal-recipient-email');
+        const modalLoomLink = document.getElementById('modal-loom-link');
+        const modalEmailSubject = document.getElementById('modal-email-subject');
+        const modalEmailBody = document.getElementById('modal-email-body');
+        const copySubjectBtn = document.getElementById('copy-subject-btn');
+        const copyFullPitchBtn = document.getElementById('copy-full-pitch-btn');
+        const openMailtoBtn = document.getElementById('open-mailto-btn');
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const toast = document.createElement('div');
+            const bgClass = type === 'error' ? 'bg-rose-600 text-white' : type === 'info' ? 'bg-slate-900 text-white' : 'bg-emerald-600 text-white';
+            const icon = type === 'error' ? 'fa-circle-exclamation' : type === 'info' ? 'fa-circle-info' : 'fa-circle-check';
+            
+            toast.className = `${bgClass} px-4 py-3 rounded-xl shadow-lg flex items-center gap-3 text-xs sm:text-sm font-medium pointer-events-auto transform translate-y-2 opacity-0 transition-all duration-300`;
+            toast.innerHTML = `<i class="fa-solid ${icon} text-base flex-shrink-0"></i><span class="flex-grow">${message}</span>`;
+            
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        function copyTextToClipboard(text, successMessage) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast(successMessage, 'success');
+            } catch (err) {
+                showToast('Nie udało się skopiować do schowka.', 'error');
+            }
+            document.body.removeChild(textarea);
+        }
+
+        function showError(title, msg) {
+            if (errorTitle) errorTitle.textContent = title;
+            if (errorMessage) errorMessage.textContent = msg;
+            if (errorState) errorState.classList.remove('hidden');
+        }
+
+        function hideError() {
+            if (errorState) errorState.classList.add('hidden');
+        }
+
+        if (closeErrorBtn) {
+            closeErrorBtn.addEventListener('click', hideError);
+        }
+
+        function normalizePolishChars(str) {
+            if (!str) return '';
+            const accents = {
+                'ą': 'a', 'ć': 'c', 'ę': 'e', 'ł': 'l', 'ń': 'n', 'ó': 'o', 'ś': 's', 'ź': 'z', 'ż': 'z',
+                'Ą': 'A', 'Ć': 'C', 'Ę': 'E', 'Ł': 'L', 'Ń': 'N', 'Ó': 'O', 'Ś': 'S', 'Ź': 'Z', 'Ż': 'Z'
+            };
+            return str.replace(/[ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]/g, match => accents[match] || match)
+                      .toLowerCase()
+                      .replace(/[^a-z0-9]/g, '');
+        }
+
+        function extractCompanyDomain(emails, website) {
+            if (website) {
+                try {
+                    let hostname = new URL(website.startsWith('http') ? website : 'https://' + website).hostname;
+                    if (hostname.startsWith('www.')) hostname = hostname.slice(4);
+                    if (hostname && !FREE_EMAIL_DOMAINS.has(hostname)) {
+                        return hostname;
+                    }
+                } catch (e) {}
+            }
+            for (const email of emails) {
+                const parts = email.split('@');
+                if (parts.length === 2) {
+                    const domain = parts[1].toLowerCase();
+                    if (!FREE_EMAIL_DOMAINS.has(domain)) {
+                        return domain;
+                    }
+                }
+            }
+            return '';
+        }
+
+        function formatWebsiteUrl(raw) {
+            if (!raw) return '';
+            let cleaned = raw.trim();
+            if (!cleaned.startsWith('http://') && !cleaned.startsWith('https://')) {
+                cleaned = 'https://' + cleaned;
+            }
+            return cleaned;
+        }
+
+        function resolveCategory(tags) {
+            for (const key of ['office', 'shop', 'amenity', 'craft', 'tourism']) {
+                if (tags[key]) {
+                    const lookupKey = `${key}:${tags[key].toLowerCase()}`;
+                    if (OSM_CATEGORY_TRANSLATIONS[lookupKey]) {
+                        return OSM_CATEGORY_TRANSLATIONS[lookupKey];
+                    }
+                    if (OSM_CATEGORY_TRANSLATIONS[`${key}:yes`]) {
+                        return OSM_CATEGORY_TRANSLATIONS[`${key}:yes`];
+                    }
+                    return tags[key].replace(/_/g, ' ');
+                }
+            }
+            return 'Firma / Usługi';
+        }
+
+        function generateDecisionMakerData(lead, roleKey) {
+            const hasCustomDomain = Boolean(lead.domain);
+            const cfg = TARGET_ROLE_CONFIG[roleKey] || TARGET_ROLE_CONFIG.all;
+            const suggestedEmails = [];
+
+            if (hasCustomDomain) {
+                cfg.prefixes.forEach(prefix => {
+                    suggestedEmails.push({ email: `${prefix}@${lead.domain}`, label: prefix });
+                });
+            }
+
+            return {
+                hasCustomDomain,
+                rolesHint: cfg.rolesHint,
+                suggestedEmails
+            };
+        }
+
+        function extractAndCleanEmails(rawEmailString, validateSyntax = true) {
+            if (!rawEmailString) return { valid: [], invalid: [] };
+            
+            const parts = rawEmailString
+                .replace(/mailto:/gi, '')
+                .split(/[;,/\s]+/)
+                .map(e => e.trim().toLowerCase())
+                .filter(Boolean);
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+            const uniqueValid = new Set();
+            const invalidList = [];
+
+            for (const part of parts) {
+                const cleaned = part.replace(/[.,;>)]+$/, '').replace(/^[<(]+/, '');
+                if (!validateSyntax || emailRegex.test(cleaned)) {
+                    uniqueValid.add(cleaned);
+                } else if (cleaned.length > 1) {
+                    invalidList.push(cleaned);
+                }
+            }
+            return {
+                valid: Array.from(uniqueValid),
+                invalid: invalidList
+            };
+        }
+
+        function resetDiagnostics() {
+            diagnosticsReport = {
+                rawElementsCount: 0,
+                validLeadsCount: 0,
+                invalidEmailCount: 0,
+                missingNameCount: 0,
+                duplicateCount: 0,
+                freeDomainCount: 0,
+                apiFailovers: 0,
+                endpointUsed: '',
+                durationSeconds: '0.0',
+                issues: [],
+                logs: []
+            };
+            if (liveProcessLogsEl) liveProcessLogsEl.innerHTML = '';
+            updateProgressStepUI(1, 'active', 5);
+        }
+
+        function addProcessLog(message, level = 'info') {
+            const now = new Date();
+            const timeStr = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0').slice(0, 2);
+            diagnosticsReport.logs.push({ time: timeStr, message, level });
+
+            if (!liveProcessLogsEl) return;
+            const line = document.createElement('div');
+            const colorMap = {
+                info: 'text-slate-300',
+                success: 'text-emerald-400 font-medium',
+                warn: 'text-amber-400',
+                error: 'text-rose-400 font-semibold'
+            };
+            const prefixMap = {
+                info: '➜',
+                success: '✔',
+                warn: '⚠',
+                error: '✖'
+            };
+            line.className = `${colorMap[level] || colorMap.info} flex items-start gap-2`;
+            line.innerHTML = `<span class="text-slate-500 select-none">[${timeStr}]</span> <span>${prefixMap[level] || '•'}</span> <span class="flex-grow">${message}</span>`;
+            liveProcessLogsEl.appendChild(line);
+            liveProcessLogsEl.scrollTop = liveProcessLogsEl.scrollHeight;
+        }
+
+        function updateProgressStepUI(stepNumber, status, percent) {
+            if (loadingPercentBadge) loadingPercentBadge.textContent = `${percent}%`;
+            if (loadingProgressBar) loadingProgressBar.style.width = `${percent}%`;
+
+            for (let i = 1; i <= 4; i++) {
+                const card = document.getElementById(`step-card-${i}`);
+                const icon = document.getElementById(`step-icon-${i}`);
+                if (!card || !icon) continue;
+
+                if (i < stepNumber || (i === stepNumber && status === 'done')) {
+                    card.className = 'p-3.5 rounded-xl border border-emerald-200 bg-emerald-50/50 flex items-start gap-3 transition-all';
+                    icon.className = 'w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[11px] flex-shrink-0 mt-0.5';
+                    icon.innerHTML = '<i class="fa-solid fa-check"></i>';
+                } else if (i === stepNumber) {
+                    card.className = 'p-3.5 rounded-xl border border-primary-300 bg-primary-50/60 shadow-2xs flex items-start gap-3 transition-all';
+                    icon.className = 'w-6 h-6 rounded-full bg-primary-600 text-white flex items-center justify-center font-bold text-[11px] flex-shrink-0 mt-0.5';
+                    icon.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+                } else {
+                    card.className = 'p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 flex items-start gap-3 transition-all opacity-60';
+                    icon.className = 'w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-[11px] flex-shrink-0 mt-0.5';
+                    icon.textContent = i;
+                }
+            }
+        }
+
+        function buildOverpassQuery(place, categoryFilter) {
+            let bboxStr = '';
+            if (place.boundingbox && place.boundingbox.length === 4) {
+                bboxStr = `(${place.boundingbox[0]},${place.boundingbox[2]},${place.boundingbox[1]},${place.boundingbox[3]})`;
+            }
+
+            let queryFilters = '';
+            if (categoryFilter === 'all') {
+                queryFilters = `
+                    node["email"]${bboxStr};
+                    way["email"]${bboxStr};
+                    relation["email"]${bboxStr};
+                    node["contact:email"]${bboxStr};
+                    way["contact:email"]${bboxStr};
+                    relation["contact:email"]${bboxStr};
+                `;
+            } else {
+                queryFilters = `
+                    node["${categoryFilter}"]${bboxStr};
+                    way["${categoryFilter}"]${bboxStr};
+                    relation["${categoryFilter}"]${bboxStr};
+                `;
+            }
+
+            return `
+                [out:json][timeout:35];
+                (
+                  ${queryFilters}
+                );
+                out body;
+                >;
+                out skel qt;
+            `;
+        }
+
+        async function fetchOverpassData(query) {
+            const endpoints = [
+                { url: 'https://overpass-api.de/api/interpreter', name: 'overpass-api.de (Główny)' },
+                { url: 'https://lz4.overpass-api.de/api/interpreter', name: 'lz4.overpass-api.de (Zapasowy 1)' },
+                { url: 'https://overpass.kumi.systems/api/interpreter', name: 'overpass.kumi.systems (Zapasowy 2)' }
+            ];
+
+            let lastError = null;
+
+            for (let i = 0; i < endpoints.length; i++) {
+                const ep = endpoints[i];
+                try {
+                    addProcessLog(`Wysyłanie zapytania Overpass QL do serwera: ${ep.name}...`, 'info');
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 45000);
+
+                    const response = await fetch(ep.url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                        },
+                        body: 'data=' + encodeURIComponent(query),
+                        signal: controller.signal
+                    });
+
+                    clearTimeout(timeoutId);
+
+                    if (!response.ok) {
+                        throw new Error(`Serwer ${ep.name} zwrócił kod HTTP ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    diagnosticsReport.endpointUsed = ep.name;
+                    addProcessLog(`Otrzymano poprawną odpowiedź JSON z serwera ${ep.name}.`, 'success');
+                    return data;
+                } catch (err) {
+                    lastError = err;
+                    diagnosticsReport.apiFailovers++;
+                    const errMsg = err.name === 'AbortError' ? 'Przekroczono limit czasu (Timeout 45s)' : err.message;
+                    addProcessLog(`Błąd serwera ${ep.name}: ${errMsg}. Przełączanie na kolejny serwer...`, 'warn');
+                    diagnosticsReport.issues.push({
+                        type: 'warning',
+                        category: 'Błąd połączenia API (Failover)',
+                        company: ep.name,
+                        detail: `${errMsg} – automatycznie przełączono na serwer zapasowy.`,
+                        osmId: 'API'
+                    });
+                }
+            }
+
+            throw lastError || new Error('Wszystkie serwery Overpass API są obecnie przeciążone. Spróbuj ponownie za chwilę.');
+        }
+
+        async function performSearch(e) {
+            if (e) e.preventDefault();
+
+            const cityQuery = cityInput.value.trim();
+            const category = categorySelect.value;
+            const validateEmails = onlyValidEmailsCheckbox.checked;
+
+            if (!cityQuery) {
+                showToast('Wpisz nazwę miasta przed wyszukiwaniem.', 'error');
+                cityInput.focus();
+                return;
+            }
+
+            hideError();
+            resetDiagnostics();
+            initialState.classList.add('hidden');
+            resultsDashboard.classList.add('hidden');
+            loadingState.classList.remove('hidden');
+            searchBtn.disabled = true;
+
+            const startTime = performance.now();
+            if (loadingTimerInterval) clearInterval(loadingTimerInterval);
+            loadingTimerInterval = setInterval(() => {
+                const elapsed = ((performance.now() - startTime) / 1000).toFixed(1);
+                if (loadingTimerEl) loadingTimerEl.textContent = `${elapsed}s`;
+            }, 100);
+
+            try {
+                updateProgressStepUI(1, 'active', 15);
+                loadingTitle.textContent = `Krok 1/4: Geokodowanie miasta "${cityQuery}"...`;
+                loadingSubtitle.textContent = 'Pobieranie identyfikatora granic administracyjnych z OpenStreetMap Nominatim...';
+                addProcessLog(`Rozpoczęto wyszukiwanie współrzędnych i granic dla: "${cityQuery}"`, 'info');
+
+                const nominatimUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cityQuery)}&addressdetails=1&limit=5&accept-language=pl`;
+                const nomResponse = await fetch(nominatimUrl, {
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                if (!nomResponse.ok) {
+                    throw new Error(`Błąd usługi geokodowania Nominatim (HTTP ${nomResponse.status}).`);
+                }
+
+                const places = await nomResponse.json();
+                if (!places || places.length === 0) {
+                    throw new Error(`Nie znaleziono miejscowości "${cityQuery}". Sprawdź pisownię lub wpisz większe miasto.`);
+                }
+
+                const bestPlace = places.find(p => p.osm_type === 'relation' && (p.class === 'boundary' || p.class === 'place')) || places[0];
+                currentCityName = bestPlace.display_name.split(',').slice(0, 2).join(', ');
+                addProcessLog(`Zidentyfikowano obszar: ${currentCityName} (OSM ${bestPlace.osm_type} ID: ${bestPlace.osm_id})`, 'success');
+
+                updateProgressStepUI(2, 'active', 45);
+                loadingTitle.textContent = `Krok 2/4: Pobieranie firm z bazy Overpass API (${currentCityName})...`;
+                loadingSubtitle.textContent = 'Przeszukiwanie węzłów i budynków posiadających tagi email oraz contact:email...';
+
+                const overpassQuery = buildOverpassQuery(bestPlace, category);
+                const overpassData = await fetchOverpassData(overpassQuery);
+
+                const elements = overpassData.elements || [];
+                diagnosticsReport.rawElementsCount = elements.length;
+                addProcessLog(`Pobrano ${elements.length} surowych obiektów z bazy OpenStreetMap.`, 'info');
+
+                updateProgressStepUI(3, 'active', 75);
+                loadingTitle.textContent = `Krok 3/4: Walidacja składni e-mail i raportowanie błędów...`;
+                loadingSubtitle.textContent = `Analizowanie ${elements.length} obiektów pod kątem poprawności danych kontaktowych...`;
+
+                const processedLeads = [];
+                const seenKeys = new Set();
+
+                for (const el of elements) {
+                    const tags = el.tags || {};
+                    const rawEmail = tags['contact:email'] || tags['email'] || tags['operator:email'] || '';
+                    const name = (tags['name'] || tags['brand'] || tags['operator'] || tags['official_name'] || '').trim();
+
+                    const { valid: emails, invalid: invalidEmails } = extractAndCleanEmails(rawEmail, validateEmails);
+
+                    if (invalidEmails.length > 0) {
+                        diagnosticsReport.invalidEmailCount += invalidEmails.length;
+                        diagnosticsReport.issues.push({
+                            type: 'error',
+                            category: 'Błędna składnia e-mail',
+                            company: name || `Obiekt bez nazwy (ID: ${el.id})`,
+                            detail: `Odrzucono niepoprawny format adresu: "${invalidEmails.join(', ')}"`,
+                            osmId: el.id
+                        });
+                    }
+
+                    if (emails.length === 0) continue;
+
+                    if (!name) {
+                        diagnosticsReport.missingNameCount++;
+                        diagnosticsReport.issues.push({
+                            type: 'error',
+                            category: 'Brak nazwy firmy w OSM',
+                            company: `Anonimowy punkt (${emails[0]})`,
+                            detail: `Obiekt posiada e-mail (${emails.join(', ')}), ale nie ma tagu name/brand – pominięto w tabeli.`,
+                            osmId: el.id
+                        });
+                        continue;
+                    }
+
+                    const primaryEmail = emails[0];
+                    const dedupKey = `${name.toLowerCase()}|${primaryEmail}`;
+                    if (seenKeys.has(dedupKey)) {
+                        diagnosticsReport.duplicateCount++;
+                        diagnosticsReport.issues.push({
+                            type: 'warning',
+                            category: 'Zduplikowany wpis',
+                            company: name,
+                            detail: `Pominięto powtórzony rekord dla firmy z adresem ${primaryEmail}.`,
+                            osmId: el.id
+                        });
+                        continue;
+                    }
+                    seenKeys.add(dedupKey);
+
+                    const phone = (tags['contact:phone'] || tags['phone'] || tags['contact:mobile'] || tags['mobile'] || '').trim();
+                    const rawWebsite = tags['contact:website'] || tags['website'] || tags['url'] || '';
+                    const website = formatWebsiteUrl(rawWebsite);
+
+                    const street = tags['addr:street'] || tags['contact:street'] || '';
+                    const houseNumber = tags['addr:housenumber'] || tags['contact:housenumber'] || '';
+                    const postcode = tags['addr:postcode'] || tags['contact:postcode'] || '';
+                    const city = tags['addr:city'] || tags['contact:city'] || cityQuery;
+
+                    let addressParts = [];
+                    if (street) {
+                        addressParts.push(houseNumber ? `${street} ${houseNumber}` : street);
+                    }
+                    if (postcode || city) {
+                        addressParts.push(`${postcode} ${city}`.trim());
+                    }
+                    const fullAddress = addressParts.join(', ') || cityQuery;
+
+                    const companyDomain = extractCompanyDomain(emails, website);
+
+                    if (!companyDomain) {
+                        diagnosticsReport.freeDomainCount++;
+                        diagnosticsReport.issues.push({
+                            type: 'warning',
+                            category: 'Darmowa skrzynka pocztowa',
+                            company: name,
+                            detail: `Firma korzysta z publicznej domeny (${primaryEmail}) i nie podaje własnej domeny WWW.`,
+                            osmId: el.id
+                        });
+                    }
+
+                    processedLeads.push({
+                        id: el.id,
+                        name: name,
+                        category: resolveCategory(tags),
+                        emails: emails,
+                        primaryEmail: primaryEmail,
+                        domain: companyDomain,
+                        phone: phone,
+                        website: website,
+                        address: fullAddress
+                    });
+                }
+
+                updateProgressStepUI(4, 'done', 100);
+                loadingTitle.textContent = `Krok 4/4: Finalizacja bazy i raportu błędów...`;
+                diagnosticsReport.validLeadsCount = processedLeads.length;
+
+                const totalElapsed = ((performance.now() - startTime) / 1000).toFixed(2);
+                diagnosticsReport.durationSeconds = totalElapsed;
+
+                addProcessLog(`Walidacja zakończona w ${totalElapsed}s. Zaakceptowano ${processedLeads.length} unikalnych firm.`, 'success');
+
+                allLeads = processedLeads;
+                sortLeads('name', 'asc');
+                
+                tableFilterInput.value = '';
+                clearFilterBtn.classList.add('hidden');
+                filteredLeads = [...allLeads];
+
+                updateDashboardUI();
+                renderDiagnosticsReportUI();
+
+                loadingState.classList.add('hidden');
+                resultsDashboard.classList.remove('hidden');
+
+                if (allLeads.length > 0) {
+                    showToast(`Pobrano ${allLeads.length} firm w ${totalElapsed}s!`, 'success');
+                } else {
+                    showToast('Nie znaleziono firm z publicznym adresem e-mail w tym obszarze.', 'info');
+                }
+
+            } catch (err) {
+                addProcessLog(`Błąd krytyczny: ${err.message}`, 'error');
+                loadingState.classList.add('hidden');
+                showError('Nie udało się pobrać danych', err.message || 'Wystąpił nieoczekiwany błąd komunikacji z API.');
+            } finally {
+                if (loadingTimerInterval) clearInterval(loadingTimerInterval);
+                searchBtn.disabled = false;
+            }
+        }
+
+        function renderDiagnosticsReportUI() {
+            const totalIssues = diagnosticsReport.issues.length;
+            if (diagnosticsBadgeCount) {
+                diagnosticsBadgeCount.textContent = totalIssues;
+            }
+
+            document.getElementById('diag-raw-count').textContent = diagnosticsReport.rawElementsCount;
+            document.getElementById('diag-invalid-emails').textContent = diagnosticsReport.invalidEmailCount;
+            document.getElementById('diag-missing-name').textContent = diagnosticsReport.missingNameCount;
+            document.getElementById('diag-duplicates').textContent = diagnosticsReport.duplicateCount;
+            document.getElementById('diag-free-domains').textContent = diagnosticsReport.freeDomainCount;
+            document.getElementById('diag-duration').textContent = `${diagnosticsReport.durationSeconds}s`;
+            document.getElementById('diag-endpoint-used').textContent = diagnosticsReport.endpointUsed || 'overpass-api.de';
+
+            const logsHistoryEl = document.getElementById('diag- logs-history');
+            if (logsHistoryEl) {
+                logsHistoryEl.innerHTML = '';
+                diagnosticsReport.logs.forEach(log => {
+                    const div = document.createElement('div');
+                    const color = log.level === 'error' ? 'text-rose-400' : log.level === 'warn' ? 'text-amber-400' : log.level === 'success' ? 'text-emerald-400' : 'text-slate-300';
+                    div.className = `${color} leading-relaxed`;
+                    div.textContent = `[${log.time}] ${log.message}`;
+                    logsHistoryEl.appendChild(div);
+                });
+            }
+
+            renderDiagnosticsIssuesList();
+        }
+
+        function renderDiagnosticsIssuesList() {
+            const listEl = document.getElementById('diag-issues-list');
+            const totalEl = document.getElementById('diag-issues-total');
+            if (!listEl) return;
+
+            const filterVal = diagFilterSelect ? diagFilterSelect.value : 'all';
+            const filteredIssues = diagnosticsReport.issues.filter(item => {
+                if (filterVal === 'all') return true;
+                return item.type === filterVal;
+            });
+
+            if (totalEl) totalEl.textContent = filteredIssues.length;
+            listEl.innerHTML = '';
+
+            if (filteredIssues.length === 0) {
+                listEl.innerHTML = `
+                    <div class="p-6 text-center text-slate-400">
+                        <i class="fa-solid fa-circle-check text-emerald-500 text-lg mb-1 block"></i>
+                        Brak zarejestrowanych błędów lub ostrzeżeń w tej kategorii.
+                    </div>
+                `;
+                return;
+            }
+
+            filteredIssues.forEach(issue => {
+                const row = document.createElement('div');
+                row.className = 'p-3 hover:bg-slate-50 flex items-start justify-between gap-3 transition-colors';
+
+                const isError = issue.type === 'error';
+                const badgeClass = isError
+                    ? 'bg-rose-100 text-rose-800 border-rose-200'
+                    : 'bg-amber-100 text-amber-800 border-amber-200';
+                const iconClass = isError
+                    ? 'fa-solid fa-circle-xmark text-rose-500'
+                    : 'fa-solid fa-triangle-exclamation text-amber-500';
+
+                row.innerHTML = `
+                    <div class="flex items-start gap-2.5">
+                        <i class="${iconClass} mt-1"></i>
+                        <div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="font-bold text-slate-800">${issue.company}</span>
+                                <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full border ${badgeClass}">${issue.category}</span>
+                            </div>
+                            <p class="text-slate-600 text-[11px] mt-0.5">${issue.detail}</p>
+                        </div>
+                    </div>
+                    <span class="text-[10px] font-mono text-slate-400 whitespace-nowrap">OSM #${issue.osmId}</span>
+                `;
+                listEl.appendChild(row);
+            });
+        }
+
+        function exportErrorsReportCSV() {
+            if (diagnosticsReport.issues.length === 0) {
+                showToast('Brak błędów lub ostrzeżeń do wyeksportowania.', 'info');
+                return;
+            }
+            const headers = ['Typ zdarzenia', 'Kategoria problemu', 'Obiekt / Firma', 'Szczegóły diagnostyczne', 'OSM ID'];
+            const escapeCsv = (v) => `"${String(v || '').replace(/"/g, '""')}"`;
+            const rows = diagnosticsReport.issues.map(i => [
+                escapeCsv(i.type === 'error' ? 'BŁĄD (Odrzucono)' : 'OSTRZEŻENIE'),
+                escapeCsv(i.category),
+                escapeCsv(i.company),
+                escapeCsv(i.detail),
+                escapeCsv(i.osmId)
+            ].join(';'));
+
+            const csvContent = '\uFEFF' + [headers.join(';'), ...rows].join('\r\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `raport_bledow_osm_${new Date().toISOString().slice(0, 10)}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showToast('Pobrano raport błędów i ostrzeżeń (CSV).', 'success');
+        }
+
+        function sortLeads(column, direction) {
+            currentSort = { column, direction };
+            const factor = direction === 'asc' ? 1 : -1;
+
+            const comparator = (a, b) => {
+                let valA = '';
+                let valB = '';
+                if (column === 'name') {
+                    valA = a.name.toLowerCase();
+                    valB = b.name.toLowerCase();
+                } else if (column === 'category') {
+                    valA = a.category.toLowerCase();
+                    valB = b.category.toLowerCase();
+                } else if (column === 'email') {
+                    valA = a.primaryEmail.toLowerCase();
+                    valB = b.primaryEmail.toLowerCase();
+                }
+                return valA.localeCompare(valB, 'pl') * factor;
+            };
+
+            allLeads.sort(comparator);
+            filteredLeads.sort(comparator);
+        }
+
+        function updateDashboardUI() {
+            currentAreaNameEl.textContent = currentCityName;
+            totalRowsCountEl.textContent = allLeads.length;
+            visibleRowsCountEl.textContent = filteredLeads.length;
+
+            const uniqueEmailsSet = new Set();
+            let phonesCount = 0;
+            let customDomainsCount = 0;
+
+            filteredLeads.forEach(lead => {
+                lead.emails.forEach(em => uniqueEmailsSet.add(em));
+                if (lead.phone) phonesCount++;
+                if (lead.domain) customDomainsCount++;
+            });
+
+            statTotal.textContent = filteredLeads.length;
+            statEmails.textContent = uniqueEmailsSet.size;
+            statPhones.textContent = phonesCount;
+            statWebsites.textContent = customDomainsCount;
+
+            renderTableRows();
+            updateRawEmailsTextarea();
+        }
+
+        function renderTableRows() {
+            resultsTbody.innerHTML = '';
+
+            if (filteredLeads.length === 0) {
+                emptyTableState.classList.remove('hidden');
+                return;
+            }
+            emptyTableState.classList.add('hidden');
+
+            const selectedRoleKey = targetRoleSelect.value;
+            const fragment = document.createDocumentFragment();
+
+            filteredLeads.forEach((lead, index) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50/90 transition-colors group';
+
+                const decisionData = generateDecisionMakerData(lead, selectedRoleKey);
+
+                const tdIndex = document.createElement('td');
+                tdIndex.className = 'py-3.5 px-3 text-center text-slate-400 font-mono text-xs align-top';
+                tdIndex.textContent = index + 1;
+
+                const tdName = document.createElement('td');
+                tdName.className = 'py-3.5 px-4 align-top';
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'font-semibold text-slate-900 leading-snug';
+                nameDiv.textContent = lead.name;
+                tdName.appendChild(nameDiv);
+
+                if (lead.domain) {
+                    const domainBadge = document.createElement('div');
+                    domainBadge.className = 'text-[11px] text-slate-400 font-mono mt-0.5 flex items-center gap-1';
+                    domainBadge.innerHTML = `<i class="fa-solid fa-globe text-[10px] text-indigo-400"></i> <span>${lead.domain}</span>`;
+                    tdName.appendChild(domainBadge);
+                }
+
+                const tdCat = document.createElement('td');
+                tdCat.className = 'py-3.5 px-4 align-top';
+                const catBadge = document.createElement('span');
+                catBadge.className = 'inline-block px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-medium text-xs border border-slate-200/80';
+                catBadge.textContent = lead.category;
+                tdCat.appendChild(catBadge);
+
+                const tdEmail = document.createElement('td');
+                tdEmail.className = 'py-3.5 px-4 align-top';
+                const emailContainer = document.createElement('div');
+                emailContainer.className = 'flex flex-col gap-1';
+
+                lead.emails.forEach(email => {
+                    const emailRow = document.createElement('div');
+                    emailRow.className = 'flex items-center gap-1.5';
+
+                    const emailLink = document.createElement('a');
+                    emailLink.href = `mailto:${email}`;
+                    emailLink.className = 'text-slate-700 hover:text-primary-600 hover:underline font-medium break-all text-xs';
+                    emailLink.textContent = email;
+
+                    const copySingleBtn = document.createElement('button');
+                    copySingleBtn.type = 'button';
+                    copySingleBtn.title = 'Kopiuj ten adres e-mail';
+                    copySingleBtn.className = 'text-slate-400 hover:text-primary-600 p-1 rounded transition-all cursor-pointer';
+                    copySingleBtn.innerHTML = '<i class="fa-regular fa-copy text-[11px]"></i>';
+                    copySingleBtn.addEventListener('click', () => {
+                        copyTextToClipboard(email, `Skopiowano: ${email}`);
+                    });
+
+                    emailRow.appendChild(emailLink);
+                    emailRow.appendChild(copySingleBtn);
+                    emailContainer.appendChild(emailRow);
+                });
+                tdEmail.appendChild(emailContainer);
+
+                const tdDecision = document.createElement('td');
+                tdDecision.className = 'py-3.5 px-4 align-top bg-indigo-50/25 border-x border-indigo-100/80';
+                
+                const decisionWrap = document.createElement('div');
+                decisionWrap.className = 'space-y-2';
+
+                const roleBadge = document.createElement('div');
+                roleBadge.className = 'text-[11px] text-slate-600 flex items-start gap-1.5 leading-tight';
+                roleBadge.innerHTML = `<i class="fa-solid fa-bullseye text-primary-600 mt-0.5 flex-shrink-0"></i> <span><strong class="text-slate-800">Cel:</strong> ${decisionData.rolesHint}</span>`;
+                decisionWrap.appendChild(roleBadge);
+
+                if (decisionData.hasCustomDomain && decisionData.suggestedEmails.length > 0) {
+                    const pillsContainer = document.createElement('div');
+                    pillsContainer.className = 'flex flex-wrap gap-1';
+
+                    decisionData.suggestedEmails.forEach(item => {
+                        const pill = document.createElement('button');
+                        pill.type = 'button';
+                        pill.title = 'Kliknij, aby skopiować adres działu wdrożeń/marketingu';
+                        pill.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-mono bg-white hover:bg-primary-600 text-primary-700 hover:text-white border border-primary-200 shadow-2xs transition-colors cursor-pointer';
+                        pill.innerHTML = `<span>${item.email}</span> <i class="fa-regular fa-copy text-[9px] opacity-70"></i>`;
+                        pill.addEventListener('click', () => {
+                            copyTextToClipboard(item.email, `Skopiowano adres docelowy: ${item.email}`);
+                        });
+                        pillsContainer.appendChild(pill);
+                    });
+
+                    decisionWrap.appendChild(pillsContainer);
+                } else {
+                    const noDomainInfo = document.createElement('div');
+                    noDomainInfo.className = 'text-[11px] text-amber-700 bg-amber-50/80 border border-amber-200/70 px-2 py-1 rounded-md';
+                    noDomainInfo.textContent = 'Skrzynka na darmowej domenie – użyj Kreatora AI lub LinkedIn.';
+                    decisionWrap.appendChild(noDomainInfo);
+                }
+
+                const actionsRow = document.createElement('div');
+                actionsRow.className = 'flex flex-wrap items-center gap-1.5 pt-0.5';
+
+                const openModalBtn = document.createElement('button');
+                openModalBtn.type = 'button';
+                openModalBtn.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary-600 hover:bg-primary-700 text-white font-semibold text-[11px] shadow-2xs transition-colors cursor-pointer';
+                openModalBtn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> <span>Imienny + Szablon AI</span>`;
+                openModalBtn.addEventListener('click', () => openPitchModal(lead));
+
+                const linkedInSearchQuery = encodeURIComponent(`"${lead.name}" ${currentCityName.split(',')[0]} (CEO OR Właściciel OR Marketing OR CTO OR HR OR Rekrutacja) site:linkedin.com/in/`);
+                const linkedInLink = document.createElement('a');
+                linkedInLink.href = `https://www.google.com/search?q=${linkedInSearchQuery}`;
+                linkedInLink.target = '_blank';
+                linkedInLink.rel = 'noopener noreferrer';
+                linkedInLink.className = 'inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-medium text-[11px] transition-colors';
+                linkedInLink.innerHTML = `<i class="fa-brands fa-linkedin text-[#0A66C2]"></i> <span>Szukaj osoby</span>`;
+
+                actionsRow.appendChild(openModalBtn);
+                actionsRow.appendChild(linkedInLink);
+                decisionWrap.appendChild(actionsRow);
+
+                tdDecision.appendChild(decisionWrap);
+
+                const tdContactExtra = document.createElement('td');
+                tdContactExtra.className = 'py-3.5 px-4 align-top space-y-1 text-xs';
+                if (lead.phone) {
+                    const phoneLink = document.createElement('a');
+                    phoneLink.href = `tel:${lead.phone.replace(/\s+/g, '')}`;
+                    phoneLink.className = 'text-slate-700 hover:text-slate-900 flex items-center gap-1.5 whitespace-nowrap font-medium';
+                    phoneLink.innerHTML = `<i class="fa-solid fa-phone text-[10px] text-slate-400"></i> <span></span>`;
+                    phoneLink.querySelector('span').textContent = lead.phone;
+                    tdContactExtra.appendChild(phoneLink);
+                }
+                if (lead.website) {
+                    const webLink = document.createElement('a');
+                    webLink.href = lead.website;
+                    webLink.target = '_blank';
+                    webLink.rel = 'noopener noreferrer';
+                    webLink.className = 'text-sky-600 hover:text-sky-700 hover:underline flex items-center gap-1.5 truncate max-w-[150px]';
+                    const cleanHost = lead.website.replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, '');
+                    webLink.innerHTML = `<i class="fa-solid fa-arrow-up-right-from-square text-[10px] flex-shrink-0"></i> <span class="truncate"></span>`;
+                    webLink.querySelector('span').textContent = cleanHost;
+                    tdContactExtra.appendChild(webLink);
+                }
+                if (!lead.phone && !lead.website) {
+                    tdContactExtra.innerHTML = '<span class="text-slate-300">—</span>';
+                }
+
+                const tdAddr = document.createElement('td');
+                tdAddr.className = 'py-3.5 px-4 text-slate-500 text-xs align-top';
+                tdAddr.textContent = lead.address;
+
+                tr.appendChild(tdIndex);
+                tr.appendChild(tdName);
+                tr.appendChild(tdCat);
+                tr.appendChild(tdEmail);
+                tr.appendChild(tdDecision);
+                tr.appendChild(tdContactExtra);
+                tr.appendChild(tdAddr);
+
+                fragment.appendChild(tr);
+            });
+
+            resultsTbody.appendChild(fragment);
+        }
+
+        function openPitchModal(lead) {
+            activeModalLead = lead;
+            const roleKey = targetRoleSelect.value;
+            const decisionData = generateDecisionMakerData(lead, roleKey);
+
+            modalCompanyName.textContent = lead.name;
+            modalCompanyMeta.textContent = `${lead.category} • ${lead.address} ${lead.domain ? '• ' + lead.domain : ''}`;
+            modalRecommendedRoles.textContent = `Rekomendowane stanowiska (${TARGET_ROLE_CONFIG[roleKey].label}): ${decisionData.rolesHint}`;
+
+            const linkedInQuery = encodeURIComponent(`"${lead.name}" ${currentCityName.split(',')[0]} (CEO OR Właściciel OR Marketing OR CTO OR Prezes) site:linkedin.com/in/`);
+            modalLinkedinBtn.href = `https://www.google.com/search?q=${linkedInQuery}`;
+
+            decisionFirstName.value = '';
+            decisionLastName.value = '';
+            decisionDomain.value = lead.domain || '';
+
+            const defaultRecipient = (decisionData.suggestedEmails[0] && decisionData.suggestedEmails[0].email) || lead.primaryEmail;
+            modalRecipientEmail.value = defaultRecipient;
+
+            renderModalEmailPills();
+            updateModalPitchTemplate();
+
+            pitchModal.classList.remove('hidden');
+        }
+
+        function closePitchModal() {
+            pitchModal.classList.add('hidden');
+            activeModalLead = null;
+        }
+
+        function renderModalEmailPills() {
+            if (!activeModalLead) return;
+            modalGeneratedEmailsList.innerHTML = '';
+
+            const domain = normalizePolishChars(decisionDomain.value) || activeModalLead.domain || '';
+            const first = normalizePolishChars(decisionFirstName.value);
+            const last = normalizePolishChars(decisionLastName.value);
+
+            const candidates = [];
+
+            if (domain && first && last) {
+                candidates.push({ email: `${first}.${last}@${domain}`, label: 'Imienny (Najwyższa skuteczność)', highlight: true });
+                candidates.push({ email: `${first.charAt(0)}.${last}@${domain}`, label: 'Inicjał + Nazwisko', highlight: true });
+                candidates.push({ email: `${first}@${domain}`, label: 'Samo imię', highlight: true });
+            } else if (domain && first) {
+                candidates.push({ email: `${first}@${domain}`, label: 'Imienny', highlight: true });
+            }
+
+            if (domain) {
+                ['marketing', 'wdrozenia', 'rekrutacja', 'hr', 'kariera', 'ceo', 'partners', 'it'].forEach(prefix => {
+                    candidates.push({ email: `${prefix}@${domain}`, label: 'Działowy', highlight: false });
+                });
+            }
+
+            activeModalLead.emails.forEach(osmEmail => {
+                candidates.push({ email: osmEmail, label: 'Ogólny OSM', highlight: false });
+            });
+
+            candidates.forEach(item => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = item.highlight
+                    ? 'px-2.5 py-1 rounded-lg text-xs font-mono font-semibold bg-emerald-600 text-white shadow-2xs hover:bg-emerald-700 transition-colors cursor-pointer flex items-center gap-1.5'
+                    : 'px-2.5 py-1 rounded-lg text-xs font-mono bg-white hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 border border-slate-300 transition-colors cursor-pointer';
+                btn.innerHTML = `<span>${item.email}</span>`;
+                btn.addEventListener('click', () => {
+                    modalRecipientEmail.value = item.email;
+                    copyTextToClipboard(item.email, `Ustawiono odbiorcę i skopiowano: ${item.email}`);
+                    updateModalMailtoHref();
+                });
+                modalGeneratedEmailsList.appendChild(btn);
+            });
+        }
+
+        function updateModalPitchTemplate() {
+            if (!activeModalLead) return;
+
+            const firstNameRaw = decisionFirstName.value.trim();
+            const greeting = firstNameRaw ? `Dzień dobry Panie/Pani ${firstNameRaw},` : `Dzień dobry,`;
+            const loomUrl = modalLoomLink.value.trim() || '[LINK DO 30-SEKUNDOWEGO WIDEO DEMO]';
+            const roleKey = targetRoleSelect.value;
+
+            let subject = `Szybkie rozwiązanie AI do poprawy wizerunku ${activeModalLead.name}`;
+            let roleContextLine = `Zauważyłem, że dynamicznie rozwijacie Państwo działalność w obszarze "${activeModalLead.category}" na rynku w mieście ${currentCityName.split(',')[0]}.`;
+            let valuePropositionLine = `Stworzyliśmy narzędzie AI, które automatycznie wspiera i poprawia wizerunek firmy w tym obszarze.`;
+
+            if (roleKey === 'marketing') {
+                roleContextLine = `Piszę bezpośrednio do działu odpowiedzialnego za marketing i PR w ${activeModalLead.name}.`;
+            } else if (roleKey === 'tech') {
+                subject = `Szybkie wdrożenie AI wspierające procesy w ${activeModalLead.name}`;
+                roleContextLine = `Kontaktuję się w sprawie szybkiego wdrożenia narzędzia AI w ${activeModalLead.name}.`;
+            } else if (roleKey === 'hr') {
+                subject = `Wsparcie rekrutacji i Employer Brandingu AI w ${activeModalLead.name}`;
+                roleContextLine = `Piszę bezpośrednio do zespołu odpowiedzialnego za rekrutację i HR w ${activeModalLead.name}.`;
+                valuePropositionLine = `Stworzyliśmy rozwiązanie AI, które przyspiesza procesy rekrutacyjne i wzmacnia Employer Branding.`;
+            }
+
+            modalEmailSubject.value = subject;
+
+            const body = `${greeting}
+
+${roleContextLine} ${valuePropositionLine}
+
+Nagrałem krótkie, 30-sekundowe wideo pokazujące aplikację w akcji na żywo:
+👉 ${loomUrl}
+
+Czy znajdzie Pan/Pani 10 minut w czwartek na krótką prezentację demo?
+
+Pozdrawiam serdecznie,
+[Twoje Imię i Nazwisko]`;
+
+            modalEmailBody.value = body;
+            updateModalMailtoHref();
+        }
+
+        function updateModalMailtoHref() {
+            const recipient = modalRecipientEmail.value.trim();
+            const subject = encodeURIComponent(modalEmailSubject.value);
+            const body = encodeURIComponent(modalEmailBody.value);
+            openMailtoBtn.href = `mailto:${recipient}?subject=${subject}&body=${body}`;
+        }
+
+        function getUniqueFilteredEmails() {
+            const set = new Set();
+            const copyMode = copyModeSelect ? copyModeSelect.value : 'osm';
+            const roleKey = targetRoleSelect.value;
+
+            filteredLeads.forEach(lead => {
+                if (copyMode === 'osm' || copyMode === 'combined') {
+                    lead.emails.forEach(e => set.add(e));
+                }
+                if (copyMode === 'decision' || copyMode === 'combined') {
+                    const decisionData = generateDecisionMakerData(lead, roleKey);
+                    if (decisionData.hasCustomDomain) {
+                        decisionData.suggestedEmails.forEach(item => set.add(item.email));
+                    } else if (copyMode === 'decision') {
+                        lead.emails.forEach(e => set.add(e));
+                    }
+                }
+            });
+            return Array.from(set);
+        }
+
+        function updateRawEmailsTextarea() {
+            const emails = getUniqueFilteredEmails();
+            const sepValue = emailSeparatorSelect.value === '\\n' ? '\n' : emailSeparatorSelect.value;
+            rawEmailsTextarea.value = emails.join(sepValue);
+            rawEmailsCount.textContent = emails.length;
+        }
+
+        function handleTableFilter() {
+            const query = tableFilterInput.value.trim().toLowerCase();
+            
+            if (query.length > 0) {
+                clearFilterBtn.classList.remove('hidden');
+            } else {
+                clearFilterBtn.classList.add('hidden');
+            }
+
+            if (!query) {
+                filteredLeads = [...allLeads];
+            } else {
+                const roleKey = targetRoleSelect.value;
+                filteredLeads = allLeads.filter(lead => {
+                    const decisionData = generateDecisionMakerData(lead, roleKey);
+                    const suggestedStr = decisionData.suggestedEmails.map(i => i.email).join(' ').toLowerCase();
+                    return (
+                        lead.name.toLowerCase().includes(query) ||
+                        lead.category.toLowerCase().includes(query) ||
+                        lead.emails.some(e => e.toLowerCase().includes(query)) ||
+                        (lead.domain && lead.domain.toLowerCase().includes(query)) ||
+                        suggestedStr.includes(query) ||
+                        lead.address.toLowerCase().includes(query) ||
+                        (lead.phone && lead.phone.toLowerCase().includes(query)) ||
+                        (lead.website && lead.website.toLowerCase().includes(query))
+                    );
+                });
+            }
+
+            updateDashboardUI();
+        }
+
+        function exportToCSV() {
+            if (filteredLeads.length === 0) {
+                showToast('Brak wyników do wyeksportowania.', 'error');
+                return;
+            }
+
+            const roleKey = targetRoleSelect.value;
+            const headers = [
+                'Nazwa firmy', 'Kategoria', 'Domena B2B', 'E-mail ogólny (OSM)',
+                'Sugerowane maile wdrożeniowe/działowe', 'Rekomendowane stanowiska',
+                'Temat Cold Maila AI', 'Telefon', 'Strona WWW', 'Adres', 'Miasto'
+            ];
+            
+            const escapeCsvValue = (val) => {
+                if (val === null || val === undefined) return '""';
+                const str = String(val).replace(/"/g, '""');
+                return `"${str}"`;
+            };
+
+            const rows = filteredLeads.map(lead => {
+                const primaryEmail = lead.emails[0] || '';
+                const decisionData = generateDecisionMakerData(lead, roleKey);
+                const suggestedEmailsStr = decisionData.suggestedEmails.map(i => i.email).join('; ');
+                const pitchSubject = `Szybkie rozwiązanie AI do poprawy wizerunku ${lead.name}`;
+
+                return [
+                    escapeCsvValue(lead.name), escapeCsvValue(lead.category), escapeCsvValue(lead.domain || ''),
+                    escapeCsvValue(primaryEmail), escapeCsvValue(suggestedEmailsStr), escapeCsvValue(decisionData.rolesHint),
+                    escapeCsvValue(pitchSubject), escapeCsvValue(lead.phone), escapeCsvValue(lead.website || ''),
+                    escapeCsvValue(lead.address), escapeCsvValue(currentCityName)
+                ].join(';');
+            });
+
+            const csvContent = '\uFEFF' + [headers.join(';'), ...rows].join('\r\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+
+            const cleanCitySlug = (cityInput.value.trim() || 'miasto').toLowerCase().replace(/[^a-z0-9ąćęłńóśźż]+/g, '_');
+            const dateStr = new Date().toISOString().slice(0, 10);
+
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `kontakty_firmy_${cleanCitySlug}_${dateStr}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            showToast(`Pobrano plik CSV (${filteredLeads.length} firm).`, 'success');
+        }
+
+        searchForm.addEventListener('submit', performSearch);
+
+        targetRoleSelect.addEventListener('change', () => {
+            if (allLeads.length > 0) {
+                updateDashboardUI();
+                const label = TARGET_ROLE_CONFIG[targetRoleSelect.value].label;
+                showToast(`Zaktualizowano cel wysyłki: ${label}`, 'info');
+            }
+        });
+
+        copyModeSelect.addEventListener('change', () => {
+            updateRawEmailsTextarea();
+        });
+
+        toggleB2bGuideBtn.addEventListener('click', () => {
+            b2bGuidePanel.classList.toggle('hidden');
+        });
+        closeB2bGuideBtn.addEventListener('click', () => {
+            b2bGuidePanel.classList.add('hidden');
+        });
+
+        closePitchModalBtn.addEventListener('click', closePitchModal);
+        pitchModal.addEventListener('click', (e) => {
+            if (e.target === pitchModal) closePitchModal();
+        });
+
+        [decisionFirstName, decisionLastName, decisionDomain].forEach(input => {
+            input.addEventListener('input', () => {
+                renderModalEmailPills();
+                const domain = normalizePolishChars(decisionDomain.value) || (activeModalLead && activeModalLead.domain) || '';
+                const first = normalizePolishChars(decisionFirstName.value);
+                const last = normalizePolishChars(decisionLastName.value);
+                if (domain && first && last) {
+                    modalRecipientEmail.value = `${first}.${last}@${domain}`;
+                }
+                updateModalPitchTemplate();
+            });
+        });
+
+        modalLoomLink.addEventListener('input', updateModalPitchTemplate);
+        modalRecipientEmail.addEventListener('input', updateModalMailtoHref);
+        modalEmailSubject.addEventListener('input', updateModalMailtoHref);
+        modalEmailBody.addEventListener('input', updateModalMailtoHref);
+
+        copySubjectBtn.addEventListener('click', () => {
+            copyTextToClipboard(modalEmailSubject.value, 'Skopiowano temat wiadomości!');
+        });
+
+        copyFullPitchBtn.addEventListener('click', () => {
+            const fullText = `Temat: ${modalEmailSubject.value}\nOdbiorca: ${modalRecipientEmail.value}\n\n${modalEmailBody.value}`;
+            copyTextToClipboard(fullText, 'Skopiowano kompletny szablon Cold Maila!');
+        });
+
+        document.querySelectorAll('.city-pill').forEach(btn => {
+            btn.addEventListener('click', () => {
+                cityInput.value = btn.dataset.city;
+                performSearch();
+            });
+        });
+
+        tableFilterInput.addEventListener('input', handleTableFilter);
+        clearFilterBtn.addEventListener('click', () => {
+            tableFilterInput.value = '';
+            handleTableFilter();
+        });
+
+        copyEmailsBtn.addEventListener('click', () => {
+            const emails = getUniqueFilteredEmails();
+            if (emails.length === 0) {
+                showToast('Brak adresów e-mail do skopiowania.', 'error');
+                return;
+            }
+            const sepValue = emailSeparatorSelect.value === '\\n' ? '\n' : emailSeparatorSelect.value;
+            copyTextToClipboard(emails.join(sepValue), `Skopiowano ${emails.length} unikalnych adresów e-mail!`);
+        });
+
+        toggleRawEmailsBtn.addEventListener('click', () => {
+            rawEmailsDrawer.classList.toggle('hidden');
+            updateRawEmailsTextarea();
+        });
+
+        closeDrawerBtn.addEventListener('click', () => {
+            rawEmailsDrawer.classList.add('hidden');
+        });
+
+        toggleDiagnosticsBtn.addEventListener('click', () => {
+            diagnosticsDrawer.classList.toggle('hidden');
+        });
+
+        closeDiagnosticsBtn.addEventListener('click', () => {
+            diagnosticsDrawer.classList.add('hidden');
+        });
+
+        diagFilterSelect.addEventListener('change', renderDiagnosticsIssuesList);
+        exportErrorsCsvBtn.addEventListener('click', exportErrorsReportCSV);
+
+        emailSeparatorSelect.addEventListener('change', updateRawEmailsTextarea);
+        exportCsvBtn.addEventListener('click', exportToCSV);
+
+        document.querySelectorAll('th[data-sort]').forEach(th => {
+            th.addEventListener('click', () => {
+                const col = th.dataset.sort;
+                const nextDir = (currentSort.column === col && currentSort.direction === 'asc') ? 'desc' : 'asc';
+                sortLeads(col, nextDir);
+                renderTableRows();
+            });
+        });
+    </script>
+</body>
+</html>
